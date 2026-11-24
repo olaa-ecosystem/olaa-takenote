@@ -1,0 +1,57 @@
+# Tests the iPad prototype and publishes it to GitHub Pages so it can be installed from Safari (Add to Home Screen).
+# One-time setup by a repository admin: Settings → Pages → Source: GitHub Actions.
+name: Prototype (test and publish)
+
+on:
+  push:
+    branches: [main]
+    paths: ['prototypes/ipad-home/**', '.github/workflows/prototype-pages.yml']
+  pull_request:
+    paths: ['prototypes/ipad-home/**', '.github/workflows/prototype-pages.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: prototype-pages
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: prototypes/ipad-home
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm test -- --trace off
+
+  publish:
+    needs: test
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      # publish only the app's own files: no tests, tooling or docs
+      - name: Collect site
+        run: |
+          mkdir -p _site
+          cd prototypes/ipad-home
+          cp -r index.html manifest.webmanifest sw.js css js data icons ../../_site/
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deploy
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<!-- Security: only this folder's own scripts run; no inline script, no plugins, no form posts. See SECURITY.md. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; worker-src 'self'; manifest-src 'self'">
+<meta name="referrer" content="no-referrer">
+<title>Olaa Takenote iPad</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="theme-color" content="#edf0ea">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Olaa Notes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div class="field" id="field"><div class="blob a"></div><div class="blob b"></div><div class="blob c"></div><div class="blob d"></div></div>
+
+<!-- top window: Olaa Notes + mood + apps -->
+<div class="body panel" id="topbar">
+  <div class="win glass" id="topWin">
+    <div class="row">
+      <div class="lights" data-panel="today"></div>
+      <div class="brand" id="topDrag">olaa <span>notes</span></div>
+      <div class="apps">
+        <button class="app app-lang" data-app="lang" aria-label="Olaa Language" title="Olaa Language"><span class="gl">Aa</span></button>
+        <button class="app app-habit" data-app="habit" aria-label="Olaa Habits" title="Olaa Habits"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.2" stroke-opacity=".38"/><path d="M12 4.8a7.2 7.2 0 1 1-6.85 4.97"/></svg></button>
+      </div>
+      <span class="vsep"></span>
+      <div class="when" id="topDrag2"><b id="today"></b><small id="moodName">How's today?</small></div>
+      <button class="moodBtn" id="moodBtn" aria-haspopup="dialog" aria-label="Today's mood. Tap to choose" title="Choose today's emoji"><span class="face" id="moodFace"></span></button>
+      <div class="moods" id="moods" role="group" aria-label="Quick moods" hidden><span class="pill" id="moodPill"></span></div>
+      <span class="vsep"></span>
+      <button class="qb" id="qNew" aria-label="New note" title="New note"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>New note</span></button>
+      <button class="qb" id="qImport" aria-label="Import a file" title="Import a file"><svg class="i" viewBox="0 0 24 24"><path d="M12 4v11"/><path d="M7.5 10.5L12 15l4.5-4.5"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg><span>Import</span></button>
+      <button class="qb" id="qFiles" aria-pressed="false" aria-label="Open all files" title="Open all files"><svg class="i" viewBox="0 0 24 24"><path d="M3.5 7.5A2.5 2.5 0 0 1 6 5h3.6l2 2H18a2.5 2.5 0 0 1 2.5 2.5v7A2.5 2.5 0 0 1 18 19H6a2.5 2.5 0 0 1-2.5-2.5z"/><path d="M3.5 10h17"/></svg><span id="fileCount">Files</span></button>
+      <span class="vsep"></span>
+      <button class="lang" id="langBtn" aria-haspopup="true" aria-expanded="false" aria-label="Language" title="Language"><b>EN</b></button>
+      <button class="theme" id="themeTg" role="switch" aria-checked="false" aria-label="Dark mode" title="Switch light or dark"><span class="knob">
+        <svg class="sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></svg>
+        <svg class="moon" viewBox="0 0 24 24"><path d="M19.5 14.5A8 8 0 0 1 9.5 4.5a8 8 0 1 0 10 10z"/></svg></span></button>
+    </div>
+    <div class="full-only todayFull" id="todayFull">
+      <section class="card cal">
+        <div class="calhd"><button class="pbtn" id="calPrev" aria-label="Previous month"><svg class="i" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button><b id="calTitle"></b><button class="pbtn" id="calNext" aria-label="Next month"><svg class="i" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button></div>
+        <div class="calgrid" id="calGrid"></div>
+        <p class="note-s">Each day shows its feeling, a bar for habits done and a dot when you wrote a note. Days before today hold sample data.</p>
+      </section>
+      <section class="dayview" id="dayView"></section>
+    </div>
+  </div>
+</div>
+
+<!-- canvas window -->
+<div class="body panel" id="sheet">
+  <div class="win" id="sheetWin">
+    <div class="paper pp-grid">
+      <div class="ink"><canvas id="base"></canvas><canvas id="live"></canvas></div>
+      <div class="lights" data-panel="canvas"></div>
+      <div class="title"><input id="noteTitle" aria-label="Note title. Double-tap to rename" title="Double-tap to rename" value="Untitled" maxlength="40" readonly><small id="noteMeta"></small></div>
+      <div class="hint" id="hint"><b id="hintLine"></b><span>Apple Pencil draws · one finger moves · pinch to zoom</span></div>
+      <div class="cursor" id="cursor"></div>
+      <div class="zoomhud glass" id="zoomHud" aria-live="polite"></div>
+    </div>
+    <div class="grip" id="grip" title="Drag to move. Tap to bring the page back."><i></i></div>
+    <div class="sizetag" id="sizetag"></div>
+    <div class="selbox" id="selBox" hidden></div>
+    <div class="selmenu glass" id="selMenu" hidden></div>
+    <div class="resize" id="resize" role="slider" aria-label="Resize the note window" title="Drag to resize"><svg viewBox="0 0 60 60"><path d="M36.4 6.4A37 37 0 0 1 6.4 36.4"/></svg></div>
+  </div>
+</div>
+
+<!-- tool window -->
+<div class="body panel" id="dock">
+  <div class="win glass" role="toolbar" aria-label="Ink tools">
+    <button class="tb small" id="dockMin" aria-label="Shrink the toolbar to a circle" title="Shrink to a circle"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5"/><path d="M8.5 12h7"/></svg></button>
+    <div class="tools" id="swatches"></div>
+    <span class="sep"></span>
+    <div class="tools" id="toolBtns">
+      <span class="pill on" id="toolPill"></span>
+      <button class="tb" data-tool="pen" aria-label="Pen" title="Pen · tap again for options"><svg class="i" viewBox="0 0 24 24"><g transform="rotate(40 12 12)"><path d="M12 21.5L7.2 11.5 12 3.5l4.8 8z"/><path d="M12 21.5v-7"/><circle cx="12" cy="13" r="1"/></g></svg><span class="tint"></span><span class="more"></span></button>
+      <button class="tb" data-tool="pencil" aria-label="Pencil" title="Pencil · tap again for options"><svg class="i" viewBox="0 0 24 24"><g transform="rotate(40 12 12)"><path d="M9.6 3h4.8v13.5L12 21.5l-2.4-5z"/><path d="M9.6 16.5h4.8M9.6 6h4.8"/></g></svg><span class="tint"></span><span class="more"></span></button>
+      <button class="tb" data-tool="hl" aria-label="Highlighter" title="Highlighter · tap again for options"><svg class="i" viewBox="0 0 24 24"><path d="M9.5 14.5l-3 3V20h3.5l3-3"/><path d="M9.5 14.5l7-7a2 2 0 0 1 2.8 0l.2.2a2 2 0 0 1 0 2.8l-7 7z"/><path d="M4 21h7" opacity=".5"/></svg><span class="tint"></span><span class="more"></span></button>
+      <button class="tb" data-tool="eraser" aria-label="Eraser" title="Eraser · tap again for options"><svg class="i" viewBox="0 0 24 24"><path d="M9 20h11"/><path d="M5.6 15.4l8.6-8.6a2 2 0 0 1 2.8 0l2.2 2.2a2 2 0 0 1 0 2.8L12.6 18.4 11 20H8.4l-2.8-2.8a1.3 1.3 0 0 1 0-1.8z"/><path d="M9.6 11.4l5 5"/></svg><span class="more"></span></button>
+      <button class="tb" data-tool="lasso" aria-label="Lasso" title="Lasso · select and move strokes"><svg class="i" viewBox="0 0 24 24"><path d="M12 4.5c4.7 0 8 2.1 8 4.8S16.7 14 12 14s-8-2-8-4.7 3.3-4.8 8-4.8z" stroke-dasharray="2.6 2.6"/><path d="M8.2 13.4c-1 1.9-.2 3.8 1.8 4.3 1.6.4 1.6 2 .6 3.1"/></svg><span class="more"></span></button>
+    </div>
+    <span class="sep"></span>
+    <div class="sizes" id="sizes" hidden><button class="szb"><i></i></button><button class="szb"><i></i></button><button class="szb"><i></i></button></div>
+    <button class="tb small" id="undo" aria-label="Undo"><svg class="i" viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
+    <button class="tb small" id="redo" aria-label="Redo"><svg class="i" viewBox="0 0 24 24"><path d="M15 14l5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg></button>
+    <button class="tb small" id="pageBtn" aria-label="Page style" title="Page style"><svg class="i" viewBox="0 0 24 24"><rect x="5" y="3.5" width="14" height="17" rx="2.5"/><path d="M8.5 8h7M8.5 11.5h7M8.5 15h4"/></svg></button>
+    <button class="tb small toggle" id="finger" aria-pressed="false" aria-label="Draw with finger" title="Draw with finger"><svg class="i" viewBox="0 0 24 24"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12"/><path d="M11 11.5V4a1.5 1.5 0 0 1 3 0v7.5"/><path d="M14 11.5V6a1.5 1.5 0 0 1 3 0v8a7 7 0 0 1-7 7h-.5a6 6 0 0 1-4.7-2.3L3 15.5a1.6 1.6 0 0 1 2.4-2.1L8 16"/></svg></button>
+    <span class="sep"></span>
+    <div class="notechip" id="noteChip">
+      <button class="nc-main" id="ncMain" aria-label="This note. Tap for options"><span class="tile"><canvas width="56" height="42"></canvas></span><span class="nc-txt"><span class="label"></span><small class="nc-st" id="ncState"></small></span></button>
+    </div>
+    <button class="tb small" id="recentTb" aria-haspopup="dialog" aria-label="Recent files" title="Recent files"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3.2 2"/></svg></button>
+    <div class="minibtn" id="miniBtn" role="button" tabindex="0" aria-label="Open the toolbar" title="Tap to open the toolbar"></div>
+  </div>
+</div>
+
+<!-- files window -->
+<div class="body panel" id="filesHdr" hidden>
+  <div class="win glass" id="filesWin" aria-label="Files"><div class="lights" data-panel="files"></div><svg class="fic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 7.5A2.5 2.5 0 0 1 6 5h3.6l2 2H18a2.5 2.5 0 0 1 2.5 2.5v7A2.5 2.5 0 0 1 18 19H6a2.5 2.5 0 0 1-2.5-2.5z"/><path d="M3.5 10h17"/></svg><b></b></div>
+</div>
+<div id="files"></div>
+<div class="glass" id="rail" hidden aria-label="Files"><div class="rhd">Files</div><div class="rlist" id="railList"></div></div>
+
+<!-- file viewer -->
+<div id="scrim"></div>
+<div class="body" id="panelPos" hidden>
+  <div id="panel" class="win glass" role="dialog" aria-label="File">
+    <header id="pHead">
+      <div class="lights" data-panel="viewer"></div>
+      <button class="pbtn" id="pBack" aria-label="Back" hidden><svg class="i" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <div class="t"><input id="pTitle" aria-label="Name. Double-tap to rename" title="Double-tap to rename" maxlength="40" readonly><small id="pSub"></small></div>
+    </header>
+    <div id="pBody"></div>
+  </div>
+</div>
+
+<div class="glass" id="appPop" hidden role="dialog" aria-label="App preview"></div>
+<div class="glass" id="emojiPop" hidden role="dialog" aria-label="All emoji"></div>
+<div id="ctxCatch" hidden></div>
+<div class="glass" id="ctxMenu" hidden role="menu" aria-label="File actions"></div>
+<div class="glass" id="toolPop" hidden role="dialog" aria-label="Tool options"></div>
+<div class="glass" id="tray" hidden aria-label="Minimized windows"></div>
+<button class="glass" id="exitFull" hidden aria-label="Exit full screen" title="Exit full screen"><svg class="i" viewBox="0 0 24 24"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg></button>
+<div class="glass" id="filesBar" hidden role="toolbar" aria-label="All files">
+  <b id="fbCount">All files</b><span class="vsep"></span>
+<span class="fbl">Sort by</span>
+  <div class="seg" id="fbSort"><button data-s="date">Date</button><button data-s="name">Name</button><button data-s="kind">Type</button><button data-s="size">Size</button><button data-s="fav">Favourites</button></div>
+</div>
+<div id="parked" hidden><button class="tile glass" id="parkedTile" aria-label="Closed note. Tap for options"><div class="mini"><canvas width="92" height="68"></canvas></div></button><div class="label" id="parkedLabel"></div></div>
+<div class="glass" id="selBar" hidden role="toolbar" aria-label="Selected files">
+  <b id="selCount">Select files</b>
+  <button class="qb" id="sbGroup"><svg class="i" viewBox="0 0 24 24"><path d="M3.5 7.5A2.5 2.5 0 0 1 6 5h3.6l2 2H18a2.5 2.5 0 0 1 2.5 2.5v7A2.5 2.5 0 0 1 18 19H6a2.5 2.5 0 0 1-2.5-2.5z"/><path d="M12 10.5v5M9.5 13h5"/></svg><span>Group</span></button>
+  <button class="qb" id="sbIcon"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M8.5 14a4 4 0 0 0 7 0"/><path d="M9 9.5h.01M15 9.5h.01"/></svg><span>Change icon</span></button>
+  <button class="qb danger" id="sbDel"><svg class="i" viewBox="0 0 24 24"><path d="M5 7h14"/><path d="M9 7V5h6v2"/><path d="M7 7l1 12a2 2 0 0 0 2 1.8h4a2 2 0 0 0 2-1.8l1-12"/></svg><span>Delete</span></button>
+</div>
+<div class="toast glass" id="toast"></div>
+<div class="grain"></div>
+<input type="file" id="fileInput" multiple hidden>
+<script src="js/emoji.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

@@ -130,6 +130,7 @@ const I18N = {
   'Choose a file': ['Chọn tệp', 'ファイルを選択', '파일 선택', 'Choisir un fichier', '选择文件'],
   'Tap to write here': ['Chạm để viết ở đây', 'タップしてここに書く', '눌러서 여기에 쓰기', 'Touchez pour écrire ici', '点按在此书写'],
   'One pane always holds a note': ['Luôn có một ô là ghi chú', '1つは必ずノートです', '한 칸은 항상 노트예요', 'Un panneau contient toujours une note', '至少一个窗格是笔记'],
+  'Yesterday': ['Hôm qua', '昨日', '어제', 'Hier', '昨天'],
   'Toolbar options': ['Tuỳ chọn thanh công cụ', 'ツールバーの設定', '도구 막대 옵션', "Options de la barre d'outils", '工具栏选项'],
 };
 let LANG = 'en';
@@ -1208,6 +1209,11 @@ function setSize(w, h) {
   $('#sizetag').textContent = `${Math.round(w)} × ${Math.round(h)}`;
 }
 const MIN_W = 380, MIN_H = 280;
+// growing around the centre: as big as fits on both sides of it
+function centredMax(s0) {
+  const cx = s0.bx + s0.w * s0.s / 2, cy = s0.by + s0.h * s0.s / 2;
+  return { w: Math.max(MIN_W, 2 * Math.min(cx - 6, vw() - 6 - cx) / s0.s), h: Math.max(MIN_H, 2 * Math.min(cy - 6, vh() - 6 - cy) / s0.s) };
+}
 const maxSize = () => ({ w: Math.max(MIN_W, (vw() - 12 - Math.max(0, sheet.x)) / sheet.s), h: Math.max(MIN_H, (vh() - 12 - Math.max(0, sheet.y)) / sheet.s) });
 let sizeAnim = 0;
 function animateSize(tw, th, done, K = 190, D = 27) {     // same spring as the window position, so size and place move as one
@@ -1613,20 +1619,22 @@ addEventListener('keyup', e => { if (e.code === 'Space') { spaceDown = false; sh
     canvas75 = false; syncRail();
     id = e.pointerId; try { h.setPointerCapture(id); } catch (_) {}
     cancelAnimationFrame(sizeAnim);
-    s0 = { w: PW, h: PH, x: e.clientX, y: e.clientY, s: sheet.s, ratio: snap.ratio, rows: { ...snap.rows } };
+    s0 = { w: PW, h: PH, x: e.clientX, y: e.clientY, s: sheet.s, bx: sheet.x, by: sheet.y, ratio: snap.ratio, rows: { ...snap.rows } };
     sheetEl.classList.add('resizing', 'userresize'); document.body.classList.add('inking');
   });
   h.addEventListener('pointermove', e => {
     if (e.pointerId !== id) return;
     if (snapped('sheet')) return snapResize('sheet', e.clientX - s0.x, e.clientY - s0.y, s0);
-    const m = maxSize();
-    setSize(rubber(s0.w + (e.clientX - s0.x) / s0.s, MIN_W, m.w), rubber(s0.h + (e.clientY - s0.y) / s0.s, MIN_H, m.h));
+    // the corner follows the finger and the opposite side moves the same amount the other way: the centre stays put
+    const m = centredMax(s0), w = rubber(s0.w + 2 * (e.clientX - s0.x) / s0.s, MIN_W, m.w), hh = rubber(s0.h + 2 * (e.clientY - s0.y) / s0.s, MIN_H, m.h);
+    setSize(w, hh); sheet.place(s0.bx - (w - s0.w) * s0.s / 2, s0.by - (hh - s0.h) * s0.s / 2);
   });
   const end = e => {
     if (e.pointerId !== id) return; id = null; document.body.classList.remove('inking');
     if (snapped('sheet')) { sheetEl.classList.remove('userresize'); sizeCanvases(true); return; }
-    const m = maxSize();
-    animateSize(clamp(PW, MIN_W, m.w), clamp(PH, MIN_H, m.h), () => { home = computeHome(); sheetEl.classList.remove('userresize'); });
+    const m = centredMax(s0), tw = clamp(PW, MIN_W, m.w), th = clamp(PH, MIN_H, m.h);
+    sheet.springTo(s0.bx - (tw - s0.w) * s0.s / 2, s0.by - (th - s0.h) * s0.s / 2, null, 190, 27);
+    animateSize(tw, th, () => { home = computeHome(); sheetEl.classList.remove('userresize'); });
   };
   h.addEventListener('pointerup', end); h.addEventListener('pointercancel', end);
   for (const ty of ['pointerup', 'pointercancel']) addEventListener(ty, e => { if (e.target !== h) end(e); }, true);
@@ -2157,11 +2165,25 @@ function quickPos(id) { const r = $(`#${id}`).getBoundingClientRect(); return { 
 
 
 // newest first, by when each file was made
+function dayLabel(ts) {
+  const d = new Date(ts), now = new Date(), y = new Date(now); y.setDate(now.getDate() - 1);
+  if (d.toDateString() === now.toDateString()) return t('Today');
+  if (d.toDateString() === y.toDateString()) return t('Yesterday');
+  return new Intl.DateTimeFormat(langOf(LANG)[3], { weekday: 'long', day: 'numeric', month: 'long' }).format(d);
+}
+// every file, newest first, under the day it was made
 function recentHTML() {
-  const all = [...walk(root)], list = all.filter(f => f.kind !== 'folder').sort((a, b) => (b.added || 0) - (a.added || 0)).slice(0, 14);
+  const all = [...walk(root)], list = all.filter(f => f.kind !== 'folder').sort((a, b) => (b.added || 0) - (a.added || 0));
   const where = f => { const p = all.find(x => x.kind === 'folder' && x.children.includes(f)); return p ? p.name : t('Files'); };
   const glyph = f => f.icon ? emoImg(f.icon, 20) : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${kindIcon(f)}</svg>`;
-  return `<h4>${esc(t('Recent files'))}</h4><div class="rlist2">${list.map(f => `<button class="rrow" data-id="${f.id}"><span class="rk">${glyph(f)}</span><span class="rt"><b>${esc(f.name)}</b><small>${esc(whenStr(f.added))} · ${esc(where(f))}</small></span></button>`).join('')}</div>`;
+  const time = ts => ts ? new Intl.DateTimeFormat(langOf(LANG)[3], { hour: '2-digit', minute: '2-digit' }).format(new Date(ts)) : '';
+  let html = '', last = '';
+  for (const f of list) {
+    const day = f.added ? dayLabel(f.added) : '—';
+    if (day !== last) { html += `<h5 class="rday">${esc(day)}</h5>`; last = day; }
+    html += `<button class="rrow" data-id="${f.id}"><span class="rk">${glyph(f)}</span><span class="rt"><b>${esc(f.name)}</b><small>${esc(time(f.added))} · ${esc(where(f))}</small></span></button>`;
+  }
+  return `<h4>${esc(t('Recent files'))}<small>${list.length}</small></h4><div class="rlist2">${html}</div>`;
 }
 function openAnywhere(f) {
   if (split) { const i = split.panes.findIndex(p => p.f === f); if (i >= 0) return activatePane(i); return setPaneFile(f.kind === 'note' ? split.live : split.panes.findIndex((p, j) => j !== split.live) , f); }
@@ -2530,14 +2552,15 @@ draggable(viewer.body, $('#pHead'), {
   h.addEventListener('pointerdown', e => {
     if (id !== null || viewer.full) return; e.stopPropagation(); e.preventDefault();
     id = e.pointerId; try { h.setPointerCapture(id); } catch (_) {} h.classList.add('on');
-    s0 = { x: e.clientX, y: e.clientY, w: panelEl.offsetWidth, h: pBody.offsetHeight, ratio: snap.ratio, rows: { ...snap.rows } };
+    s0 = { x: e.clientX, y: e.clientY, w: panelEl.offsetWidth, h: pBody.offsetHeight, bx: viewer.body.x, by: viewer.body.y, ratio: snap.ratio, rows: { ...snap.rows } };
     pBody.style.transition = 'none'; bringToFront('panelPos');
   });
   h.addEventListener('pointermove', e => {
     if (e.pointerId !== id) return; const dx = e.clientX - s0.x, dy = e.clientY - s0.y;
     if (snapped('viewer')) return snapResize('viewer', dx, dy, s0);
-    panelEl.style.width = clamp(s0.w + dx / (viewer.body.s || 1), 320, vw() - 24) + 'px';
-    pBody.style.height = clamp(s0.h + dy / (viewer.body.s || 1), 120, vh() - 140) + 'px';
+    const k = viewer.body.s || 1, w = clamp(s0.w + 2 * dx / k, 320, vw() - 24), hh = clamp(s0.h + 2 * dy / k, 120, vh() - 140);
+    panelEl.style.width = w + 'px'; pBody.style.height = hh + 'px';
+    viewer.body.place(s0.bx - (w - s0.w) * k / 2, s0.by - (hh - s0.h) * k / 2);      // the centre stays put
   });
   const end = e => { if (e.pointerId !== id) return; id = null; h.classList.remove('on'); pBody.style.transition = ''; if (viewer.open) renderView(0); };
   h.addEventListener('pointerup', end); h.addEventListener('pointercancel', end);
@@ -2613,8 +2636,10 @@ function closeViewer(v) {
   };
 }
 function toggleViewerCollapse() {        // yellow on an open file folds it to its title bar; tap again to unfold
+  const h0 = pBody.offsetHeight;
   viewer.collapsed = !viewer.collapsed; panelEl.classList.toggle('collapsed', viewer.collapsed);
-  pBody.style.height = viewer.collapsed ? '0px' : viewerSize().h + 'px'; syncLights();
+  const h1 = viewer.collapsed ? 0 : viewerSize().h; pBody.style.height = h1 + 'px'; syncLights();
+  if (!snapped('viewer')) viewer.body.springTo(viewer.body.x, viewer.body.y + (h0 - h1) * (viewer.body.s || 1) / 2, null, 200, 26);      // folds toward its centre
 }
 function setViewerMode(mode) {
   if (viewer.collapsed) { viewer.collapsed = false; panelEl.classList.remove('collapsed'); }
@@ -2953,13 +2978,38 @@ function openSplit(n) {
   if (split) split.panes.forEach(p => p.el.remove());
   const live = Math.max(0, files.indexOf(current));
   split = { n, live, panes: files.map(f => { const el = document.createElement('div'); splitLayer.append(el); return { f, el, r: null }; }) };
+  const from = $('#sheetWin').getBoundingClientRect();
   splitLayer.hidden = false; layoutSplit();
-  split.panes.forEach((p, i) => { if (i !== split.live && !reduceMotion) p.el.animate([{ opacity: 0, transform: 'scale(.97)' }, { opacity: 1, transform: 'none' }], { duration: SPR_OPEN.d, delay: i * 40, easing: SPR_OPEN.e, fill: 'backwards' }); });
+  if (!reduceMotion) {
+    // the panes unfold from the Split button, one after another; the note glides into its pane
+    const b = $('#qSplit').getBoundingClientRect();
+    split.panes.forEach((p, i) => {
+      const r = p.el.getBoundingClientRect(), dx = b.left + b.width / 2 - (r.left + r.width / 2), dy = b.top + b.height / 2 - (r.top + r.height / 2);
+      p.el.animate([{ opacity: 0, transform: `translate(${dx}px,${dy}px) scale(.12)` }, { opacity: 1, offset: .35 }, { opacity: 1, transform: 'none' }],
+        { duration: 560, delay: i * 70, easing: 'cubic-bezier(.2,.9,.25,1.05)', fill: 'backwards' });
+    });
+    flipSheet(from);
+  }
+}
+// FLIP: the note window looks like it moves from where it was to where it is now
+function flipSheet(from) {
+  const sw = $('#sheetWin'), to = sw.getBoundingClientRect(); if (!to.width || !from.width) return;
+  sw.animate([{ transformOrigin: '0 0', transform: `translate(${(from.left - to.left) / (sheet.s || 1)}px,${(from.top - to.top) / (sheet.s || 1)}px) scale(${from.width / to.width},${from.height / to.height})` },
+    { transformOrigin: '0 0', transform: 'none' }], { duration: 520, easing: 'cubic-bezier(.2,.9,.25,1.02)' });
 }
 function closeSplit() {
-  if (!split) return; split.panes.forEach(p => p.el.remove()); split = null; splitLayer.hidden = true;
+  if (!split) return;
+  const b = $('#qSplit').getBoundingClientRect(), from = $('#sheetWin').getBoundingClientRect();
+  split.panes.forEach((p, i) => {      // the panes fold back into the Split button
+    if (reduceMotion) return p.el.remove();
+    const r = p.el.getBoundingClientRect(), dx = b.left + b.width / 2 - (r.left + r.width / 2), dy = b.top + b.height / 2 - (r.top + r.height / 2);
+    p.el.style.pointerEvents = 'none';
+    p.el.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: `translate(${dx}px,${dy}px) scale(.12)` }], { duration: 380, delay: i * 40, easing: 'cubic-bezier(.4,0,.6,1)', fill: 'forwards' }).onfinish = () => p.el.remove();
+  });
+  split = null; setTimeout(() => { if (!split) splitLayer.hidden = true; }, 560);
   const sv = saved.split; cancelAnimationFrame(sizeAnim); setSize(sv.w, sv.h); sizeCanvases(true);
   home = computeHome(); sheet.springTo(home.x, home.y, home.s, 170, 22); redrawBase();
+  if (!reduceMotion) requestAnimationFrame(() => flipSheet(from));
 }
 // touch a note pane: it becomes the live one; the one you were in becomes a still copy
 function activatePane(i) {
@@ -3537,6 +3587,7 @@ function boot() {
   // the toolbar lives at the centre of one side: flat along the top or bottom, upright along the left or right
   const placeDock = spring => {
     const side = dockSide, vert = side === 'left' || side === 'right', circle = dock.classList.contains('circle');
+    dock.classList.toggle('clockleft', circle && (dockCorner ? dockCorner[1] === 'r' : side === 'right'));      // the clock sits on the side with room
     if (!circle) dock.classList.toggle('vert', vert);
     const w = dockWin.offsetWidth, h = dockWin.offsetHeight, tb = $('#topWin').getBoundingClientRect(), m = 12;
     let x = (vw() - w) / 2, y = (vh() - h) / 2;

@@ -358,7 +358,8 @@ body.theming, body.theming *, body.theming *::before, body.theming *::after { tr
 .resize { position: absolute; z-index: 5; left: calc(var(--pw, 720px) - 16px); top: calc(var(--ph, 520px) - 16px); width: 42px; height: 42px; cursor: nwse-resize; touch-action: none; }
 .resize svg { position: absolute; left: -14px; top: -14px; width: 60px; height: 60px; overflow: visible; fill: none; stroke: var(--ink-2); stroke-width: 5; stroke-linecap: round;
   opacity: 0; transform: scale(.86); transform-origin: 0 0; transition: opacity .35s ease, transform .5s cubic-bezier(.3,1.5,.5,1), stroke .2s; pointer-events: none; }
-.resize:hover svg, :is(#sheet,.g-sheet).near-corner .resize svg, :is(#sheet,.g-sheet).userresize .resize svg { opacity: .5; transform: none; }
+.resize svg { stroke: var(--ink); opacity: .35; transform: none; }      /* the corner is always faintly there, so you can find it */
+.resize:hover svg, :is(#sheet,.g-sheet).near-corner .resize svg, :is(#sheet,.g-sheet).userresize .resize svg { opacity: .85; transform: none; }
 :is(#sheet,.g-sheet).userresize .resize svg { opacity: .85; stroke: var(--ink); }
 :is(#sheet,.g-sheet).collapsed .resize { display: none; }
 .sizetag { position: absolute; z-index: 5; right: 20px; bottom: 18px; padding: 4px 9px; border-radius: 999px; font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--ink-2);
@@ -559,7 +560,13 @@ input[type=color] { width: 44px; height: 28px; border: 0; padding: 0; background
 @keyframes pop { from { transform: scale(.6); } }
 
 /* tile kinds */
-.k-folder { background: linear-gradient(165deg, var(--glass-hi), var(--accent-soft)); }
+.k-folder { background: linear-gradient(165deg, var(--glass-hi), color-mix(in srgb, var(--accent) 30%, transparent)); }
+/* files and folders stand off the background: a defined edge, a deeper shadow, darker text */
+.item .tile.glass { box-shadow: inset 0 1px .5px var(--rim), inset 0 0 0 1.5px color-mix(in srgb, var(--ink) 20%, transparent), 0 12px 24px -12px color-mix(in srgb, var(--ink) 55%, transparent); }
+.item .label { color: var(--ink); font-weight: 650; text-shadow: 0 0 10px var(--bg), 0 0 4px var(--bg), 0 0 2px var(--bg); }
+.item .label small { color: color-mix(in srgb, var(--ink) 72%, transparent); font-weight: 500; }
+.pocket span { color: var(--ink) !important; }
+.k-folder .pocket { box-shadow: inset 0 1px .5px var(--rim), inset 0 0 0 1px color-mix(in srgb, var(--ink) 10%, transparent), 0 -4px 10px -6px var(--shadow); }
 .peek { position: absolute; inset: 0; }
 .pk { position: absolute; left: 50%; top: 10px; width: 34px; height: 26px; margin-left: -17px; border-radius: 6px; background: var(--sheet) center/cover;
   box-shadow: 0 2px 6px rgba(0,0,0,.08), inset 0 0 0 .5px var(--rim-lo); }
@@ -659,12 +666,47 @@ body.moving .glass { transition-property: opacity, background, box-shadow; }
 .bgwin .hint, .bgwin .cursor, .bgwin .resize, .bgwin .sizetag { visibility: hidden; }
 body[data-full] .bgwin { display: none; }
 #recentTb.held { transform: scale(.88); }
+#dock .win { padding-left: 9px; padding-right: 9px; }
+:is(#dockMin, #recentTb) { width: 42px !important; height: 42px; min-width: 42px; flex: none; display: grid; place-items: center; margin: 0; }
+:is(#dockMin, #recentTb) svg.i { width: 21px; height: 21px; }
 .rlist2 { display: grid; gap: 2px; min-width: 290px; max-height: min(60vh, 470px); overflow-y: auto; touch-action: pan-y; }
 .rrow { display: flex; align-items: center; gap: 11px; padding: 7px 10px; border-radius: 14px; text-align: left; color: var(--ink); transition: background .2s; }
 .rrow:hover { background: var(--glass-hi); } .rrow:active { background: var(--accent-soft); }
 .rk { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; flex: none; background: var(--glass-hi); box-shadow: inset 0 1px .5px var(--rim); color: var(--ink-2); }
 .rk svg { width: 18px; height: 18px; }
 .rt { display: grid; min-width: 0; gap: 1px; } .rt b { font-size: 13.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .rt small { font-size: 11px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* split screen: 2-4 panes; the note pane you are in is live, the others are still copies until you touch them */
+#splitLayer { position: fixed; inset: 0; z-index: 19; pointer-events: none; }
+#splitLayer[hidden] { display: none; }
+.pane { position: absolute; border-radius: 24px; overflow: hidden; pointer-events: auto; cursor: pointer; display: grid; grid-template-rows: auto 1fr;
+  box-shadow: inset 0 1px .5px var(--rim), inset 0 0 0 1px color-mix(in srgb, var(--ink) 10%, transparent), 0 18px 40px -22px var(--shadow); }
+.pane.is-live { box-shadow: inset 0 1px .5px var(--rim), 0 0 0 2px var(--accent), 0 18px 40px -22px var(--shadow); }      /* the pane you are writing in */
+.pane.is-live .pbody { background: none; visibility: hidden; }
+body[data-full="split"] :is(#sheet,.g-sheet) :is(.title, .hint) { display: none; }
+.pane header { display: flex; align-items: center; gap: 8px; padding: 10px 10px 8px 16px; min-width: 0; z-index: 1; }
+.pane header b { font-size: 14px; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pane header small { font-size: 11px; color: var(--ink-2); white-space: nowrap; }
+.pane header .pchg { margin-left: auto; height: 28px; padding: 0 11px; border-radius: 99px; font: 600 11.5px var(--font); color: var(--ink); background: var(--glass-hi); box-shadow: inset 0 1px .5px var(--rim); flex: none; }
+.pane .pbody { position: relative; overflow: hidden; margin: 0 8px 8px; border-radius: 16px; background-color: var(--sheet); min-height: 0; }
+.pane .pbody canvas { position: absolute; left: 0; top: 0; }
+.pane .pbody img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.pane .pbody pre { margin: 0; height: 100%; overflow: auto; padding: 14px 16px; font: 13px/1.6 var(--font); white-space: pre-wrap; color: var(--ink); touch-action: pan-y; }
+.pane .pbody .pdoc { height: 100%; display: grid; place-content: center; justify-items: center; gap: 6px; color: var(--ink-2); font-size: 12px; }
+.pane .pbody .pdoc b { font-size: 26px; color: var(--warm); }
+.pane .pbody ul { list-style: none; margin: 0; padding: 12px 16px; display: grid; gap: 6px; font-size: 13px; }
+.pane .tapnote { position: absolute; right: 12px; bottom: 10px; font-size: 11px; color: var(--ink-2); background: var(--glass-hi); padding: 4px 10px; border-radius: 99px; }
+body[data-full="split"] :is(#files, #filesHdr, #tray, #parked, #rail) { opacity: 0; pointer-events: none !important; }
+body[data-full="split"] #files * { pointer-events: none !important; }
+body[data-full="split"] :is(#sheet,.g-sheet) :is(.grip, .resize, .lights, .sizetag) { display: none; }
+body[data-full="split"] :is(#sheet,.g-sheet) .title { left: 18px; }
+body[data-full="split"] #exitFull { display: none; }
+.splitopts { display: grid; gap: 4px; min-width: 250px; }
+.splitopts .opt svg { width: 30px; height: 22px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.6; }
+/* phones: the toolbar scrolls sideways with a finger; the top bar drops the app shortcuts so it fits */
+@media (max-width: 600px) {
+  :is(#dock,.g-dock):not(.circle) .win { touch-action: pan-x; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  #topbar .apps, #topbar .apps + .vsep { display: none; }
+}
 .stamp { position: fixed; z-index: 70; width: 44px; height: 44px; border-radius: 50%; pointer-events: none; border: 2px solid var(--warm); opacity: 0; }
 #ctxMenu { position: fixed; z-index: 59; left: 0; top: 0; width: 256px; max-width: calc(100vw - 20px); border-radius: 18px; padding: 6px; display: grid; transform-origin: top left; }
 #ctxMenu .mhead { display: flex; align-items: center; gap: 10px; padding: 8px 10px 10px; }

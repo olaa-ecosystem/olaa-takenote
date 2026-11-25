@@ -40,6 +40,7 @@
       <span class="vsep"></span>
       <button class="qb" id="qNew" aria-label="New note" title="New note"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>New note</span></button>
       <button class="qb" id="qImport" aria-label="Import a file" title="Import a file"><svg class="i" viewBox="0 0 24 24"><path d="M12 4v11"/><path d="M7.5 10.5L12 15l4.5-4.5"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg><span>Import</span></button>
+      <button class="qb" id="qSplit" aria-haspopup="dialog" aria-label="Split screen" title="Split screen"><svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M12 4.5v15"/></svg><span>Split</span></button>
       <button class="qb" id="qFiles" aria-pressed="false" aria-label="Open all files" title="Open all files"><svg class="i" viewBox="0 0 24 24"><path d="M3.5 7.5A2.5 2.5 0 0 1 6 5h3.6l2 2H18a2.5 2.5 0 0 1 2.5 2.5v7A2.5 2.5 0 0 1 18 19H6a2.5 2.5 0 0 1-2.5-2.5z"/><path d="M3.5 10h17"/></svg><span id="fileCount">Files</span></button>
       <span class="vsep"></span>
       <button class="lang" id="langBtn" aria-haspopup="true" aria-expanded="false" aria-label="Language" title="Language"><b>EN</b></button>
@@ -145,6 +146,7 @@
   <button class="qb" id="sbIcon"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M8.5 14a4 4 0 0 0 7 0"/><path d="M9 9.5h.01M15 9.5h.01"/></svg><span>Change icon</span></button>
   <button class="qb danger" id="sbDel"><svg class="i" viewBox="0 0 24 24"><path d="M5 7h14"/><path d="M9 7V5h6v2"/><path d="M7 7l1 12a2 2 0 0 0 2 1.8h4a2 2 0 0 0 2-1.8l1-12"/></svg><span>Delete</span></button>
 </div>
+<div id="splitLayer" hidden></div>
 <div class="toast glass" id="toast"></div>
 <div class="grain"></div>
 <input type="file" id="fileInput" multiple hidden>

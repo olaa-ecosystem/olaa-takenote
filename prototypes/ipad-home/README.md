@@ -10,7 +10,7 @@ A clickable prototype of the Olaa Notes home screen for iPad: a movable liquid-g
 - Apple Calendar events and past days in the calendar are labelled sample data;
 - the in-app "Add to Home Screen" and "Share" menu items only show a message.
 
-## Install it on an iPad
+## Install it on an iPad or iPhone
 
 The prototype is an installable web app. Once it is published (see below):
 
@@ -76,6 +76,7 @@ The repository contains no emoji artwork. The app draws emoji with the device's 
 |---|---|
 | Note window | Apple Pencil draws. Pinch to zoom the page (100%–400%, centred between your fingers); one finger pans when zoomed and moves the window at 100%; double-tap toggles 200%. Drag the corner to resize. Red: close to the toolbar. Yellow: 75% of the screen. Green: full screen. |
 | Several files | Opening another note or file keeps the first one open behind it at the same size; tap a window behind to bring it forward. |
+| Split screen | **Split** in the top bar: 2 side by side, 3 (one large, two stacked) or 4 in a grid; stacked on a phone. The note pane you are in is live (green outline); touch another note pane to write there. Text and images can be read and scrolled in their panes. **Change file** swaps what a pane shows. |
 | Layout | On opening, the note sits in the centre, folders in a column on the left, files on the right. |
 | Toolbar | Always the top layer: notes, open files and dragged files pass underneath it. Bottom centre by default; drop it near another edge to move it there, or near a corner to fold it into a circle. Colours, pen, pencil, highlighter, eraser, lasso, undo, redo, page style, finger drawing, this note, recent files. |
 | Files | Drag freely; hold one over another to make a folder; press and hold a file or folder for its menu; press and hold empty space to select, group, delete or change icons. |

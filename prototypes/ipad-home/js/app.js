@@ -116,6 +116,20 @@ const I18N = {
   'On its own': ['Để riêng', '単独で', '따로 두기', 'Seul', '单独存放'],
   'Zoom in': ['Phóng to', '拡大', '확대', 'Agrandir', '放大'],
   'Zoom out': ['Thu nhỏ', '縮小', '축소', 'Réduire', '缩小'],
+  'Split': ['Chia đôi', '分割', '분할', 'Diviser', '分屏'],
+  'Split screen': ['Chia màn hình', '画面分割', '화면 분할', "Partage d'écran", '分屏'],
+  '2 files': ['2 tệp', '2つのファイル', '파일 2개', '2 fichiers', '2 个文件'],
+  '3 files': ['3 tệp', '3つのファイル', '파일 3개', '3 fichiers', '3 个文件'],
+  '4 files': ['4 tệp', '4つのファイル', '파일 4개', '4 fichiers', '4 个文件'],
+  'Side by side': ['Cạnh nhau', '左右に並べる', '나란히', 'Côte à côte', '左右并排'],
+  'One large, two stacked': ['Một lớn, hai xếp chồng', '大1つと小2つ', '큰 창 하나, 작은 창 둘', 'Un grand, deux empilés', '一大两小'],
+  'A grid of four': ['Lưới bốn ô', '4分割', '4칸 격자', 'Une grille de quatre', '四宫格'],
+  'Close split screen': ['Đóng chia màn hình', '分割を終了', '분할 닫기', 'Fermer le partage', '关闭分屏'],
+  'Back to one window': ['Trở về một cửa sổ', '1つのウインドウに戻す', '창 하나로 돌아가기', 'Revenir à une fenêtre', '回到单个窗口'],
+  'Change file': ['Đổi tệp', 'ファイルを変更', '파일 변경', 'Changer', '更换文件'],
+  'Choose a file': ['Chọn tệp', 'ファイルを選択', '파일 선택', 'Choisir un fichier', '选择文件'],
+  'Tap to write here': ['Chạm để viết ở đây', 'タップしてここに書く', '눌러서 여기에 쓰기', 'Touchez pour écrire ici', '点按在此书写'],
+  'One pane always holds a note': ['Luôn có một ô là ghi chú', '1つは必ずノートです', '한 칸은 항상 노트예요', 'Un panneau contient toujours une note', '至少一个窗格是笔记'],
   'Toolbar options': ['Tuỳ chọn thanh công cụ', 'ツールバーの設定', '도구 막대 옵션', "Options de la barre d'outils", '工具栏选项'],
 };
 let LANG = 'en';
@@ -1518,7 +1532,7 @@ sheetEl.addEventListener('pointerdown', e => {
     lastTap.t = 0; const r = paper.getBoundingClientRect(), q = toLocal(e, r, r.width / PW); zoomTo(Z > 1.05 ? 1 : 2, q.x, q.y); return;
   }
   tapDown = { id: e.pointerId, t: e.timeStamp, x: e.clientX, y: e.clientY };
-  if (Z > 1 && !touches.size && !gest) { if (!zpan) startPan(e); return; }
+  if ((Z > 1 || fullKey === 'split') && !touches.size && !gest) { if (!zpan) startPan(e); return; }
   addTouch(e);
 });
 function addTouch(e) { try { sheetEl.setPointerCapture(e.pointerId); } catch (_) {} touches.set(e.pointerId, { x: e.clientX, y: e.clientY }); startGesture(e); }
@@ -1653,7 +1667,8 @@ function renameFile(f, v) {
 const dock = $('#dock'), toolPill = $('#toolPill'), swatches = $('#swatches'), sizesEl = $('#sizes'), toolPop = $('#toolPop');
 toolPop.addEventListener('click', e => {
   const l = e.target.closest('.lgrow'); if (l) { setLang(l.dataset.l); renderToolPop(); setTimeout(() => { if (popKind === 'lang') closeToolPop(); }, 450); return; }
-  const rr = e.target.closest('.rrow'); if (rr) { const f = [...walk(root)].find(x => x.id === rr.dataset.id); closeToolPop(); if (f) openAnywhere(f); return; }
+  const sp = e.target.closest('[data-split]'); if (sp) { const n = +sp.dataset.split; closeToolPop(); if (!n) return exitFull(); return openSplit(n); }
+  const rr = e.target.closest('.rrow'); if (rr) { const f = [...walk(root)].find(x => x.id === rr.dataset.id); const kind = popKind; closeToolPop(); if (!f) return; if (kind === 'pick' && split) return setPaneFile(pickPane, f); if (split) { const i = split.panes.findIndex(p => p.f === f); if (i >= 0) return activatePane(i); return setPaneFile(split.live, f); } openAnywhere(f); return; }
 });
 const selBox = $('#selBox'), selMenu = $('#selMenu');
 let customColor = '#7a6aa8';
@@ -1770,7 +1785,7 @@ function closeToolPop() {
   if (!popKind) return; popKind = null;
   toolPop.animate([{ opacity: 1 }, { opacity: 0, transform: 'translateY(6px) scale(.97)' }], { duration: 160 }).onfinish = () => { if (!popKind) toolPop.hidden = true; };
 }
-document.addEventListener('pointerdown', e => { if (popKind && !e.target.closest('#toolPop, #dock, #langBtn')) closeToolPop(); });
+document.addEventListener('pointerdown', e => { if (popKind && !e.target.closest('#toolPop, #dock, #langBtn, #qSplit, .pchg')) closeToolPop(); });
 const segH = (key, opts, val) => `<div class="seg" data-k="${key}">${opts.map(([v, l]) => `<button data-v="${v}" aria-pressed="${v === val}">${l}</button>`).join('')}</div>`;
 const sliderH = (key, label, min, max, step, val, txt) => `<div class="ctl"><label for="r-${key}">${label}<b>${txt}</b></label><input id="r-${key}" type="range" data-k="${key}" min="${min}" max="${max}" step="${step}" value="${val}"></div>`;
 const switchH = (key, label, val) => `<div class="row2"><span>${label}</span><button class="switch" role="switch" data-k="${key}" aria-checked="${val}" aria-label="${label}"></button></div>`;
@@ -1778,6 +1793,8 @@ const pct = v => Math.round(v * 100) + '%';
 function renderToolPop() {
   const k = popKind; if (!k) return;
   if (k === 'recent') { toolPop.innerHTML = recentHTML(); placeToolPop(); return; }
+  if (k === 'split') { toolPop.innerHTML = splitHTML(); placeToolPop(); return; }
+  if (k === 'pick') { toolPop.innerHTML = recentHTML().replace(esc(t('Recent files')), esc(t('Choose a file'))); placeToolPop(); return; }
   if (k === 'lang') {
     toolPop.innerHTML = langListHTML();
     placeToolPop(); return;
@@ -1905,7 +1922,7 @@ const COL_W = 92; const listTop = () => 96 + (dockSide === 'top' ? 68 : 0);     
 function area() {      // files (everything that isn't a folder): columns on the right
   const W = vw(), H = vh();
   if (W >= 760) { const w = COL_W * (H > W ? 1 : 2) + 8, r = dockSide === 'right' ? 76 : 0, b = dockSide === 'bottom' ? 74 : 0; return { x: W - w - 10 - r, y: listTop(), w, h: H - listTop() - 12 - b, side: 'right' }; }      // portrait: one column, so the note gets more room
-  return { x: 10, y: H - 236, w: W - 20, h: 226, side: 'bottom' };
+  const b = dockSide === 'bottom' ? 78 : 0; return { x: 10, y: H - 236 - b, w: W - 20, h: 226, side: 'bottom' };      // phones: a grid above the toolbar
 }
 const icon = {
   plus: '<svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
@@ -2105,6 +2122,7 @@ function recentHTML() {
   return `<h4>${esc(t('Recent files'))}</h4><div class="rlist2">${list.map(f => `<button class="rrow" data-id="${f.id}"><span class="rk">${glyph(f)}</span><span class="rt"><b>${esc(f.name)}</b><small>${esc(whenStr(f.added))} · ${esc(where(f))}</small></span></button>`).join('')}</div>`;
 }
 function openAnywhere(f) {
+  if (split) { const i = split.panes.findIndex(p => p.f === f); if (i >= 0) return activatePane(i); return setPaneFile(f.kind === 'note' ? split.live : split.panes.findIndex((p, j) => j !== split.live) , f); }
   if (f.kind === 'note') return loadNote(f);
   const v = rootCtx.views.get(f.id); openViewer(f, v ? v.el.querySelector('.tile') : $('#recentTb')); $('#recentTb').style.visibility = '';
 }
@@ -2182,6 +2200,7 @@ function cascadeFrom(x, y, w, h) {
   if (ny + h > vh() - 8) ny = Math.max(8, y - 36);
   return { x: nx, y: ny };
 }
+new MutationObserver(() => { if (split) split.panes.forEach((p, i) => i !== split.live && paintPane(p)); }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 new MutationObserver(() => ghosts.forEach(paintGhost)).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
 /* ---------- layout ---------- */
@@ -2332,6 +2351,8 @@ function enterFull(k) {
       $('#topbar').classList.add('full'); renderToday();
       const r = $('#topWin'); W.today.body.place((vw() - r.offsetWidth) / 2, Math.max(16, (vh() - r.offsetHeight) / 2));
     });
+  } else if (k === 'split') {
+    closeEverything();
   } else if (k === 'files') {
     closeEverything(); if (viewer.open) closeViewer();          // Files shows only files
     if (filesState.piled) toggleFilesPile(true);
@@ -2345,6 +2366,7 @@ function enterFull(k) {
 function exitFull(quick) {
   const k = fullKey; if (!k) return;
   fullKey = null; delete document.body.dataset.full; $('#exitFull').hidden = true; $('#filesBar').hidden = true;
+  if (k === 'split') closeSplit();
   if (k === 'canvas') {
     sheetEl.classList.remove('fullbleed'); canvas75 = !!saved.canvas.c75;
     if (quick) { cancelAnimationFrame(sizeAnim); sheet.place(saved.canvas.x, saved.canvas.y); sheet.ts = null; sheet.s = saved.canvas.s; sheet.render(); setSize(saved.canvas.w, saved.canvas.h); sizeCanvases(true); sheetEl.classList.remove('resizing'); }
@@ -2741,7 +2763,7 @@ function setLang(c) {
 langBtn.addEventListener('click', e => { e.stopPropagation(); if (popKind === 'lang') return closeToolPop(); openToolPop('lang', langBtn); });
 
 /* ---------- tap empty space: close whatever is open, like stamping it shut ---------- */
-const OPEN_UI = '.bgwin, #topbar, #sheet, #dock, #files .item, #rail, #filesHdr, #panelPos, #scrim, #appPop, #emojiPop, #ctxMenu, #ctxCatch, #toolPop, #tray, #exitFull, #filesBar, #selBar, #parked, #toast';
+const OPEN_UI = '.bgwin, .pane, #topbar, #sheet, #dock, #files .item, #rail, #filesHdr, #panelPos, #scrim, #appPop, #emojiPop, #ctxMenu, #ctxCatch, #toolPop, #tray, #exitFull, #filesBar, #selBar, #parked, #toast';
 let outside = null;
 document.addEventListener('pointerdown', e => {
   outside = e.isPrimary && !e.target.closest(OPEN_UI) ? { x: e.clientX, y: e.clientY, t: e.timeStamp, open: anythingOpen() } : null;
@@ -2780,6 +2802,127 @@ sheetEl.addEventListener('wheel', e => {
   rb.addEventListener('pointerup', stop); rb.addEventListener('pointercancel', stop); rb.addEventListener('pointerleave', stop);
   rb.addEventListener('click', () => { if (heldOpen) { heldOpen = false; return; } if (popKind === 'recent') closeToolPop(); else openToolPop('recent', rb); });
 }
+
+
+/* ---------- split screen: 2-4 files side by side, like Windows snap layouts ---------- */
+let split = null;      // { n, panes: [{ f, el, r }], live: index of the pane the drawing engine is in }
+const splitLayer = $('#splitLayer');
+const SPLIT_SVG = {
+  2: '<rect x="1" y="1" width="28" height="20" rx="3"/><path d="M15 1v20"/>',
+  3: '<rect x="1" y="1" width="28" height="20" rx="3"/><path d="M15 1v20M15 11h14"/>',
+  4: '<rect x="1" y="1" width="28" height="20" rx="3"/><path d="M15 1v20M1 11h28"/>',
+};
+function splitHTML() {
+  const opts = [2, 3, 4].map(n => `<button class="opt" data-split="${n}" aria-pressed="${!!split && split.n === n}"><svg viewBox="0 0 30 22">${SPLIT_SVG[n]}</svg><span><b>${esc(t(n + ' files'))}</b><small>${esc(t(n === 2 ? 'Side by side' : n === 3 ? 'One large, two stacked' : 'A grid of four'))}</small></span></button>`).join('');
+  return `<h4>${esc(t('Split screen'))}</h4><div class="splitopts">${opts}${split ? `<button class="opt" data-split="0"><svg viewBox="0 0 30 22"><rect x="1" y="1" width="28" height="20" rx="3"/></svg><span><b>${esc(t('Close split screen'))}</b><small>${esc(t('Back to one window'))}</small></span></button>` : ''}</div>`;
+}
+// the space between the top bar and the toolbar, cut into n panes
+function splitRects(n) {
+  const tb = $('#topWin').getBoundingClientRect(), d = $('#dock .win').getBoundingClientRect(), g = 10;
+  let x0 = 12, y0 = tb.bottom + 12, x1 = vw() - 12, y1 = vh() - 12;
+  if (dockSide === 'bottom') y1 = Math.min(y1, d.top - 12); else if (dockSide === 'top') y0 = Math.max(y0, d.bottom + 12);
+  else if (dockSide === 'left') x0 = Math.max(x0, d.right + 12); else x1 = Math.min(x1, d.left - 12);
+  const W = x1 - x0, H = y1 - y0, half = (W - g) / 2, halfH = (H - g) / 2;
+  if (vw() < 760) { const h = (H - g * (n - 1)) / n; return Array.from({ length: n }, (_, i) => ({ x: x0, y: y0 + i * (h + g), w: W, h })); }      // phone: stacked
+  if (n === 2) return [{ x: x0, y: y0, w: half, h: H }, { x: x0 + half + g, y: y0, w: half, h: H }];
+  if (n === 3) return [{ x: x0, y: y0, w: half, h: H }, { x: x0 + half + g, y: y0, w: half, h: halfH }, { x: x0 + half + g, y: y0 + halfH + g, w: half, h: halfH }];
+  return [0, 1, 2, 3].map(i => ({ x: x0 + (i % 2) * (half + g), y: y0 + Math.floor(i / 2) * (halfH + g), w: half, h: halfH }));
+}
+// files to fill the panes: the note, what is open, then the most recent
+function splitCandidates() {
+  const out = [current], add = f => { if (f && !out.includes(f) && fileExists(f)) out.push(f); };
+  if (viewer.open) add(viewer.stack[viewer.stack.length - 1]);
+  [...ghosts].reverse().forEach(g => add(g.f));
+  [...walk(root)].filter(f => f.kind !== 'folder').sort((a, b) => (b.added || 0) - (a.added || 0)).forEach(add);
+  return out;
+}
+const splitK = r => Math.min(r.w / saved.split.w, r.h / saved.split.h);      // pages keep their proportions and fit the pane
+function paneBox(p) { const b = p.el.querySelector('.pbody').getBoundingClientRect(); return { x: b.left, y: b.top, w: b.width, h: b.height }; }
+function paneGeo(p) { const r = paneBox(p), k = splitK(r); return { x: r.x, y: r.y, s: k, w: r.w / k, h: r.h / k }; }
+function paneHTML(p) {
+  const f = p.f, k = KIND[f.kind] ? t(KIND[f.kind]) : '';
+  let body = '';
+  if (f.kind === 'note') body = `<canvas></canvas><span class="tapnote">${esc(t('Tap to write here'))}</span>`;
+  else if (f.kind === 'image') body = `<img src="${f.src}" alt="${esc(f.name)}" draggable="false">`;
+  else if (f.kind === 'text') body = `<pre></pre>`;
+  else if (f.kind === 'folder') body = `<ul>${f.children.map(c => `<li>${esc(c.name)}</li>`).join('')}</ul>`;
+  else body = `<div class="pdoc"><b>${esc(f.ext || '')}</b><span>${esc(f.size || '')}</span></div>`;
+  return `<header><b>${esc(f.name)}</b><small>${esc(k)}</small><button class="pchg">${esc(t('Change file'))}</button></header><div class="pbody${f.kind === 'note' ? ' pp-' + (f.paper || 'grid') : ''}">${body}</div>`;
+}
+function paintPane(p) {
+  if (p.f.kind === 'text') { const pre = p.el.querySelector('pre'); if (pre) pre.textContent = p.f.body || ''; }
+  if (p.f.kind !== 'note') return;
+  const body = p.el.querySelector('.pbody'), c = p.el.querySelector('canvas'); if (!c) return;
+  const w = body.clientWidth, h = body.clientHeight, dpr = Math.min(2, devicePixelRatio || 1), k = splitK({ w, h });
+  c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); c.style.width = w + 'px'; c.style.height = h + 'px';
+  const x = c.getContext('2d'); x.setTransform(k * dpr, 0, 0, k * dpr, 0, 0); for (const st of p.f.strokes) drawStroke(x, st);
+}
+function renderPane(i) {
+  const p = split.panes[i], r = p.r;
+  Object.assign(p.el.style, { left: r.x + 'px', top: r.y + 'px', width: r.w + 'px', height: r.h + 'px' });
+  p.el.className = 'pane glass' + (i === split.live ? ' is-live' : '');
+  p.el.innerHTML = paneHTML(p); p.el.dataset.i = i;
+  if (i !== split.live) paintPane(p);
+}
+function placeLive() {      // the drawing engine fills the live pane
+  const g = paneGeo(split.panes[split.live]);
+  cancelAnimationFrame(sizeAnim); sheet.place(g.x, g.y); sheet.ts = null; sheet.s = g.s; sheet.render();
+  setSize(g.w, g.h); Z = 1; zx = zy = 0; applyZoom(); sizeCanvases(true); bringToFront('sheet');
+}
+function layoutSplit() {
+  if (!split) return; const rs = splitRects(split.n);
+  split.panes.forEach((p, i) => { p.r = rs[i]; renderPane(i); });
+  placeLive();
+}
+function openSplit(n) {
+  if (vw() < 760) n = Math.min(n, 3);
+  if (!split) {
+    if (fullKey) exitFull(true);
+    if (viewer.open) closeViewer();
+    saved.split = { x: sheet.x, y: sheet.y, s: sheet.s, w: PW, h: PH };
+    enterFull('split');
+  }
+  const cands = splitCandidates(), keep = split ? split.panes.map(p => p.f) : [];
+  const files = [...keep.filter(f => fileExists(f)), ...cands.filter(f => !keep.includes(f))].slice(0, n);
+  if (split) split.panes.forEach(p => p.el.remove());
+  const live = Math.max(0, files.indexOf(current));
+  split = { n, live, panes: files.map(f => { const el = document.createElement('div'); splitLayer.append(el); return { f, el, r: null }; }) };
+  splitLayer.hidden = false; layoutSplit();
+  split.panes.forEach((p, i) => { if (i !== split.live && !reduceMotion) p.el.animate([{ opacity: 0, transform: 'scale(.97)' }, { opacity: 1, transform: 'none' }], { duration: SPR_OPEN.d, delay: i * 40, easing: SPR_OPEN.e, fill: 'backwards' }); });
+}
+function closeSplit() {
+  if (!split) return; split.panes.forEach(p => p.el.remove()); split = null; splitLayer.hidden = true;
+  const sv = saved.split; cancelAnimationFrame(sizeAnim); setSize(sv.w, sv.h); sizeCanvases(true);
+  home = computeHome(); sheet.springTo(home.x, home.y, home.s, 170, 22); redrawBase();
+}
+// touch a note pane: it becomes the live one; the one you were in becomes a still copy
+function activatePane(i) {
+  const p = split.panes[i]; if (i === split.live || p.f.kind !== 'note') return;
+  const prev = split.live; split.live = i;
+  renderPane(prev); renderPane(i);
+  loadNote(p.f, { at: paneGeo(p) });
+}
+let pickPane = -1;
+splitLayer.addEventListener('click', e => {
+  const el = e.target.closest('.pane'); if (!el || !split) return; const i = +el.dataset.i;
+  if (e.target.closest('.pchg')) { pickPane = i; return openToolPop('pick', e.target.closest('.pchg')); }
+  activatePane(i);
+});
+// the live pane's own "Change file" sits under the live note: give it a way in through the note's title
+function setPaneFile(i, f) {
+  const p = split.panes[i]; if (!p || !f) return;
+  const other = split.panes.findIndex((q, j) => j !== i && q.f === f);
+  if (other >= 0) split.panes[other].f = p.f;      // swap rather than show the same file twice
+  p.f = f;
+  if (i === split.live) {
+    if (f.kind === 'note') { renderPane(i); if (other >= 0) renderPane(other); return loadNote(f, { at: paneGeo(p) }); }
+    const nextNote = split.panes.findIndex((q, j) => j !== i && q.f.kind === 'note');
+    if (nextNote >= 0) { split.live = nextNote; renderPane(i); if (other >= 0) renderPane(other); renderPane(nextNote); return loadNote(split.panes[nextNote].f, { at: paneGeo(split.panes[nextNote]) }); }
+    toast(t('One pane always holds a note')); p.f = current; return renderPane(i);
+  }
+  renderPane(i); if (other >= 0) renderPane(other);
+}
+$('#qSplit').addEventListener('click', e => { e.stopPropagation(); if (popKind === 'split') return closeToolPop(); openToolPop('split', $('#qSplit')); });
 
 /* ---------- long-press menu ---------- */
 const MI = {
@@ -3215,7 +3358,7 @@ function boot() {
   sheet = new Body(sheetEl, { x: home.x, y: home.y + 40, s: home.s * .96, tiltK: 0, bounds: sheetBounds });
   sheet.onScaleSettled = () => sizeCanvases();
   sizeCanvases(true);
-  draggable(sheet, $('#grip'), { tap: () => { if (fullKey === 'canvas') return; canvas75 = false; syncRail(); sheet.springTo(home.x, home.y, home.s, 180, 22); } });
+  draggable(sheet, $('#grip'), { accept: () => fullKey !== 'split', tap: () => { if (fullKey === 'canvas') return; canvas75 = false; syncRail(); sheet.springTo(home.x, home.y, home.s, 180, 22); } });
 
   const topBody = new Body($('#topbar'), { tiltK: 0, raise: false, bounds: () => { const r = $('#topWin'); return { minX: 6, maxX: vw() - r.offsetWidth - 6, minY: 6, maxY: vh() - r.offsetHeight - 6 }; } });
   draggable(topBody, $('#topDrag'), { accept: () => fullKey !== 'today' }); draggable(topBody, $('#topDrag2'), { accept: () => fullKey !== 'today', tap: () => enterFull('today') });
@@ -3223,7 +3366,7 @@ function boot() {
   const dockWin = $('#dock .win');
   const dk = new Body(dock, { tiltK: 0, raise: false, bounds: () => ({ minX: 6, maxX: vw() - dockWin.offsetWidth - 6, minY: 6, maxY: vh() - dockWin.offsetHeight - 6 }) });
   // the whole bar moves: grab any edge, gap or the handle; buttons keep working
-  draggable(dk, dockWin, { accept: e => dockMode === 'float' && !dock.classList.contains('circle') && !e.target.closest('button, .tools, .sizes, input, .minibtn, .rn'),
+  draggable(dk, dockWin, { accept: e => dockMode === 'float' && vw() > 600 && !dock.classList.contains('circle') && !e.target.closest('button, .tools, .sizes, input, .minibtn, .rn'),
     down: () => dock.classList.add('dragging'), up: () => dock.classList.remove('dragging'),
     end: e => dockDrop(e.clientX, e.clientY) });
   // drop it at a side and it turns vertical along that edge; drag it back to the middle and it lies flat again
@@ -3306,7 +3449,7 @@ function boot() {
       if (fullKey) exitFull();
       const prev = home; home = computeHome();
       if (Math.abs(sheet.x - prev.x) < 2 && Math.abs(sheet.y - prev.y) < 2) sheet.springTo(home.x, home.y, home.s); else sheet.settle();
-      placeDock(true); centerTop(true);
+      placeDock(true); centerTop(true); if (split) setTimeout(layoutSplit, 400);
       const h2 = filesHdrHome(); hdr.springTo(h2.x, h2.y);
       if (!filesState.piled) fileTargets().forEach(t => t.b.springTo(t.x, t.y, null, 150, 18));
       const mp = moodsEl.querySelector('.mood[aria-pressed="true"]'); if (mp && !moodsEl.hidden) slidePill(moodPill, mp, true);

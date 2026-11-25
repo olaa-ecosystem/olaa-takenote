@@ -323,6 +323,7 @@ function draggable(body, handle, o = {}) {
     id = e.pointerId; tgt = e.target; try { handle.setPointerCapture(id); } catch (_) {}
     pendingEnds.add(end); moveStart();
     sx = body.x; sy = body.y; px = e.clientX; py = e.clientY; moved = false;
+    body.rebase = (x, y, cx, cy) => { sx = x; sy = y; px = cx; py = cy; };
     body.grab(); body.samples.push({ t: e.timeStamp, x: sx, y: sy }); o.down && o.down(e);
     held = false; clearTimeout(holdT); if (o.hold) holdT = setTimeout(() => { if (!moved && id !== null) { held = true; o.hold(e); } }, 500);
   });
@@ -3558,8 +3559,22 @@ function boot() {
   const dockWin = $('#dock .win');
   const dk = new Body(dock, { tiltK: 0, raise: false, bounds: () => ({ minX: 6, maxX: vw() - dockWin.offsetWidth - 6, minY: 6, maxY: vh() - dockWin.offsetHeight - 6 }) });
   // the whole bar moves: grab any edge, gap or the handle; buttons keep working
+  let foldedByDrag = false;
+  const inCorner = (x, y) => { const C = 140; return (x < C || x > vw() - C) && (y < C || y > vh() - C); };
+  // fold or unfold mid-drag: the shape morphs smoothly and stays centred under the finger
+  function foldMidDrag(on, e) {
+    if (dock.classList.contains('circle') === on) return;
+    closeToolPop();
+    morph(dockWin, () => { dock.classList.toggle('circle', on); if (on) dock.classList.remove('vert'); }, { spr: SPR_OPEN });
+    const w = dockWin.offsetWidth, h = dockWin.offsetHeight, x = e.clientX - w / 2, y = e.clientY - h / 2;
+    dk.rebase(x, y, e.clientX, e.clientY); dk.dragTo(x, y, e.timeStamp);
+    if (!on) syncDock(true);
+  }
   draggable(dk, dockWin, { accept: e => dockMode === 'float' && vw() > 600 && !dock.classList.contains('circle') && !e.target.closest('button, .tools, .sizes, input, .minibtn, .rn'),
-    down: () => dock.classList.add('dragging'), up: () => dock.classList.remove('dragging'),
+    down: () => { dock.classList.add('dragging'); foldedByDrag = false; }, up: () => dock.classList.remove('dragging'),
+    move: e => { const c = inCorner(e.clientX, e.clientY);
+      if (c && !dock.classList.contains('circle')) { foldedByDrag = true; foldMidDrag(true, e); }
+      else if (!c && foldedByDrag && dock.classList.contains('circle')) { foldedByDrag = false; foldMidDrag(false, e); } },
     end: e => dockDrop(e.clientX, e.clientY) });
   // drop it at a side and it turns vertical along that edge; drag it back to the middle and it lies flat again
   draggable(dk, $('#miniBtn'), { tap: () => setDockMini(false), end: e => dockDrop(e.clientX, e.clientY) });

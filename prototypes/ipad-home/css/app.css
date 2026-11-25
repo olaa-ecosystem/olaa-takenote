@@ -627,7 +627,7 @@ input[type=color] { width: 44px; height: 28px; border: 0; padding: 0; background
 .stage canvas { background: radial-gradient(var(--dot) 1px, transparent 1.4px) 8px 8px / 16px 16px, var(--sheet); }
 .stage pre { margin: 0; align-self: stretch; justify-self: stretch; overflow: auto; touch-action: pan-y; font: 14px/1.6 var(--font); white-space: pre-wrap; padding: 18px 20px; border-radius: 18px; background: var(--sheet); -webkit-user-select: text; user-select: text; }
 .stage .nopreview { display: grid; justify-items: center; gap: 10px; color: var(--ink-2); text-align: center; }
-.foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-right: 30px; }      /* the corner stays free for resizing */
 .foot small { color: var(--ink-2); font-size: 12.5px; }
 .cta { padding: 11px 18px; border-radius: 999px; font-weight: 600; font-size: 13.5px; color: var(--bg); background: var(--ink); box-shadow: 0 10px 24px -12px var(--shadow);
   transition: transform .45s cubic-bezier(.3,1.7,.5,1), opacity .3s; }
@@ -724,7 +724,7 @@ body[data-full="split"] #exitFull { display: none; }
 .rail .item.dragging-out .lift, #railList .item.dragging-out .lift { opacity: .35; }
 body.rail-dragging #rail .rlist { overflow: hidden; }
 /* resize corner on file and folder windows, like the note's */
-.vresize { position: absolute; z-index: 5; right: -2px; bottom: -2px; width: 44px; height: 44px; cursor: nwse-resize; touch-action: none; }
+.vresize { position: absolute; z-index: 8; right: -2px; bottom: -2px; width: 44px; height: 44px; cursor: nwse-resize; touch-action: none; }
 .vresize svg { position: absolute; left: -12px; top: -12px; width: 60px; height: 60px; overflow: visible; fill: none; stroke: var(--ink); stroke-width: 5; stroke-linecap: round; opacity: .35; transition: opacity .25s; pointer-events: none; }
 .vresize:hover svg, .vresize.on svg { opacity: .85; }
 :is(#panel,.g-panel) { position: relative; }

@@ -11,6 +11,17 @@ try { const v = localStorage.getItem('olaa-dock-side'); if (['top', 'bottom', 'l
 let Z = 1, zx = 0, zy = 0, zpan = null, zAnim = 0, zSettleT = 0;      // zoom of the page inside its window, and the visible corner in page units
 try { localStorage.removeItem('olaa-dock'); } catch (_) {}      // the old Fixed setting is gone
 const LANGS = [['vi', 'VN', 'Tiếng Việt', 'vi-VN'], ['en', 'EN', 'English', 'en-GB'], ['ja', 'JP', '日本語', 'ja-JP'], ['ko', 'KR', '한국어', 'ko-KR'], ['fr', 'FR', 'Français', 'fr-FR'], ['zh', 'CN', '中文', 'zh-CN']];
+const STAR = (cx, cy, R, rot = -90) => { let d = ''; for (let i = 0; i < 10; i++) { const r = i % 2 ? R * .382 : R, a = (rot + i * 36) * Math.PI / 180; d += (i ? 'L' : 'M') + (cx + r * Math.cos(a)).toFixed(2) + ' ' + (cy + r * Math.sin(a)).toFixed(2); } return `<path d="${d}Z"/>`; };
+const FLAG_SVG = {
+  vi: `<rect width="30" height="30" fill="#da251d"/><g fill="#ffcd00">${STAR(15, 15.6, 8.4)}</g>`,
+  en: `<rect width="30" height="30" fill="#012169"/><path d="M-15 0L45 30M45 0L-15 30" stroke="#fff" stroke-width="6"/><path d="M-15 0L15 15M45 30L15 15" stroke="#c8102e" stroke-width="2.4" transform="translate(-1.2 1.2)"/><path d="M45 0L15 15M-15 30L15 15" stroke="#c8102e" stroke-width="2.4" transform="translate(1.2 1.2)"/><path d="M15 0v30M0 15h30" stroke="#fff" stroke-width="10"/><path d="M15 0v30M0 15h30" stroke="#c8102e" stroke-width="6"/>`,
+  ja: `<rect width="30" height="30" fill="#fff"/><circle cx="15" cy="15" r="8" fill="#bc002d"/>`,
+  ko: `<rect width="30" height="30" fill="#fff"/><g transform="rotate(33.7 15 15)"><circle cx="15" cy="15" r="7" fill="#0047a0"/><path d="M8 15a7 7 0 0 1 14 0a3.5 3.5 0 0 1-7 0a3.5 3.5 0 0 0-7 0z" fill="#cd2e3a"/></g>
+    <g fill="#000">${[[-56.3, 0], [56.3, 0], [123.7, 0], [-123.7, 0]].map(([a]) => `<g transform="rotate(${a} 15 15)"><rect x="12.6" y="1.6" width="4.8" height=".9"/><rect x="12.6" y="2.9" width="4.8" height=".9"/><rect x="12.6" y="4.2" width="4.8" height=".9"/></g>`).join('')}</g>`,
+  fr: `<rect width="10" height="30" fill="#002395"/><rect x="10" width="10" height="30" fill="#fff"/><rect x="20" width="10" height="30" fill="#ed2939"/>`,
+  zh: `<rect width="30" height="30" fill="#ee1c25"/><g fill="#ffde00">${STAR(10, 11, 5.4)}${STAR(16.5, 5.5, 1.7, -60)}${STAR(19, 8.6, 1.7, -75)}${STAR(19, 12.6, 1.7, -95)}${STAR(16.5, 15.6, 1.7, -110)}</g>`,
+};
+const flagSVG = (c, px) => `<svg class="flagsvg" viewBox="0 0 30 30" width="${px}" height="${px}" aria-hidden="true"><defs><clipPath id="fc-${c}-${px}"><circle cx="15" cy="15" r="15"/></clipPath></defs><g clip-path="url(#fc-${c}-${px})">${FLAG_SVG[c]}</g></svg>`;
 const FLAG = { vi: '1f1fb-1f1f3', en: '1f1ec-1f1e7', ja: '1f1ef-1f1f5', ko: '1f1f0-1f1f7', fr: '1f1eb-1f1f7', zh: '1f1e8-1f1f3' };      // national flags, drawn as emoji
 // English is the key; the columns are vi, ja, ko, fr, zh
 const I18N = {
@@ -105,6 +116,11 @@ const I18N = {
   'Close window': ['Đóng cửa sổ', 'ウインドウを閉じる', '창 닫기', 'Fermer la fenêtre', '关闭窗口'],
   'Tap to bring it to the front': ['Chạm để đưa lên trước', 'タップして前面に表示', '눌러서 앞으로 가져오기', 'Touchez pour la mettre devant', '点按移到前面'],
   'Recent files': ['Tệp gần đây', '最近のファイル', '최근 파일', 'Fichiers récents', '最近文件'],
+  'Edited': ['Đã sửa', '編集', '편집됨', 'Modifiés', '已编辑'],
+  'Added': ['Đã thêm', '追加', '추가됨', 'Ajoutés', '已添加'],
+  'change': ['thay đổi', '件の変更', '변경', 'modification', '处更改'],
+  'changes': ['thay đổi', '件の変更', '변경', 'modifications', '处更改'],
+  'Nothing edited yet. Files you change show up here.': ['Chưa sửa tệp nào. Tệp bạn thay đổi sẽ hiện ở đây.', 'まだ編集したファイルはありません。変更したファイルがここに表示されます。', '아직 편집한 파일이 없습니다. 변경한 파일이 여기에 표시됩니다.', 'Rien de modifié pour l’instant. Les fichiers modifiés s’affichent ici.', '还没有编辑过的文件。你更改的文件会显示在这里。'],
   'Today': ['Hôm nay', '今日', '오늘', "Aujourd'hui", '今天'],
   'Kind': ['Loại', '種類', '종류', 'Type', '种类'],
   'Items': ['Số mục', '項目数', '항목', 'Éléments', '项目'],
@@ -1070,6 +1086,10 @@ function* walk(list) { for (const f of list) { yield f; if (f.children) yield* w
     const m = f.kind === 'note' && /(\d{1,2}) (\w{3})/.exec(f.date);
     f.added = m ? new Date(new Date().getFullYear(), MON[m[2]], +m[1], 12).getTime() : f === current ? now : now - (3 + (k++ % 9)) * 864e5;
   }
+  let j = 0;
+  for (const f of walk(root)) if (f !== current && (f.kind === 'note' || f.kind === 'text')) {
+    const back = [1.5, 26, 5, 50, 74, 98][j++ % 6] * 36e5; f.edited = Math.max(f.added + 6e5 + j * 7e5, now - back - j * 11 * 6e4); f.edits = 2 + (j * 7) % 19;
+  }
   for (const key of Object.keys(mk)) { const fn = mk[key]; mk[key] = (...a) => Object.assign(fn(...a), { added: Date.now() }); }
 })();
 
@@ -1451,7 +1471,8 @@ function endInk() {
   document.body.classList.remove('inking');
   noteChanged();
 }
-function commit(before) { current.undo.push(before); if (current.undo.length > 80) current.undo.shift(); current.redo = []; }
+function markEdited(f) { if (!f) return; f.edited = Date.now(); f.edits = (f.edits || 0) + 1; }
+function commit(before) { markEdited(current); current.undo.push(before); if (current.undo.length > 80) current.undo.shift(); current.redo = []; }
 function bbox(s) {
   if (s.bb) return s.bb; let a = 1e9, b = 1e9, c = -1e9, d = -1e9;
   for (const p of s.pts) { a = Math.min(a, p.x); b = Math.min(b, p.y); c = Math.max(c, p.x); d = Math.max(d, p.y); }
@@ -1509,8 +1530,8 @@ function replaceSel(fn) {        // immutable update, so undo keeps the old stro
 }
 const shifted = (s, dx, dy) => ({ ...s, bb: null, pts: s.pts.map(p => ({ x: p.x + dx, y: p.y + dy, p: p.p })) });
 function commitSelMove() { const { dx, dy } = sel; sel.dx = sel.dy = 0; replaceSel(s => shifted(s, dx, dy)); redrawBase(); updateSelUI(); noteChanged(); }
-function undo() { clearSel(); if (!current.undo.length) return pulse($('#undo')); current.redo.push(current.strokes.slice()); current.strokes = current.undo.pop(); redrawBase(); noteChanged(); }
-function redo() { clearSel(); if (!current.redo.length) return pulse($('#redo')); current.undo.push(current.strokes.slice()); current.strokes = current.redo.pop(); redrawBase(); noteChanged(); }
+function undo() { clearSel(); if (!current.undo.length) return pulse($('#undo')); current.redo.push(current.strokes.slice()); current.strokes = current.undo.pop(); markEdited(current); redrawBase(); noteChanged(); }
+function redo() { clearSel(); if (!current.redo.length) return pulse($('#redo')); current.undo.push(current.strokes.slice()); current.strokes = current.redo.pop(); markEdited(current); redrawBase(); noteChanged(); }
 function pulse(el) { el.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-3px)' }, { transform: 'translateX(3px)' }, { transform: 'translateX(0)' }], { duration: 260 }); }
 let thumbTimer = 0;
 const HINTS = ['Start with one line.', 'Small notes count too.', 'Write it down. Let it settle.', 'Your page, your pace.', 'One thought is enough to begin.'];
@@ -1679,7 +1700,7 @@ titleIn.addEventListener('input', () => renameFile(current, titleIn.value));
 dblTapRename(titleIn);
 function renameFile(f, v) {
   ghosts.filter(g => g.f === f).forEach(g => { const i = g.el.querySelector('.g-noteTitle, .g-pTitle'); if (i) i.value = v; });
-  f.name = v.trim() || (f.kind === 'folder' ? 'New folder' : 'Untitled');
+  const was = f.name; f.name = v.trim() || (f.kind === 'folder' ? 'New folder' : 'Untitled'); if (f.name !== was && f.kind !== 'folder') touched(f);
   document.querySelectorAll(`.item[data-id="${f.id}"] .label`).forEach(l => l.innerHTML = labelHTML(f));
   if (f === current && document.activeElement !== titleIn) titleIn.value = f.name;
   if (f === current) syncNoteChip();
@@ -1691,6 +1712,12 @@ const dock = $('#dock'), toolPill = $('#toolPill'), swatches = $('#swatches'), s
 toolPop.addEventListener('click', e => {
   const l = e.target.closest('.lgrow'); if (l) { setLang(l.dataset.l); renderToolPop(); setTimeout(() => { if (popKind === 'lang') closeToolPop(); }, 450); return; }
   const sp = e.target.closest('[data-split]'); if (sp) { const n = +sp.dataset.split; closeToolPop(); if (!n) return exitFull(); return openSplit(n); }
+  const rb2 = e.target.closest('[data-rby]'); if (rb2) {
+    if (rb2.dataset.rby === recentBy) return; recentBy = rb2.dataset.rby;
+    const l0 = toolPop.querySelector('.rlist2'); toolPop.innerHTML = recentHTML(); placeToolPop();
+    const l1 = toolPop.querySelector('.rlist2'); if (l1 && !reduceMotion) l1.animate([{ opacity: 0, transform: `translateX(${recentBy === 'added' ? 18 : -18}px)` }, { opacity: 1, transform: 'none' }], { duration: 280, easing: 'cubic-bezier(.2,.9,.3,1)' });
+    return;
+  }
   const rr = e.target.closest('.rrow'); if (rr && peekJustEnded) return;
   if (rr) { const f = [...walk(root)].find(x => x.id === rr.dataset.id); const kind = popKind; closeToolPop(); if (!f) return; if (kind === 'pick' && split) return setPaneFile(pickPane, f); if (split) { const i = split.panes.findIndex(p => p.f === f); if (i >= 0) return activatePane(i); return setPaneFile(split.live, f); } openAnywhere(f); return; }
 });
@@ -1822,7 +1849,6 @@ function renderToolPop() {
   if (k === 'lang') {
     toolPop.innerHTML = langListHTML();
     placeToolPop();
-    if (!allEmoji) loadAllEmoji().then(() => { if (popKind === 'lang') { toolPop.innerHTML = langListHTML(); placeToolPop(); } langBtn.querySelector('b').innerHTML = emoImg(FLAG[LANG], 22, 'emo', langOf(LANG)[1]); });      // Apple flag images when available
     return;
   }
   let h = ''; const h0 = toolPop.hidden ? 0 : toolPop.offsetHeight, y0 = toolPop.offsetTop;
@@ -2186,18 +2212,23 @@ function dayLabel(ts) {
   return new Intl.DateTimeFormat(langOf(LANG)[3], { weekday: 'long', day: 'numeric', month: 'long' }).format(d);
 }
 // every file, newest first, under the day it was made
+let recentBy = 'edited';
 function recentHTML() {
-  const all = [...walk(root)], list = all.filter(f => f.kind !== 'folder').sort((a, b) => (b.added || 0) - (a.added || 0));
+  const by = recentBy, when = f => by === 'edited' ? f.edited || 0 : f.added || 0;
+  const all = [...walk(root)], list = all.filter(f => f.kind !== 'folder' && (by === 'added' || f.edited)).sort((a, b) => when(b) - when(a));
   const where = f => { const p = all.find(x => x.kind === 'folder' && x.children.includes(f)); return p ? p.name : t('Files'); };
   const glyph = f => f.icon ? emoImg(f.icon, 20) : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${kindIcon(f)}</svg>`;
   const time = ts => ts ? new Intl.DateTimeFormat(langOf(LANG)[3], { hour: '2-digit', minute: '2-digit' }).format(new Date(ts)) : '';
   let html = '', last = '';
   for (const f of list) {
-    const day = f.added ? dayLabel(f.added) : '—';
+    const ts = when(f), day = ts ? dayLabel(ts) : '—';
     if (day !== last) { html += `<h5 class="rday">${esc(day)}</h5>`; last = day; }
-    html += `<button class="rrow" data-id="${f.id}"><span class="rk">${glyph(f)}</span><span class="rt"><b>${esc(f.name)}</b><small>${esc(time(f.added))} · ${esc(where(f))}</small></span></button>`;
+    const sub = by === 'edited' ? `${t('Edited')} ${time(ts)}${f.edits ? ' · ' + f.edits + ' ' + t(f.edits === 1 ? 'change' : 'changes') : ''}` : `${t('Added')} ${time(ts)}`;
+    html += `<button class="rrow" data-id="${f.id}"><span class="rk">${glyph(f)}</span><span class="rt"><b>${esc(f.name)}</b><small>${esc(sub)} · ${esc(where(f))}</small></span></button>`;
   }
-  return `<h4>${esc(t('Recent files'))}<small>${list.length}</small></h4><div class="rlist2">${html}</div>`;
+  if (!list.length) html = `<p class="rempty">${esc(t('Nothing edited yet. Files you change show up here.'))}</p>`;
+  const seg = `<div class="seg rseg" role="radiogroup">${[['edited', 'Edited'], ['added', 'Added']].map(([v, l]) => `<button data-rby="${v}" role="radio" aria-pressed="${v === by}" aria-checked="${v === by}">${esc(t(l))}</button>`).join('')}</div>`;
+  return `<h4>${esc(t('Recent files'))}<small>${list.length}</small></h4>${seg}<div class="rlist2">${html}</div>`;
 }
 function openAnywhere(f) {
   if (split) { const i = split.panes.findIndex(p => p.f === f); if (i >= 0) return activatePane(i); return setPaneFile(f.kind === 'note' ? split.live : split.panes.findIndex((p, j) => j !== split.live) , f); }
@@ -2857,14 +2888,14 @@ function applyLang() {
   document.documentElement.lang = LANG;
   for (const [n, k] of tNodes) n.nodeValue = t(k);
   for (const [el, a, k] of tAttrs) el.setAttribute(a, t(k));
-  langBtn.querySelector('b').innerHTML = emoImg(FLAG[LANG], 22, 'emo', langOf(LANG)[1]); langBtn.setAttribute('aria-label', `${t('Language')}: ${langOf(LANG)[2]}`); langBtn.title = t('Language');
+  langBtn.querySelector('b').innerHTML = flagSVG(LANG, 24); langBtn.setAttribute('aria-label', `${t('Language')}: ${langOf(LANG)[2]}`); langBtn.title = t('Language');
   $('#today').textContent = fmtL().format(new Date());
   if (current.mood == null) $('#moodName').textContent = t("How's today?");
   setHintLine(); updateMeta(); updateCount(); syncFilesBar(); syncSelBar(); syncThemeTg();
 }
 function langListHTML() {
   return `<h4>${esc(t('Language'))}</h4><div class="lglist" role="radiogroup" aria-label="${esc(t('Language'))}">${LANGS.map(([c, ab, full]) =>
-    `<button class="lgrow" role="radio" data-l="${c}" aria-checked="${c === LANG}" lang="${c}" aria-label="${esc(full)}"><b class="flag">${emoImg(FLAG[c], 24, 'emo', ab)}</b><span>${esc(full)}</span></button>`).join('')}</div>`;
+    `<button class="lgrow" role="radio" data-l="${c}" aria-checked="${c === LANG}" lang="${c}" aria-label="${esc(full)}"><b class="flag">${flagSVG(c, 28)}</b><span>${esc(full)}</span></button>`).join('')}</div>`;
 }
 function setLang(c) {
   if (!langOf(c) || c === LANG) return;

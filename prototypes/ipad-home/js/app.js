@@ -121,6 +121,16 @@ const I18N = {
   'change': ['thay đổi', '件の変更', '변경', 'modification', '处更改'],
   'changes': ['thay đổi', '件の変更', '변경', 'modifications', '处更改'],
   'Nothing edited yet. Files you change show up here.': ['Chưa sửa tệp nào. Tệp bạn thay đổi sẽ hiện ở đây.', 'まだ編集したファイルはありません。変更したファイルがここに表示されます。', '아직 편집한 파일이 없습니다. 변경한 파일이 여기에 표시됩니다.', 'Rien de modifié pour l’instant. Les fichiers modifiés s’affichent ici.', '还没有编辑过的文件。你更改的文件会显示在这里。'],
+  'Typeface': ['Kiểu chữ', '書体', '서체', 'Police', '字体'],
+  'Imported': ['Đã nhập', '読み込み済み', '가져옴', 'Importée', '已导入'],
+  'Import a font…': ['Nhập phông chữ…', 'フォントを読み込む…', '글꼴 가져오기…', 'Importer une police…', '导入字体…'],
+  'Size': ['Cỡ chữ', 'サイズ', '크기', 'Taille', '字号'],
+  'Text': ['Chữ', 'テキスト', '텍스트', 'Texte', '文字'],
+  'Tap the page to type. Tap a piece of text to edit it. Imported fonts: TTF, OTF, WOFF or WOFF2.': ['Chạm vào trang để gõ. Chạm vào chữ để sửa. Phông nhập: TTF, OTF, WOFF hoặc WOFF2.', 'ページをタップして入力。文字をタップすると編集できます。読み込めるフォント: TTF、OTF、WOFF、WOFF2。', '페이지를 탭해 입력하세요. 텍스트를 탭하면 편집합니다. 가져올 수 있는 글꼴: TTF, OTF, WOFF, WOFF2.', 'Touchez la page pour écrire. Touchez un texte pour le modifier. Polices importées : TTF, OTF, WOFF ou WOFF2.', '点按页面输入文字，点按文字可编辑。可导入 TTF、OTF、WOFF 或 WOFF2 字体。'],
+  'Font added': ['Đã thêm phông', 'フォントを追加しました', '글꼴 추가됨', 'Police ajoutée', '已添加字体'],
+  'Light leaks, slow mornings': ['Vệt sáng, buổi sáng chậm', '光漏れ、ゆっくりな朝', '빛 번짐, 느린 아침', 'Fuites de lumière, matins lents', '漏光，慢悠悠的早晨'],
+  'Recent': ['Gần đây', '最近', '최근', 'Récentes', '最近'],
+  'All colours': ['Tất cả màu', 'すべての色', '모든 색', 'Toutes les couleurs', '全部颜色'],
   'Today': ['Hôm nay', '今日', '오늘', "Aujourd'hui", '今天'],
   'Kind': ['Loại', '種類', '종류', 'Type', '种类'],
   'Items': ['Số mục', '項目数', '항목', 'Éléments', '项目'],
@@ -911,9 +921,12 @@ $('#dayView').addEventListener('click', e => {
 /* ---------- ink colours ---------- */
 const INKS = ['graphite', 'fuji', 'kodak', 'ochre', 'sky'];
 const INK_NAMES = { graphite: 'Graphite', fuji: 'Fuji green', kodak: 'Kodak red', ochre: 'Ochre', sky: 'Faded blue' };
-const PALETTE = ['#2a2a2a', '#6d7173', '#a3a6a4', '#5b3a29', '#8c5a3c', '#b0473b', '#d8735a', '#e7a48f',
-  '#e0a84f', '#c9a227', '#f2e3b5', '#8a9a4b', '#3d7c65', '#7fb59c', '#4f8f8a', '#cfe3d6',
-  '#1f3a5f', '#5a7cab', '#9db8e0', '#7a6aa8', '#b9a2d6', '#b06a8f', '#e9b8c8', '#ffffff'];
+const PALETTE = ['#1c1c1e', '#5e6266', '#a5a8ab', '#6b3a1f', '#a8572a', '#e0402a', '#ff6f4f', '#ff9e8a',
+  '#ffa600', '#f5cf00', '#ffe27a', '#6fb500', '#0f8a5f', '#2ec27e', '#00a5a8', '#8fe3c4',
+  '#1446a0', '#2f6fd6', '#6aa6ff', '#7a4dd8', '#b48cff', '#d6338a', '#ff8fc1', '#ffffff'];
+let recentColors = [];
+try { const a = JSON.parse(localStorage.getItem('olaa-recent-colors') || '[]'); if (Array.isArray(a)) recentColors = a.filter(c => typeof c === 'string' && (/^#[0-9a-f]{6}$/i.test(c) || INKS.includes(c))).slice(0, 8); } catch (_) {}
+function rememberColor(c) { recentColors = [c, ...recentColors.filter(x => x !== c)].slice(0, 8); try { localStorage.setItem('olaa-recent-colors', JSON.stringify(recentColors)); } catch (_) {} }
 let colorCache = {};
 const themeColor = n => colorCache[n] || (colorCache[n] = getComputedStyle(document.documentElement).getPropertyValue(n).trim() || '#888');
 const inkColor = n => n && n[0] === '#' ? n : themeColor('--ink-' + n);
@@ -929,6 +942,35 @@ function pencilPattern(ctx, col) {
     grainTiles[col] = t;
   }
   return ctx.createPattern(t, 'repeat');
+}
+
+/* ---------- text ---------- */
+// built-in typefaces use fonts the device already has; imported ones are added with FontFace and kept on this device
+const FONTS = [
+  { id: 'inter', name: 'Inter', css: '"Inter", system-ui, sans-serif' },
+  { id: 'serif', name: 'Serif', css: 'ui-serif, "New York", Georgia, "Times New Roman", serif' },
+  { id: 'rounded', name: 'Rounded', css: 'ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", "Nunito", system-ui, sans-serif' },
+  { id: 'mono', name: 'Mono', css: 'ui-monospace, "SF Mono", Menlo, Consolas, monospace' },
+  { id: 'hand', name: 'Handwritten', css: '"Noteworthy", "Bradley Hand", "Segoe Print", "Comic Sans MS", cursive' },
+  { id: 'marker', name: 'Marker', css: '"Marker Felt", "Chalkboard SE", "Segoe Print", fantasy' },
+];
+const fontCss = id => (FONTS.find(f => f.id === id) || FONTS[0]).css;
+const TEXT_LH = 1.3, measureCtx = document.createElement('canvas').getContext('2d');
+function drawText(ctx, s) {
+  ctx.save(); ctx.fillStyle = inkColor(s.color); ctx.font = `${s.size}px ${fontCss(s.font)}`; ctx.textBaseline = 'top';
+  const x = s.pts[0].x, y = s.pts[0].y;
+  s.text.split('\n').forEach((l, i) => ctx.fillText(l, x, y + i * s.size * TEXT_LH + s.size * .1));
+  ctx.restore();
+}
+// a text block's points zigzag across its box, so the eraser, lasso and thumbnails treat it like any other stroke
+function textPts(x, y, w, h, size) {
+  const rows = Math.max(2, Math.ceil(h / (size * .5)) + 1), pts = [];
+  for (let i = 0; i < rows; i++) { const yy = y + h * i / (rows - 1), a = { x, y: yy, p: 1 }, b = { x: x + w, y: yy, p: 1 }; i % 2 ? pts.push(b, a) : pts.push(a, b); }
+  return pts;
+}
+function textBox(text, size, font) {
+  measureCtx.font = `${size}px ${fontCss(font)}`; const lines = text.split('\n');
+  return { w: Math.max(8, ...lines.map(l => measureCtx.measureText(l).width)), h: lines.length * size * TEXT_LH };
 }
 
 /* ---------- stroke rendering ---------- */
@@ -948,6 +990,7 @@ function tracePath(ctx, pts, closed) {
   if (closed) ctx.closePath();
 }
 function drawStroke(ctx, s, extra) {
+  if (s.tool === 'text') return drawText(ctx, s);
   const pts = extra && extra.length ? s.pts.concat(extra) : s.pts; const n = pts.length; if (!n) return;
   const col = inkColor(s.color);
   ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = col; ctx.fillStyle = col;
@@ -1261,6 +1304,7 @@ const TOOLS = {
   hl:     { label: 'Highlighter', sizes: [12, 18, 26], si: 1, color: 'ochre', opacity: .32, straight: false, smooth: .4 },
   eraser: { label: 'Eraser', sizes: [8, 16, 30], si: 1, mode: 'stroke', hlOnly: false },
   lasso:  { label: 'Lasso' },
+  text:   { label: 'Text', sizes: [16, 24, 40], si: 1, color: 'graphite', font: 'inter' },
   shape:  { label: 'Shapes', sizes: [1.6, 2.4, 4], si: 1, color: 'sky', fill: false },
   laser:  { label: 'Laser pointer', color: 'kodak' },
 };
@@ -1356,6 +1400,7 @@ function startInk(e) {
   document.body.classList.add('inking'); cursorEl.classList.remove('on', 'ring'); closeToolPop();
   const q = toLocal(e, r, ink.k);
   if (tool === 'eraser') { ink.erase = true; eraseAt(q); eraseRing(q); return; }
+  if (tool === 'text') { ink.textAt = performance.now() - textClosedAt < 80 ? null : q; ink.isText = true; return; }
   if (tool === 'lasso') {
     if (sel && inSel(q)) { ink.move = { x: q.x, y: q.y, dx: sel.dx, dy: sel.dy }; selMenu.hidden = true; }
     else { clearSel(); ink.lasso = [q]; }
@@ -1372,6 +1417,7 @@ function startInk(e) {
   hint.classList.add('gone'); scheduleLive();
 }
 function moveInk(e) {      // runs for every pen sample; keep it free of layout reads
+  if (ink.isText) return;
   const evs = (e.getCoalescedEvents && e.getCoalescedEvents()) || []; const list = evs.length ? evs : [e];
   if (ink.erase) { let q; for (const ev of list) eraseAt(q = toLocal(ev, ink.r, ink.k)); eraseRing(q); return; }
   if (ink.move) { const q = toLocal(e, ink.r, ink.k); sel.dx = ink.move.dx + q.x - ink.move.x; sel.dy = ink.move.dy + q.y - ink.move.y; updateSelUI(true); scheduleLive(); return; }
@@ -1457,6 +1503,7 @@ function holdSnap() {
 }
 function endInk() {
   if (!ink) return; clearTimeout(ink.hold); cursorEl.classList.remove('ring', 'on');
+  if (ink.isText) { const q = ink.textAt; ink = null; document.body.classList.remove('inking'); if (q) textTap(q); return; }
   const s = ink.stroke;
   if (ink.move) { if (sel.dx || sel.dy) commitSelMove(); else updateSelUI(); }
   else if (ink.lasso) finishLasso(ink.lasso);
@@ -1485,6 +1532,10 @@ function eraseAt(q) {
     const s = current.strokes[i]; if (T.hlOnly && s.tool !== 'hl') continue;
     const bb = bbox(s), pad = r + s.size;
     if (q.x < bb[0] - pad || q.x > bb[2] + pad || q.y < bb[1] - pad || q.y > bb[3] + pad) continue;
+    if (s.tool === 'text') {
+      if (q.x > bb[0] - r && q.x < bb[2] + r && q.y > bb[1] - r && q.y < bb[3] + r) { current.strokes.splice(i, 1); fading.push({ s, t: performance.now() }); hit = true; }
+      continue;
+    }
     const pts = s.pts, lim = r + s.size / 2;
     if (T.mode === 'precise') {        // cut out only the touched part
       const runs = [[]]; let touched = false;
@@ -1508,6 +1559,74 @@ function clearPage() {
 
 /* ---------- lasso selection ---------- */
 function pip(pt, poly) { let c = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const a = poly[i], b = poly[j]; if ((a.y > pt.y) !== (b.y > pt.y) && pt.x < (b.x - a.x) * (pt.y - a.y) / (b.y - a.y) + a.x) c = !c; } return c; }
+let textEd = null, textClosedAt = -1e9;
+function textTap(q) {
+  const hit = current.strokes.slice().reverse().find(s => { if (s.tool !== 'text') return false; const b = bbox(s); return q.x > b[0] - 6 && q.x < b[2] + 6 && q.y > b[1] - 6 && q.y < b[3] + 6; });
+  openTextEditor(hit ? hit.pts[0] : { x: q.x, y: q.y - sizeFor('text') * .65 }, hit);
+}
+function openTextEditor(at, s0) {
+  if (textEd) commitText();
+  const T = TOOLS.text, st = s0 ? { font: s0.font, size: s0.size, color: s0.color } : { font: T.font, size: sizeFor('text'), color: T.color };
+  const before = current.strokes.slice();
+  if (s0) { current.strokes.splice(current.strokes.indexOf(s0), 1); redrawBase(); }
+  const ta = document.createElement('textarea'); ta.className = 'textedit'; ta.value = s0 ? s0.text : ''; ta.rows = 1;
+  ta.setAttribute('aria-label', t('Text')); ta.spellcheck = true; ta.autocapitalize = 'sentences';
+  document.body.append(ta); hint.classList.add('gone');
+  textEd = { ta, at, st, before, s0 };
+  const place = () => {
+    const r = paper.getBoundingClientRect(), k = r.width / PW;
+    Object.assign(ta.style, { left: (r.left + at.x * k - 6.5) + 'px', top: (r.top + at.y * k - 4.5 - st.size * .06 * k) + 'px', font: `${st.size * k}px/${TEXT_LH} ${fontCss(st.font)}`, color: inkColor(st.color) });
+    ta.style.width = '0'; ta.style.height = '0';
+    ta.style.width = Math.max(st.size * k * 2, ta.scrollWidth + st.size * k * .6) + 'px'; ta.style.height = ta.scrollHeight + 'px';
+  };
+  place(); ta.addEventListener('input', place);
+  ta.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Escape') { e.preventDefault(); commitText(); } });
+  ta.addEventListener('blur', () => { if (textEd && textEd.ta === ta) commitText(); });
+  if (!reduceMotion) ta.animate([{ opacity: 0, transform: 'scale(.96)' }, { opacity: 1, transform: 'none' }], { duration: 200, easing: 'cubic-bezier(.2,.9,.3,1)' });
+  ta.focus({ preventScroll: true });
+}
+function commitText() {
+  const ed = textEd; if (!ed) return; textEd = null; textClosedAt = performance.now();
+  const text = ed.ta.value.replace(/\s+$/, ''); ed.ta.remove();
+  if (text) {
+    const { w, h } = textBox(text, ed.st.size, ed.st.font);
+    current.strokes.push({ tool: 'text', text, font: ed.st.font, size: ed.st.size, color: ed.st.color, pts: textPts(ed.at.x, ed.at.y, w, h, ed.st.size) });
+  }
+  if (text || ed.s0) { if (!ed.s0 || text !== ed.s0.text) commit(ed.before); else current.strokes.splice(current.strokes.length - 1, 0); }
+  hint.classList.add('gone'); redrawBase(); noteChanged();
+}
+// tapping anywhere else finishes the text
+document.addEventListener('pointerdown', e => { if (textEd && e.target !== textEd.ta) commitText(); }, true);
+// import your own typeface (kept on this device)
+const fontInput = document.createElement('input'); fontInput.type = 'file'; fontInput.accept = '.ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2'; fontInput.hidden = true; document.body.append(fontInput);
+function fontStore(mode, fn) {
+  return new Promise(res => {
+    try { const rq = indexedDB.open('olaa-fonts', 1); rq.onupgradeneeded = () => rq.result.createObjectStore('f', { keyPath: 'id' });
+      rq.onsuccess = () => { try { const tx = rq.result.transaction('f', mode), r2 = fn(tx.objectStore('f')); tx.oncomplete = () => res(r2 && r2.result); tx.onerror = () => res(null); } catch (_) { res(null); } };
+      rq.onerror = () => res(null);
+    } catch (_) { res(null); }
+  });
+}
+async function addFont(id, name, buf) {
+  const fam = 'OlaaFont-' + id, ff = new FontFace(fam, buf); await ff.load(); document.fonts.add(ff);
+  if (!FONTS.some(f => f.id === id)) FONTS.push({ id, name, css: `"${fam}", system-ui, sans-serif`, own: true });
+}
+fontInput.addEventListener('change', async () => {
+  const file = fontInput.files[0]; fontInput.value = ''; if (!file) return;
+  if (file.size > 12e6) return toast(t('That font file is too large (over 12 MB).'));
+  const id = 'u' + Date.now().toString(36), name = file.name.replace(/\.[^.]+$/, '').slice(0, 40);
+  try {
+    const buf = await file.arrayBuffer(); await addFont(id, name, buf);
+    TOOLS.text.font = id; try { localStorage.setItem('olaa-font', id); } catch (_) {}
+    fontStore('readwrite', st => st.put({ id, name, buf }));
+    if (popKind === 'text') renderToolPop(); drawPreview(); redrawBase(); toast(`${t('Font added')}: ${name}`);
+  } catch (_) { toast(t('Couldn’t read that font file. Try a TTF, OTF, WOFF or WOFF2.')); }
+});
+fontStore('readonly', st => st.getAll()).then(async list => {
+  for (const f of list || []) { try { await addFont(f.id, f.name, f.buf); } catch (_) {} }
+  try { const id = localStorage.getItem('olaa-font'); if (id && FONTS.some(f => f.id === id)) TOOLS.text.font = id; } catch (_) {}
+  if (list && list.length) redrawBase();
+});
 function finishLasso(poly) {
   if (poly.length < 4) return;
   const picked = current.strokes.filter(s => { const step = Math.max(1, Math.floor(s.pts.length / 24)); let inn = 0, tot = 0; for (let i = 0; i < s.pts.length; i += step) { tot++; if (pip(s.pts[i], poly)) inn++; } return inn / tot >= .5; });
@@ -1561,7 +1680,7 @@ sheetEl.addEventListener('pointerdown', e => {
   if (e.pointerType === 'mouse') { if (e.button === 1 || spaceDown || (collapsed && e.button === 0)) return addTouch(e); if (e.button === 0 && !ink) startInk(e); return; }
   if (ink && ink.type === 'pen') return;
   if (e.width > 120 && e.height > 120) return;      // a resting palm; iPad reports ordinary fingertips up to ~60 px wide
-  if (fingerDraws && !collapsed && !ink && !touches.size && e.timeStamp - lastPen > 900) { startInk(e); return; }
+  if ((fingerDraws || tool === 'text') && !collapsed && !ink && !touches.size && e.timeStamp - lastPen > 900) { startInk(e); return; }
   if (secondFinger(e)) return;
   if (zpinch) return;
   if (!fingerDraws && e.timeStamp - lastPen < 500) return;
@@ -1636,7 +1755,7 @@ function showCursor(e) {
 addEventListener('keydown', e => {
   if (e.key === 'Escape') { if (emojiOpen) return closeEmojiPop(); if (!moodsEl.hidden) return toggleMoodRow(false); if (popKind) return closeToolPop(); if (sel) return clearSel(); if (popApp) return closePop(); if (ctxState) return closeCtx(); if (viewer.open) return viewer.full ? setViewerMode('normal') : closeViewer(); if (fullKey) return exitFull(); }
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') { e.preventDefault(); if (ctxState) closeCtx(true); openCtx(current, ctxFor(current), $('#noteChip')); return showSave(current, ctxFor(current)); }
-  if (e.target.tagName === 'INPUT') return;
+  if (e.target.closest('input, textarea')) return;
   if (e.code === 'Space') { spaceDown = true; sheetEl.style.cursor = 'grab'; e.preventDefault(); }
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); }
 });
@@ -1722,7 +1841,7 @@ toolPop.addEventListener('click', e => {
   if (rr) { const f = [...walk(root)].find(x => x.id === rr.dataset.id); const kind = popKind; closeToolPop(); if (!f) return; if (kind === 'pick' && split) return setPaneFile(pickPane, f); if (split) { const i = split.panes.findIndex(p => p.f === f); if (i >= 0) return activatePane(i); return setPaneFile(split.live, f); } openAnywhere(f); return; }
 });
 const selBox = $('#selBox'), selMenu = $('#selMenu');
-let customColor = '#7a6aa8';
+let customColor = '#7a4dd8';
 function renderSwatches() {
   swatches.innerHTML = '';
   [...INKS, customColor].forEach(c => {
@@ -1736,10 +1855,10 @@ function renderSwatches() {
 }
 function pickColor(c) {
   const t = inkTool(tool) || tool === 'laser' ? tool : 'pen';
-  TOOLS[t].color = c; if (t !== tool) setTool(t); syncDock(); if (popKind && popKind !== 'colors') renderToolPop();
+  TOOLS[t].color = c; rememberColor(c); if (t !== tool) setTool(t); syncDock(); if (popKind && popKind !== 'colors') renderToolPop();
 }
 function setTool(t) { if (t !== 'lasso') clearSel(); tool = t; syncDock(); }
-const SIZE_RANGE = { pen: [.6, 8], pencil: [.6, 8], hl: [4, 40], eraser: [4, 50] };
+const SIZE_RANGE = { pen: [.6, 8], pencil: [.6, 8], hl: [4, 40], eraser: [4, 50], text: [10, 72] };
 const bubble = document.createElement('div'); bubble.id = 'sizeBubble'; bubble.className = 'glass'; bubble.hidden = true; document.body.append(bubble);
 function showBubble(btn, t) {
   const v = sizeFor(t), [lo, hi] = SIZE_RANGE[t], d = 6 + (v - lo) / (hi - lo) * 30, c = TOOLS[t].color ? inkColor(TOOLS[t].color) : 'var(--ink-3)';
@@ -1791,9 +1910,9 @@ function syncMini() {
   mb.innerHTML = b.outerHTML; mb.style.setProperty('--c', c ? inkColor(c) : 'var(--ink)'); mb.setAttribute('aria-label', `${TOOLS[tool].label}. Tap to open the toolbar`);
 }
 function setDockMini(on) {
-  closeToolPop(); if (dock.classList.contains('circle') === on) return;
+  closeToolPop(); if (on && popKind === 'recent') closeToolPop(); if (dock.classList.contains('circle') === on) return;
   if (!on && dockCorner) {        // opening from a corner: along the top or bottom edge next to it
-    const side = dockCorner[0] === 't' ? 'top' : 'bottom'; dockCorner = null;
+    const side = dockCorner[0] === 't' ? 'top' : dockCorner[0] === 'm' ? (dockCorner[1] === 'l' ? 'left' : 'right') : 'bottom'; dockCorner = null;
     if (side !== dockSide) { dockSide = side; try { localStorage.setItem('olaa-dock-side', side); } catch (_) {} home = computeHome(); if (!fullKey && !W.canvas.min && !canvas75) sheet.springTo(home.x, home.y, home.s, 160, 20); }
   }
   morph($('#dock .win'), () => {
@@ -1853,7 +1972,8 @@ function renderToolPop() {
   }
   let h = ''; const h0 = toolPop.hidden ? 0 : toolPop.offsetHeight, y0 = toolPop.offsetTop;
   if (k === 'colors') {
-    h = `<h4>Colours</h4><div class="palette">${PALETTE.map(c => `<button style="--c:${c}" data-c="${c}" aria-label="${c}" title="${c}"></button>`).join('')}</div>
+    const rc = recentColors.length ? `<h5 class="psub">${esc(t('Recent'))}</h5><div class="palette recentc">${recentColors.map(c => `<button style="--c:${c[0] === '#' ? c : `var(--ink-${c})`}" data-rc="${c}" aria-label="${esc(colorName(c))}" title="${esc(colorName(c))}" aria-pressed="${c === (TOOLS[tool].color || '')}"></button>`).join('')}</div><h5 class="psub">${esc(t('All colours'))}</h5>` : '';
+    h = `<h4>Colours</h4>${rc}<div class="palette">${PALETTE.map(c => `<button style="--c:${c}" data-c="${c}" aria-label="${c}" title="${c}"></button>`).join('')}</div>
       <div class="row2"><span>Any colour</span><input type="color" id="nativeColor" value="${customColor}" aria-label="Any colour"></div>
       <p class="tip">Your pick fills the last colour slot in the toolbar.</p>`;
   } else if (k === 'paper') {
@@ -1864,7 +1984,10 @@ function renderToolPop() {
     if (k !== 'lasso') h += '<canvas class="pv" id="pv"></canvas>';
     if (k === 'pen') h += segH('type', [['fountain', 'Fountain'], ['ball', 'Ballpoint'], ['brush', 'Brush']], T.type);
     if (k === 'eraser') h += segH('mode', [['stroke', 'Whole stroke'], ['precise', 'Precise']], T.mode);
-    if (T.sizes) { const lo = k === 'hl' || k === 'eraser' ? 4 : .6, hi = k === 'hl' ? 40 : k === 'eraser' ? 50 : 8; h += sliderH('size', 'Thickness', lo, hi, .1, sz, sz.toFixed(1)); }
+    if (k === 'text') h += `<div class="fontlist" role="radiogroup" aria-label="${esc(t('Typeface'))}">${FONTS.map(f => `<button data-font="${f.id}" role="radio" aria-checked="${f.id === T.font}" aria-pressed="${f.id === T.font}" style="font-family:${esc(f.css)}">${esc(f.name)}${f.own ? '<small>' + esc(t('Imported')) + '</small>' : ''}</button>`).join('')}</div>
+      <button class="ghost" id="importFont">${esc(t('Import a font…'))}</button>`;
+    if (T.sizes) { const [lo, hi] = SIZE_RANGE[k]; h += sliderH('size', k === 'text' ? t('Size') : 'Thickness', lo, hi, k === 'text' ? 1 : .1, sz, sz.toFixed(k === 'text' ? 0 : 1)); }
+    if (k === 'text') h += `<p class="tip">${esc(t('Tap the page to type. Tap a piece of text to edit it. Imported fonts: TTF, OTF, WOFF or WOFF2.'))}</p>`;
     if (k === 'hl') h += sliderH('opacity', 'Opacity', .1, .7, .01, T.opacity, pct(T.opacity));
     if ('smooth' in T) h += sliderH('smooth', 'Stroke smoothing', 0, 1, .05, T.smooth, pct(T.smooth));
     if ('pressure' in T) h += switchH('pressure', 'Pressure sensitivity', T.pressure);
@@ -1904,8 +2027,13 @@ function wirePop() {
     sel = { strokes: current.strokes.slice(), dx: 0, dy: 0 }; redrawBase(); updateSelUI(); scheduleLive();
   });
   if (k === 'colors') {
-    toolPop.querySelectorAll('.palette button').forEach(b => b.addEventListener('click', () => setCustom(b.dataset.c)));
+    toolPop.querySelectorAll('.palette button[data-c]').forEach(b => b.addEventListener('click', () => setCustom(b.dataset.c)));
+    toolPop.querySelectorAll('[data-rc]').forEach(b => b.addEventListener('click', () => { const c = b.dataset.rc; c[0] === '#' ? setCustom(c) : (pickColor(c), closeToolPop()); }));
     const nc = $('#nativeColor'); nc.addEventListener('input', () => setCustom(nc.value, true));
+  }
+  if (k === 'text') {
+    toolPop.querySelectorAll('[data-font]').forEach(b => b.addEventListener('click', () => { T.font = b.dataset.font; try { localStorage.setItem('olaa-font', T.font); } catch (_) {} renderToolPop(); }));
+    $('#importFont').addEventListener('click', () => fontInput.click());
   }
   if (k === 'paper') toolPop.querySelectorAll('.papers button').forEach(b => b.addEventListener('click', () => { setPaper(b.dataset.p); renderToolPop(); }));
 }
@@ -1917,6 +2045,7 @@ function drawPreview() {
   for (let i = 0; i <= 80; i++) { const t = i / 80; pts.push({ x: 22 + t * (w - 44), y: h / 2 + Math.sin(t * Math.PI * 2) * 13, p: .2 + .75 * Math.sin(t * Math.PI) }); }
   if (k === 'eraser') { const r = Math.min(sizeFor('eraser'), 28); x.strokeStyle = themeColor('--ink-2'); x.setLineDash([4, 4]); x.lineWidth = 1.2; x.beginPath(); x.arc(w / 2, h / 2, r, 0, 7); x.stroke(); return; }
   if (k === 'laser') return drawLaser(x, pts, T.color, 1);
+  if (k === 'text') { x.font = `${Math.min(sizeFor('text'), 40)}px ${fontCss(T.font)}`; x.fillStyle = inkColor(T.color); x.textBaseline = 'middle'; x.textAlign = 'center'; x.fillText(t('Light leaks, slow mornings'), w / 2, h / 2, w - 20); return; }
   const s = { tool: k, type: T.type, color: T.color, size: sizeFor(k), pr: T.pressure !== false, op: T.opacity, fill: T.fill, pts };
   if (k === 'hl' && T.straight) { s.pts = densify([pts[0], pts[pts.length - 1]], false, .5); s.flat = true; }
   if (k === 'shape') { s.pts = []; for (let i = 0; i <= 64; i++) { const t = i / 64 * Math.PI * 2; s.pts.push({ x: w / 2 + Math.cos(t) * 50, y: h / 2 + Math.sin(t) * 20, p: .5 }); } s.closed = s.shaped = true; }
@@ -2379,7 +2508,8 @@ function syncCollapseFull() {
   const b = $('#collapseFull'), on = fullKey === 'canvas' || (viewer.open && viewer.full);
   if (on && b.hidden && !reduceMotion) { b.hidden = false; b.animate([{ opacity: 0, transform: 'scale(.6)' }, { opacity: 1, transform: 'none' }], { duration: SPR.d, easing: SPR.e }); }
   b.hidden = !on;
-  b.classList.toggle('lift', dockSide === 'bottom' || dockCorner === 'br');      // keeps clear of the toolbar
+  b.classList.toggle('lift', dockSide === 'bottom' || dockCorner === 'br');
+  $('#panel').classList.toggle('isfull', !!(viewer.open && viewer.full));      // keeps clear of the toolbar
 }
 function syncLights() {
   setTimeout(syncCollapseFull, 0);
@@ -2698,7 +2828,7 @@ function setViewerMode(mode) {
   if (viewer.collapsed) { viewer.collapsed = false; panelEl.classList.remove('collapsed'); }
   if (viewer.mode === mode) return nudge(panelEl);
   morph(panelEl, () => {
-    viewer.mode = mode; viewer.full = mode === 'full';
+    viewer.mode = mode; viewer.full = mode === 'full'; panelEl.classList.toggle('isfull', viewer.full);
     const { w, h } = viewerSize(); panelEl.style.width = w + 'px';
     pBody.style.transition = 'none'; pBody.style.height = h + 'px'; void pBody.offsetHeight; pBody.style.transition = '';
     renderView(0);
@@ -3697,7 +3827,8 @@ function boot() {
   const dk = new Body(dock, { tiltK: 0, raise: false, bounds: () => ({ minX: 6, maxX: vw() - dockWin.offsetWidth - 6, minY: 6, maxY: vh() - dockWin.offsetHeight - 6 }) });
   // the whole bar moves: grab any edge, gap or the handle; buttons keep working
   let foldedByDrag = false;
-  const inCorner = (x, y) => { const C = 140; return (x < C || x > vw() - C) && (y < C || y > vh() - C); };
+  const midEdge = (x, y) => (x < 80 || x > vw() - 80) && Math.abs(y - vh() / 2) < vh() * .2;      // the middle of the left or right edge
+  const inCorner = (x, y) => { const C = 140; return ((x < C || x > vw() - C) && (y < C || y > vh() - C)) || midEdge(x, y); };
   // fold or unfold mid-drag: the shape morphs smoothly and stays centred under the finger
   function foldMidDrag(on, e) {
     if (dock.classList.contains('circle') === on) return;
@@ -3743,7 +3874,7 @@ function boot() {
     if (!circle) dock.classList.toggle('vert', vert);
     const w = dockWin.offsetWidth, h = dockWin.offsetHeight, tb = $('#topWin').getBoundingClientRect(), m = 12;
     let x = (vw() - w) / 2, y = (vh() - h) / 2;
-    if (circle && dockCorner) { x = dockCorner[1] === 'l' ? 16 : vw() - w - 16; y = dockCorner[0] === 't' ? 16 : vh() - h - 16; }
+    if (circle && dockCorner) { x = dockCorner[1] === 'l' ? 16 : vw() - w - 16; y = dockCorner[0] === 't' ? 16 : dockCorner[0] === 'm' ? (vh() - h) / 2 : vh() - h - 16; }
     else if (side === 'bottom') y = vh() - h - m;
     else if (side === 'top') { const tbBottom = topBody.y + $('#topWin').offsetHeight; y = (tbBottom < vh() / 2 ? tbBottom : 0) + 10; }      // where the top bar settles, not where its entrance animation is
     else x = side === 'left' ? m : vw() - w - m;
@@ -3752,7 +3883,8 @@ function boot() {
   };
   // drop it anywhere: it goes to the side your finger is closest to
   function dockDrop(px, py) {
-    const C = 140, cx = px < C ? 'l' : px > vw() - C ? 'r' : '', cy = py < C ? 't' : py > vh() - C ? 'b' : '';
+    const C = 140; let cx = px < C ? 'l' : px > vw() - C ? 'r' : '', cy = py < C ? 't' : py > vh() - C ? 'b' : '';
+    if (!(cx && cy) && midEdge(px, py)) { cx = px < vw() / 2 ? 'l' : 'r'; cy = 'm'; }      // folds at the middle of a side edge too
     if (cx && cy) {          // a corner: fold into a circle there
       closeToolPop(); dockCorner = cy + cx;
       if (!dock.classList.contains('circle')) setDockMini(true); else placeDock(true);

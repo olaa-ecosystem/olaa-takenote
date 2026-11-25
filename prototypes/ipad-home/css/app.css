@@ -30,11 +30,11 @@
   --scrim: rgba(226, 232, 224, .22);
   --blob-alpha: .95;
   --grain: .16;
-  --ink-graphite: #28322f;
-  --ink-fuji: #3d7c65;
-  --ink-kodak: #be5646;
-  --ink-ochre: #c3922a;
-  --ink-sky: #5a7cab;
+  --ink-graphite: #1d2321;
+  --ink-fuji: #0f8a5f;
+  --ink-kodak: #e0402a;
+  --ink-ochre: #f0a000;
+  --ink-sky: #2f6fd6;
   --lt-r: #ef5f57; --lt-y: #f2ba3c; --lt-g: #3dbf51;
   --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif, "Apple Color Emoji";
   --r-tile: 18px;
@@ -42,24 +42,24 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #262e31; --ink: #eef1ec; --ink-2: rgba(238, 241, 236, .74); --ink-3: rgba(238, 241, 236, .46);
-    --glass: rgba(72, 82, 86, .40); --glass-hi: rgba(116, 128, 132, .44); --rim: rgba(255, 255, 255, .32); --rim-lo: rgba(255, 255, 255, .08);
-    --sheen: rgba(255, 255, 255, .2); --shadow: rgba(0, 0, 0, .38); --sheet: rgba(52, 60, 64, .82); --dot: rgba(238, 241, 236, .14); --grid: rgba(238, 241, 236, .065);
-    --accent: #8cc6ad; --accent-soft: rgba(140, 198, 173, .18); --warm: #e59a82; --danger: #ff6f63;
-    --pocket-a: rgba(100, 112, 116, .8); --pocket-b: rgba(70, 80, 84, .74); --label: rgba(52, 60, 64, .52);
-    --scrim: rgba(18, 22, 24, .26); --blob-alpha: .46; --grain: .16;
-    --ink-graphite: #e8ebe5; --ink-fuji: #8cc6ad; --ink-kodak: #ee8e7b; --ink-ochre: #e8c46c; --ink-sky: #9cb7e0;
+    --bg: #050506; --ink: #ffffff; --ink-2: rgba(255, 255, 255, .78); --ink-3: rgba(255, 255, 255, .5);
+    --glass: rgba(26, 26, 28, .66); --glass-hi: rgba(56, 56, 60, .66); --rim: rgba(255, 255, 255, .22); --rim-lo: rgba(255, 255, 255, .07);
+    --sheen: rgba(255, 255, 255, .1); --shadow: rgba(0, 0, 0, .7); --sheet: rgba(16, 16, 18, .95); --dot: rgba(255, 255, 255, .18); --grid: rgba(255, 255, 255, .08);
+    --accent: #5fd6a3; --accent-soft: rgba(95, 214, 163, .2); --warm: #ff9a7a; --danger: #ff5a4f;
+    --pocket-a: rgba(44, 44, 48, .88); --pocket-b: rgba(28, 28, 31, .84); --label: rgba(10, 10, 12, .62);
+    --scrim: rgba(0, 0, 0, .4); --blob-alpha: .16; --grain: .1;
+    --ink-graphite: #f4f4f4; --ink-fuji: #3fd19a; --ink-kodak: #ff6b55; --ink-ochre: #ffc53d; --ink-sky: #6aa6ff;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #262e31; --ink: #eef1ec; --ink-2: rgba(238, 241, 236, .74); --ink-3: rgba(238, 241, 236, .46);
-  --glass: rgba(72, 82, 86, .40); --glass-hi: rgba(116, 128, 132, .44); --rim: rgba(255, 255, 255, .32); --rim-lo: rgba(255, 255, 255, .08);
-  --sheen: rgba(255, 255, 255, .2); --shadow: rgba(0, 0, 0, .38); --sheet: rgba(52, 60, 64, .82); --dot: rgba(238, 241, 236, .14); --grid: rgba(238, 241, 236, .065);
-  --accent: #8cc6ad; --accent-soft: rgba(140, 198, 173, .18); --warm: #e59a82; --danger: #ff6f63;
-  --pocket-a: rgba(100, 112, 116, .8); --pocket-b: rgba(70, 80, 84, .74); --label: rgba(52, 60, 64, .52);
-  --scrim: rgba(18, 22, 24, .26); --blob-alpha: .46; --grain: .16;
-  --ink-graphite: #e8ebe5; --ink-fuji: #8cc6ad; --ink-kodak: #ee8e7b; --ink-ochre: #e8c46c; --ink-sky: #9cb7e0;
+  --bg: #050506; --ink: #ffffff; --ink-2: rgba(255, 255, 255, .78); --ink-3: rgba(255, 255, 255, .5);
+  --glass: rgba(26, 26, 28, .66); --glass-hi: rgba(56, 56, 60, .66); --rim: rgba(255, 255, 255, .22); --rim-lo: rgba(255, 255, 255, .07);
+  --sheen: rgba(255, 255, 255, .1); --shadow: rgba(0, 0, 0, .7); --sheet: rgba(16, 16, 18, .95); --dot: rgba(255, 255, 255, .18); --grid: rgba(255, 255, 255, .08);
+  --accent: #5fd6a3; --accent-soft: rgba(95, 214, 163, .2); --warm: #ff9a7a; --danger: #ff5a4f;
+  --pocket-a: rgba(44, 44, 48, .88); --pocket-b: rgba(28, 28, 31, .84); --label: rgba(10, 10, 12, .62);
+  --scrim: rgba(0, 0, 0, .4); --blob-alpha: .16; --grain: .1;
+  --ink-graphite: #f4f4f4; --ink-fuji: #3fd19a; --ink-kodak: #ff6b55; --ink-ochre: #ffc53d; --ink-sky: #6aa6ff;
   color-scheme: dark;
 }
 
@@ -451,7 +451,10 @@ body.theming, body.theming *, body.theming *::before, body.theming *::after { tr
 .sw i { width: 20px; height: 20px; border-radius: 50%; background: var(--c); box-shadow: inset 0 1px 1px rgba(255,255,255,.4), inset 0 0 0 .5px rgba(0,0,0,.14);
   transition: transform .45s cubic-bezier(.3,1.7,.5,1), box-shadow .3s; }
 .sw[aria-pressed="true"] i { transform: scale(1.12); box-shadow: inset 0 1px 1px rgba(255,255,255,.4), 0 0 0 3px var(--bg), 0 0 0 4.5px var(--c); }
-.sw.add i { background: conic-gradient(from 200deg, #e7a48f, #f0d38a, #a9cf9c, #8fb8d8, #b9a2d6, #e7a48f); }
+.sw.add i { background: conic-gradient(from 200deg, #ff6f4f, #ffc400, #2ec27e, #2f9bff, #9b6cff, #ff4f9a, #ff6f4f); }
+.psub { margin: 8px 2px 6px; font-size: 10.5px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); }
+.palette.recentc { grid-template-columns: repeat(8, 1fr); margin-bottom: 4px; }
+.palette.recentc button[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--bg), 0 0 0 3.5px var(--c); }
 .sizes { display: flex; flex: none; transition: opacity .25s; }
 .szb { width: 30px; height: 42px; display: grid; place-items: center; border-radius: 12px; transition: background .25s; }
 .szb i { border-radius: 50%; background: var(--ink-2); transition: width .3s, height .3s, background .2s; }
@@ -672,8 +675,9 @@ body[data-full] .bgwin { display: none; }
 /* when the bar scrolls (phones) the clock stays pinned at its end */
 :is(#recentTb,.g-recentTb) { position: sticky; right: 0; bottom: 0; z-index: 2; border-radius: 14px; }
 @media (max-width: 600px) { :is(#recentTb,.g-recentTb) { background: var(--glass-hi); box-shadow: -8px 0 14px -10px var(--shadow); } }
-/* folded into a circle, the clock rides beside it */
-:is(#dock,.g-dock).circle .win > :is(#recentTb,.g-recentTb) { display: grid !important; position: absolute; left: 68px; top: 9px; width: 42px !important; height: 42px; border-radius: 50%;
+/* folded into a circle: no clock (Recent files opens from the full toolbar only) */
+:is(#dock,.g-dock).circle .win > :is(#recentTb,.g-recentTb) { display: none !important; }
+.unused-clock-beside { display: grid !important; position: absolute; left: 68px; top: 9px; width: 42px !important; height: 42px; border-radius: 50%;
   background: var(--glass-hi); box-shadow: inset 0 1px .5px var(--rim), 0 8px 18px -10px var(--shadow); -webkit-backdrop-filter: blur(18px) saturate(1.6); backdrop-filter: blur(18px) saturate(1.6); }
 :is(#dock,.g-dock).circle.clockleft .win > :is(#recentTb,.g-recentTb) { left: -50px; }
 #dock .win { padding-left: 9px; padding-right: 9px; }
@@ -733,7 +737,8 @@ body.rail-dragging #rail .rlist { overflow: hidden; }
 .vresize:hover svg, .vresize.on svg { opacity: .85; }
 :is(#panel,.g-panel) { position: relative; }
 .bgwin .vresize { display: none; }
-:is(#panel,.g-panel):has(.view:not(.leaving) .foot .cta) .vresize { display: none; }      /* a note preview has Open in that corner: no resizing there */
+:is(#panel,.g-panel):has(.view:not(.leaving) .foot .cta) .vresize { display: none; }
+:is(#panel,.g-panel).isfull .vresize { display: none; }      /* full screen: nothing to resize */      /* a note preview has Open in that corner: no resizing there */
 /* snap: where the window will land */
 #snapPreview { position: fixed; z-index: 18; left: 0; top: 0; width: 0; height: 0; border-radius: 26px; pointer-events: none; opacity: 0;
   background: color-mix(in srgb, var(--accent) 14%, transparent); box-shadow: inset 0 0 0 2px var(--accent);
@@ -744,6 +749,12 @@ body.rail-dragging #rail .rlist { overflow: hidden; }
 #collapseFull[hidden] { display: none; } #collapseFull:active { transform: scale(.88); } #collapseFull svg.i { width: 22px; height: 22px; }
 #collapseFull.lift { bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
 /* eraser ring while erasing in Precise mode */
+.textedit { position: fixed; z-index: 50; margin: 0; padding: 3px 5px; border: 1.5px dashed var(--accent); border-radius: 8px; background: color-mix(in srgb, var(--sheet) 70%, transparent);
+  outline: none; resize: none; overflow: hidden; white-space: pre; -webkit-user-select: text; user-select: text; caret-color: var(--accent); min-width: 40px; box-sizing: content-box; }
+.fontlist { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 10px 0 8px; max-height: 210px; overflow-y: auto; }
+.fontlist button { height: 42px; border-radius: 12px; font-size: 16px; color: var(--ink); background: var(--glass); box-shadow: inset 0 1px .5px var(--rim); display: grid; place-content: center; line-height: 1.05; padding: 0 6px; overflow: hidden; }
+.fontlist button small { font: 500 9.5px var(--font); color: var(--ink-2); }
+.fontlist button[aria-pressed="true"] { background: var(--accent-soft); box-shadow: inset 0 0 0 1.5px var(--accent); }
 .cursor.ring { opacity: 1; border: 1.5px solid var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--sheet) 80%, transparent); transition: opacity .15s; }
 /* previewing a file by dragging it out of Recent files */
 .peekcard { position: fixed; z-index: 66; left: 0; top: 0; width: 280px; border-radius: 22px; overflow: hidden; pointer-events: none; display: block;

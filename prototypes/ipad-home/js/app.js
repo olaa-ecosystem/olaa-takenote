@@ -2505,11 +2505,7 @@ let fullKey = null; const saved = {};
 const filesState = { piled: false, min: false };
 let W; // window registry, filled at boot
 function syncCollapseFull() {
-  const b = $('#collapseFull'), on = fullKey === 'canvas' || (viewer.open && viewer.full);
-  if (on && b.hidden && !reduceMotion) { b.hidden = false; b.animate([{ opacity: 0, transform: 'scale(.6)' }, { opacity: 1, transform: 'none' }], { duration: SPR.d, easing: SPR.e }); }
-  b.hidden = !on;
-  b.classList.toggle('lift', dockSide === 'bottom' || dockCorner === 'br');
-  $('#panel').classList.toggle('isfull', !!(viewer.open && viewer.full));      // keeps clear of the toolbar
+  $('#panel').classList.toggle('isfull', !!(viewer.open && viewer.full));      // full screen: no resize corner
 }
 function syncLights() {
   setTimeout(syncCollapseFull, 0);
@@ -2750,7 +2746,6 @@ draggable(viewer.body, $('#pHead'), {
 $('#pBack').addEventListener('click', () => popView());
 scrim.addEventListener('click', () => closeViewer());
 $('#exitFull').addEventListener('click', () => exitFull());
-$('#collapseFull').addEventListener('click', () => { if (viewer.open && viewer.full) setViewerMode('normal'); else if (fullKey === 'canvas') exitFull(); syncCollapseFull(); });
 // tap the empty background to leave the Today or Files full-screen view
 document.addEventListener('pointerdown', e => {
   if (viewer.open || !fullKey) return;

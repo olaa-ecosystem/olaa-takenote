@@ -74,7 +74,7 @@ The repository contains no emoji artwork. The app draws emoji with the device's 
 
 | Area | How it works |
 |---|---|
-| Note window | Apple Pencil draws. Pinch to zoom the page (100%–400%, centred between your fingers); one finger pans when zoomed and moves the window at 100%; double-tap toggles 200%. Drag the corner to resize. Red: close to the toolbar. Yellow: 75% of the screen. Green: full screen; in full screen (note or file) the round button in the bottom-right corner collapses it back, and there is no resize corner. |
+| Note window | Apple Pencil draws. Pinch to zoom the page (100%–400%, centred between your fingers); one finger pans when zoomed and moves the window at 100%; double-tap toggles 200%. Drag the corner to resize. Red: close to the toolbar. Yellow: 75% of the screen. Green: full screen (green again or Escape to leave); in full screen there is no resize corner. |
 | Text | Pick **T** in the toolbar, then tap the page to type; tap text to edit it, tap elsewhere to finish. Tap the tool again for typefaces (Inter, Serif, Rounded, Mono, Handwritten, Marker) and size. **Import a font…** adds a TTF, OTF, WOFF or WOFF2 file; it stays on this device. The eraser and lasso work on text like on ink. |
 | Eraser | Tap the eraser again for options. **Whole stroke** removes any stroke it touches. **Precise** erases only under the tip, and a ring the size of the eraser follows the tip while you erase so you can see exactly what goes. |
 | Several files | Opening another note or file keeps the first one open behind it at the same size; tap a window behind to bring it forward. |

@@ -10,7 +10,8 @@ let dockMode = 'float', relayoutDock = null, dockSide = 'bottom', dockCorner = n
 try { const v = localStorage.getItem('olaa-dock-side'); if (['top', 'bottom', 'left', 'right'].includes(v)) dockSide = v; } catch (_) {}
 let Z = 1, zx = 0, zy = 0, zpan = null, zAnim = 0, zSettleT = 0;      // zoom of the page inside its window, and the visible corner in page units
 try { localStorage.removeItem('olaa-dock'); } catch (_) {}      // the old Fixed setting is gone
-const LANGS = [['en', 'EN', 'English', 'en-GB'], ['vi', 'VN', 'Tiếng Việt', 'vi-VN'], ['ja', 'JP', '日本語', 'ja-JP'], ['ko', 'KR', '한국어', 'ko-KR'], ['fr', 'FR', 'Français', 'fr-FR'], ['zh', 'CN', '中文', 'zh-CN']];
+const LANGS = [['vi', 'VN', 'Tiếng Việt', 'vi-VN'], ['en', 'EN', 'English', 'en-GB'], ['ja', 'JP', '日本語', 'ja-JP'], ['ko', 'KR', '한국어', 'ko-KR'], ['fr', 'FR', 'Français', 'fr-FR'], ['zh', 'CN', '中文', 'zh-CN']];
+const FLAG = { vi: '1f1fb-1f1f3', en: '1f1ec-1f1e7', ja: '1f1ef-1f1f5', ko: '1f1f0-1f1f7', fr: '1f1eb-1f1f7', zh: '1f1e8-1f1f3' };      // national flags, drawn as emoji
 // English is the key; the columns are vi, ja, ko, fr, zh
 const I18N = {
   'New note': ['Ghi chú mới', '新規ノート', '새 노트', 'Nouvelle note', '新建笔记'],
@@ -1810,7 +1811,9 @@ function renderToolPop() {
   if (k === 'pick') { toolPop.innerHTML = recentHTML().replace(esc(t('Recent files')), esc(t('Choose a file'))); placeToolPop(); return; }
   if (k === 'lang') {
     toolPop.innerHTML = langListHTML();
-    placeToolPop(); return;
+    placeToolPop();
+    if (!allEmoji) loadAllEmoji().then(() => { if (popKind === 'lang') { toolPop.innerHTML = langListHTML(); placeToolPop(); } langBtn.querySelector('b').innerHTML = emoImg(FLAG[LANG], 22, 'emo', langOf(LANG)[1]); });      // Apple flag images when available
+    return;
   }
   let h = ''; const h0 = toolPop.hidden ? 0 : toolPop.offsetHeight, y0 = toolPop.offsetTop;
   if (k === 'colors') {
@@ -2383,7 +2386,7 @@ function windowed(k) {
   if (k !== 'canvas') { if (fullKey === k) exitFull(); else if (k === 'files') { toggleFilesPile(); syncLights(); } else nudge(W[k].inner); return; }
   if (W.canvas.min) restore('canvas');
   const tw = Math.round(vw() * .75), th = Math.round(vh() * .75);
-  if (fullKey === 'canvas') { W.tools.body.springTo(saved.dock.x, saved.dock.y, null, 170, 22); leaveFull(); }
+  if (fullKey === 'canvas') { leaveFull(); if (relayoutDock) setTimeout(() => relayoutDock(true), 60); }
   else if (Math.abs(PW - tw) < 2 && Math.abs(PH - th) < 2 && Math.abs(sheet.s - 1) < .01) { canvas75 = true; syncRail(); return nudge(sheetWin); }
   sheet.springTo((vw() - tw) / 2, clamp((vh() - th) / 2, 80, vh()), 1, 190, 27);
   animateSize(tw, th, () => { home = computeHome(); });
@@ -2410,7 +2413,7 @@ function enterFull(k) {
     saved.canvas = { x: sheet.x, y: sheet.y, s: sheet.s, w: PW, h: PH, c75: canvas75 }; saved.dock = { x: W.tools.body.x, y: W.tools.body.y }; canvas75 = false;
     sheetEl.classList.add('fullbleed'); bringToFront('sheet');
     sheet.springTo(0, 0, 1, 190, 27); animateSize(vw(), vh());
-    const dw = $('#dock .win').offsetWidth; W.tools.body.springTo((vw() - dw) / 2, vh() - 78, null, 190, 27);
+    if (relayoutDock) relayoutDock(true);      // same side or corner as before, never pushed off screen
   } else if (k === 'today') {
     saved.today = { x: W.today.body.x, y: W.today.body.y };
     morph($('#topWin'), () => {
@@ -2437,7 +2440,7 @@ function exitFull(quick) {
     sheetEl.classList.remove('fullbleed'); canvas75 = !!saved.canvas.c75;
     if (quick) { cancelAnimationFrame(sizeAnim); sheet.place(saved.canvas.x, saved.canvas.y); sheet.ts = null; sheet.s = saved.canvas.s; sheet.render(); setSize(saved.canvas.w, saved.canvas.h); sizeCanvases(true); sheetEl.classList.remove('resizing'); }
     else { sheet.springTo(saved.canvas.x, saved.canvas.y, saved.canvas.s, 190, 27); animateSize(saved.canvas.w, saved.canvas.h); }
-    W.tools.body.springTo(saved.dock.x, saved.dock.y, null, 170, 22);
+    if (relayoutDock) setTimeout(() => relayoutDock(true), 60);
   }
   else if (k === 'today') {
     morph($('#topWin'), () => { $('#topbar').classList.remove('full'); W.today.body.place(saved.today.x, saved.today.y); });
@@ -2836,14 +2839,14 @@ function applyLang() {
   document.documentElement.lang = LANG;
   for (const [n, k] of tNodes) n.nodeValue = t(k);
   for (const [el, a, k] of tAttrs) el.setAttribute(a, t(k));
-  langBtn.querySelector('b').textContent = langOf(LANG)[1]; langBtn.setAttribute('aria-label', `${t('Language')}: ${langOf(LANG)[2]}`); langBtn.title = t('Language');
+  langBtn.querySelector('b').innerHTML = emoImg(FLAG[LANG], 22, 'emo', langOf(LANG)[1]); langBtn.setAttribute('aria-label', `${t('Language')}: ${langOf(LANG)[2]}`); langBtn.title = t('Language');
   $('#today').textContent = fmtL().format(new Date());
   if (current.mood == null) $('#moodName').textContent = t("How's today?");
   setHintLine(); updateMeta(); updateCount(); syncFilesBar(); syncSelBar(); syncThemeTg();
 }
 function langListHTML() {
   return `<h4>${esc(t('Language'))}</h4><div class="lglist" role="radiogroup" aria-label="${esc(t('Language'))}">${LANGS.map(([c, ab, full]) =>
-    `<button class="lgrow" role="radio" data-l="${c}" aria-checked="${c === LANG}" lang="${c}"><b>${ab}</b><span>${esc(full)}</span></button>`).join('')}</div>`;
+    `<button class="lgrow" role="radio" data-l="${c}" aria-checked="${c === LANG}" lang="${c}" aria-label="${esc(full)}"><b class="flag">${emoImg(FLAG[c], 24, 'emo', ab)}</b><span>${esc(full)}</span></button>`).join('')}</div>`;
 }
 function setLang(c) {
   if (!langOf(c) || c === LANG) return;
@@ -2974,6 +2977,7 @@ function openSplit(n) {
     saved.split = { x: sheet.x, y: sheet.y, s: sheet.s, w: PW, h: PH };
     enterFull('split');
   }
+  const before = split ? new Map(split.panes.map(p => [p.f, p.el.getBoundingClientRect()])) : null;      // where panes were, to morph from
   const cands = splitCandidates(), keep = split ? split.panes.map(p => p.f) : [];
   const files = [...keep.filter(f => fileExists(f)), ...cands.filter(f => !keep.includes(f))].slice(0, n);
   if (split) split.panes.forEach(p => p.el.remove());
@@ -2981,13 +2985,20 @@ function openSplit(n) {
   split = { n, live, panes: files.map(f => { const el = document.createElement('div'); splitLayer.append(el); return { f, el, r: null }; }) };
   const from = $('#sheetWin').getBoundingClientRect();
   splitLayer.hidden = false; layoutSplit();
-  if (!reduceMotion) {
-    // the panes unfold from the Split button, one after another; the note glides into its pane
+  if (reduceMotion) split.panes.forEach((p, i) => p.el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 260, delay: i * 50, fill: 'backwards' }));      // Reduce Motion: fade in
+  else {
+    // panes that were already there morph to their new place and size; new ones unfold from the Split button, one after another
     const b = $('#qSplit').getBoundingClientRect();
     split.panes.forEach((p, i) => {
-      const r = p.el.getBoundingClientRect(), dx = b.left + b.width / 2 - (r.left + r.width / 2), dy = b.top + b.height / 2 - (r.top + r.height / 2);
+      const r = p.el.getBoundingClientRect(), o = before && before.get(p.f);
+      if (o && o.width) {
+        p.el.animate([{ transformOrigin: '0 0', transform: `translate(${o.left - r.left}px,${o.top - r.top}px) scale(${o.width / r.width},${o.height / r.height})` }, { transformOrigin: '0 0', transform: 'none' }],
+          { duration: 520, easing: 'cubic-bezier(.2,.9,.25,1.02)' });
+        return;
+      }
+      const dx = b.left + b.width / 2 - (r.left + r.width / 2), dy = b.top + b.height / 2 - (r.top + r.height / 2);
       p.el.animate([{ opacity: 0, transform: `translate(${dx}px,${dy}px) scale(.12)` }, { opacity: 1, offset: .35 }, { opacity: 1, transform: 'none' }],
-        { duration: 560, delay: i * 70, easing: 'cubic-bezier(.2,.9,.25,1.05)', fill: 'backwards' });
+        { duration: 600, delay: i * 80, easing: 'cubic-bezier(.2,.9,.25,1.05)', fill: 'backwards' });
     });
     flipSheet(from);
   }
@@ -3002,7 +3013,7 @@ function closeSplit() {
   if (!split) return;
   const b = $('#qSplit').getBoundingClientRect(), from = $('#sheetWin').getBoundingClientRect();
   split.panes.forEach((p, i) => {      // the panes fold back into the Split button
-    if (reduceMotion) return p.el.remove();
+    if (reduceMotion) { p.el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, fill: 'forwards' }).onfinish = () => p.el.remove(); return; }
     const r = p.el.getBoundingClientRect(), dx = b.left + b.width / 2 - (r.left + r.width / 2), dy = b.top + b.height / 2 - (r.top + r.height / 2);
     p.el.style.pointerEvents = 'none';
     p.el.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: `translate(${dx}px,${dy}px) scale(.12)` }], { duration: 380, delay: i * 40, easing: 'cubic-bezier(.4,0,.6,1)', fill: 'forwards' }).onfinish = () => p.el.remove();
@@ -3190,15 +3201,18 @@ function swapMenu(build, dir) {
   const r0 = ctxMenu.getBoundingClientRect();
   build(); placeCtx();
   const r1 = ctxMenu.getBoundingClientRect();
-  if (reduceMotion) return;
+  if (reduceMotion) return ctxMenu.animate([{ opacity: .4 }, { opacity: 1 }], { duration: 220, easing: 'ease-out' });      // Reduce Motion: a cross-fade
   ctxMenu.style.overflow = 'hidden';
   ctxMenu.animate([{ height: r0.height + 'px', transform: `translate(${r0.left - r1.left}px,${r0.top - r1.top}px)` }, { height: r1.height + 'px', transform: 'none' }],
-    { duration: 380, easing: 'cubic-bezier(.32,.72,0,1)' }).onfinish = () => { ctxMenu.style.overflow = ''; };
-  [...ctxMenu.children].forEach((c, i) => c.animate([{ opacity: 0, transform: `translateX(${dir * 26}px)` }, { opacity: 1, transform: 'none' }],
-    { duration: 340, delay: Math.min(i, 10) * 14, easing: 'cubic-bezier(.32,.72,0,1)', fill: 'backwards' }));
+    { duration: 440, easing: 'cubic-bezier(.32,.72,0,1)' }).onfinish = () => { ctxMenu.style.overflow = ''; };
+  // the new page pushes in from the side, row after row, like an iOS menu
+  [...ctxMenu.children].forEach((c, i) => c.animate([{ opacity: 0, transform: `translateX(${dir * 56}px) scale(.98)` }, { opacity: 1, transform: 'none' }],
+    { duration: 420, delay: Math.min(i, 12) * 26, easing: 'cubic-bezier(.2,.9,.3,1)', fill: 'backwards' }));
 }
 function backToMenu() { ctxMenu.onclick = null; swapMenu(() => renderMenu(ctxItems(ctxState.f, ctxState.ctx), menuHead(ctxState.f)), -1); }
 function subMenu(title, rows, onPick) {
+  const tapped = ctxMenu.querySelector('.mi:focus, .mi:hover');
+  if (tapped && !reduceMotion) tapped.animate([{ transform: 'scale(1)' }, { transform: 'scale(.96)' }, { transform: 'scale(1)' }], { duration: 180 });
   swapMenu(() => {
     ctxMenu.innerHTML = `<button class="mi" data-act="back">${ico('back')}<span><b>${esc(title)}</b></span></button><div class="msep"></div>` +
       rows.map(([v, label, icon, on]) => `<button class="mi" data-v="${v}">${ico(icon)}<span>${esc(label)}</span>${on ? ico('check', 'chev') : ''}</button>`).join('');

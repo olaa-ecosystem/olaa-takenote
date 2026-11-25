@@ -1,6 +1,6 @@
 /* Offline support. Caches the app's own files (same origin only) so it opens without a connection.
    The cache name changes with the content, so each release replaces the previous copy. */
-const CACHE = 'olaa-notes-2e4f31277674';
+const CACHE = 'olaa-notes-12c493bba3c9';
 const FILES = ["./", "index.html", "css/app.css", "js/app.js", "js/emoji.js", "data/emoji-all.json", "manifest.webmanifest", "icons/icon-180.png", "icons/icon-192.png", "icons/icon-512.png", "icons/icon-maskable-512.png", "icons/icon.svg"];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => {

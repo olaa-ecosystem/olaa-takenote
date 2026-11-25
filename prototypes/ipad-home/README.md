@@ -76,6 +76,7 @@ The repository contains no emoji artwork. The app draws emoji with the device's 
 |---|---|
 | Note window | Apple Pencil draws. Pinch to zoom the page (100%–400%, centred between your fingers); one finger pans when zoomed and moves the window at 100%; double-tap toggles 200%. Drag the corner to resize. Red: close to the toolbar. Yellow: 75% of the screen. Green: full screen. |
 | Several files | Opening another note or file keeps the first one open behind it at the same size; tap a window behind to bring it forward. |
-| Toolbar | Drop it near an edge and it sits at the centre of that edge; near a corner it folds into a circle there. Colours, pen, pencil, highlighter, eraser, lasso, undo, redo, page style, finger drawing, this note, recent files. |
+| Layout | On opening, the note sits in the centre, folders in a column on the left, files on the right. |
+| Toolbar | Always at the top centre, under the top bar; it can fold into a circle there. Colours, pen, pencil, highlighter, eraser, lasso, undo, redo, page style, finger drawing, this note, recent files. |
 | Files | Drag freely; hold one over another to make a folder; press and hold a file or folder for its menu; press and hold empty space to select, group, delete or change icons. |
 | Top bar | Mood emoji, New note, Import, Files, language, light or dark. Tap the date for the calendar and habits. |

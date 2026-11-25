@@ -29,7 +29,7 @@ test('picks a feeling and shows its line in the top bar', async ({ page }) => {
 });
 
 test('long-press on empty space opens the file menu', async ({ page }) => {
-  await page.mouse.move(860, 600); await page.mouse.down(); await page.waitForTimeout(800); await page.mouse.up();
+  await page.mouse.move(120, 780); await page.mouse.down(); await page.waitForTimeout(800); await page.mouse.up();      // empty space below the folder column
   await expect(page.locator('#ctxMenu [data-bg="select"]')).toBeVisible();
 });
 

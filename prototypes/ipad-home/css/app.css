@@ -743,19 +743,17 @@ body.rail-dragging #rail .rlist { overflow: hidden; }
 /* eraser ring while erasing in Precise mode */
 .cursor.ring { opacity: 1; border: 1.5px solid var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--sheet) 80%, transparent); transition: opacity .15s; }
 /* previewing a file by dragging it out of Recent files */
-.peekcard { position: fixed; z-index: 66; left: 0; top: 0; width: 240px; height: 204px; border-radius: 22px; overflow: hidden; pointer-events: none; display: block;
+.peekcard { position: fixed; z-index: 66; left: 0; top: 0; width: 280px; border-radius: 22px; overflow: hidden; pointer-events: none; display: block;
   box-shadow: inset 0 1px .5px var(--rim), 0 28px 60px -20px var(--shadow); transform-origin: 50% 50%; transition: box-shadow .25s, outline-color .25s; outline: 2.5px solid transparent; outline-offset: 3px; }
 .peekcard header { display: flex; align-items: center; gap: 8px; padding: 10px 14px 8px; min-width: 0; }
 .peekcard header b { font-size: 13px; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.peekcard .pv { margin: 0 8px; height: 118px; border-radius: 14px; overflow: hidden; background: var(--sheet); position: relative; }
+.peekcard .pv { margin: 0 8px 8px; width: calc(100% - 16px); box-sizing: border-box; border-radius: 14px; overflow: hidden; background: var(--sheet); position: relative; }
 .peekcard .pv canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 .peekcard .pv img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .peekcard .pv pre { margin: 0; padding: 8px 10px; font: 10.5px/1.5 var(--font); white-space: pre-wrap; color: var(--ink); }
 .peekcard .pv ul { list-style: none; margin: 0; padding: 8px 10px; display: grid; gap: 3px; font-size: 11px; }
 .peekcard .pv .pdoc { height: 100%; display: grid; place-content: center; justify-items: center; gap: 4px; font-size: 11px; color: var(--ink-2); } .peekcard .pv .pdoc b { font-size: 22px; color: var(--warm); }
-.peekcard .ptag { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); bottom: 9px; padding: 3px 11px; border-radius: 99px; font: 600 11px var(--font); white-space: nowrap; color: var(--ink); background: var(--glass-hi); box-shadow: inset 0 1px .5px var(--rim); }
 .peekcard.willopen { outline-color: var(--accent); }
-.peekcard.willopen .ptag { background: var(--accent-soft); box-shadow: inset 0 0 0 1.5px var(--accent); }
 #toolPop.peeking { opacity: .5; transition: opacity .2s; }
 .stamp { position: fixed; z-index: 70; width: 44px; height: 44px; border-radius: 50%; pointer-events: none; border: 2px solid var(--warm); opacity: 0; }
 #ctxMenu { position: fixed; z-index: 63; left: 0; top: 0; width: 256px; max-width: calc(100vw - 20px); border-radius: 18px; padding: 6px; display: grid; transform-origin: top left; }

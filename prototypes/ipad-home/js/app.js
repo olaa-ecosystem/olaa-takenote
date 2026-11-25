@@ -3161,9 +3161,13 @@ function peekBody(f) {
 }
 function startPeek(f, row, ev) {
   const card = document.createElement('div'); card.className = 'peekcard glass';
-  card.innerHTML = `<header><b>${esc(f.name)}</b></header><div class="pv">${peekBody(f)}</div><span class="ptag"></span>`;
+  card.innerHTML = `<header><b>${esc(f.name)}</b></header><div class="pv">${peekBody(f)}</div>`;
+  const pv = card.querySelector('.pv'), W = 264;
+  const im = card.querySelector('img'), ar = f.kind === 'note' ? SH / SW : f.kind === 'image' ? (im && im.naturalWidth ? im.naturalHeight / im.naturalWidth : .75) : f.kind === 'text' ? 1.1 : .62;
+  pv.style.height = Math.round(W * Math.min(1.25, Math.max(.5, ar))) + 'px';
+  if (im && !im.naturalWidth) im.onload = () => { pv.style.height = Math.round(W * Math.min(1.25, Math.max(.5, im.naturalHeight / im.naturalWidth))) + 'px'; };
   document.body.append(card);
-  const cv = card.querySelector('canvas'); if (cv) { const pv = card.querySelector('.pv'); paintStrokes(cv, f.strokes, pv.clientWidth, pv.clientHeight); }
+  const cv = card.querySelector('canvas'); if (cv) paintStrokes(cv, f.strokes, pv.clientWidth, pv.clientHeight);
   const r = row.getBoundingClientRect(), pop = toolPop.getBoundingClientRect();
   toolPop.classList.add('peeking');
   const d = { card, f, row, pop, sx: ev.clientX, sy: ev.clientY, state: '' };
@@ -3178,10 +3182,11 @@ function peekState(x, y, pop) {
 }
 function movePeek(d, ev) {
   const away = Math.max(0, Math.max(d.pop.left - ev.clientX, ev.clientX - d.pop.right, d.pop.top - ev.clientY, ev.clientY - d.pop.bottom));
-  const k = 1 + Math.min(.55, away / 500);      // it grows as it leaves the list
-  d.card.style.transform = `translate(${ev.clientX - 120}px,${ev.clientY - 102}px) scale(${k.toFixed(3)})`;
+  const k = .92 + .18 * Math.min(1, away / 320);      // grows a little as it leaves the list, never past 110%
+  const w = d.card.offsetWidth, h = d.card.offsetHeight;
+  d.card.style.transform = `translate(${ev.clientX - w / 2}px,${ev.clientY - h * .4}px) scale(${k.toFixed(3)})`;
   const st = peekState(ev.clientX, ev.clientY, d.pop);
-  if (st !== d.state) { d.state = st; d.card.classList.toggle('willopen', st === 'open'); d.card.querySelector('.ptag').textContent = st === 'open' ? t('Open') : t('Preview'); }
+  if (st !== d.state) { d.state = st; d.card.classList.toggle('willopen', st === 'open'); }
 }
 function endPeek(d, ev) {
   toolPop.classList.remove('peeking'); peekArmed = false;

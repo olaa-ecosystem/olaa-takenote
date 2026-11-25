@@ -402,7 +402,7 @@ body.theming, body.theming *, body.theming *::before, body.theming *::after { tr
 @keyframes flash { 40% { filter: drop-shadow(0 0 6px var(--accent)); } }
 
 /* ---------- tool window ---------- */
-:is(#dock,.g-dock) { z-index: 34 !important; }      /* the pen bar always stays above the note */
+:is(#dock,.g-dock) { z-index: 55 !important; }      /* the pen bar is the top layer of the workspace: nothing you work with covers it */
 :is(#dock,.g-dock) .win, #topWin { box-sizing: border-box; }
 #topWin { max-width: calc(100vw - 12px); }
 :is(#dock,.g-dock) .win { display: flex; align-items: center; gap: 2px; padding: 9px 4px 9px 10px; cursor: grab; touch-action: none; border-radius: 26px; max-width: calc(100vw - 16px); overflow-x: auto; scrollbar-width: none; }

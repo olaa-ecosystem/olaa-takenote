@@ -6,8 +6,8 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-let dockMode = 'float', relayoutDock = null, dockSide = 'top', dockCorner = null;      // the toolbar lives at the top centre      // dockCorner: 'tl', 'tr', 'bl' or 'br' while folded in a corner
-try { localStorage.removeItem('olaa-dock-side'); } catch (_) {}      // the toolbar always sits at the top now
+let dockMode = 'float', relayoutDock = null, dockSide = 'bottom', dockCorner = null;      // the toolbar sits at the centre of a side, or folded in a corner      // dockCorner: 'tl', 'tr', 'bl' or 'br' while folded in a corner
+try { const v = localStorage.getItem('olaa-dock-side'); if (['top', 'bottom', 'left', 'right'].includes(v)) dockSide = v; } catch (_) {}
 let Z = 1, zx = 0, zy = 0, zpan = null, zAnim = 0, zSettleT = 0;      // zoom of the page inside its window, and the visible corner in page units
 try { localStorage.removeItem('olaa-dock'); } catch (_) {}      // the old Fixed setting is gone
 const LANGS = [['en', 'EN', 'English', 'en-GB'], ['vi', 'VN', 'Tiếng Việt', 'vi-VN'], ['ja', 'JP', '日本語', 'ja-JP'], ['ko', 'KR', '한국어', 'ko-KR'], ['fr', 'FR', 'Français', 'fr-FR'], ['zh', 'CN', '中文', 'zh-CN']];
@@ -1901,10 +1901,10 @@ themeTg.addEventListener('click', () => {
 
 /* ---------- floating files ---------- */
 const filesLayer = $('#files');
-const COL_W = 92, LIST_TOP = 164;      // file columns start below the top bar and the toolbar
+const COL_W = 92; const listTop = () => 96 + (dockSide === 'top' ? 68 : 0);      // file columns start below the top bar (and the toolbar when it is at the top)
 function area() {      // files (everything that isn't a folder): columns on the right
   const W = vw(), H = vh();
-  if (W >= 760) { const w = COL_W * (H > W ? 1 : 2) + 8; return { x: W - w - 10, y: LIST_TOP, w, h: H - LIST_TOP - 12, side: 'right' }; }      // portrait: one column, so the note gets more room
+  if (W >= 760) { const w = COL_W * (H > W ? 1 : 2) + 8, r = dockSide === 'right' ? 76 : 0, b = dockSide === 'bottom' ? 74 : 0; return { x: W - w - 10 - r, y: listTop(), w, h: H - listTop() - 12 - b, side: 'right' }; }      // portrait: one column, so the note gets more room
   return { x: 10, y: H - 236, w: W - 20, h: 226, side: 'bottom' };
 }
 const icon = {
@@ -2188,16 +2188,16 @@ new MutationObserver(() => ghosts.forEach(paintGhost)).observe(document.document
 let home = { x: 0, y: 0, s: 1 };
 function computeHome() {
   // the note sits in the middle of the screen, between the folder column and the file columns
-  const a = area(), W = vw(), H = vh(), top = 156, side = a.side === 'right';
+  const a = area(), W = vw(), H = vh(), top = 84 + (dockSide === 'top' ? 72 : 0), side = a.side === 'right', dockH = dockSide === 'bottom' ? 74 : 0;
   const lEdge = side ? folderArea().x + folderArea().w + 14 : 16, rEdge = side ? a.x - 14 : W - 16;
-  const half = Math.max(120, Math.min(W / 2 - lEdge, rEdge - W / 2)), availW = half * 2, availH = (side ? H : a.y) - top - 16;
+  const half = Math.max(120, Math.min(W / 2 - lEdge, rEdge - W / 2)), availW = half * 2, availH = (side ? H : a.y) - top - dockH - 16;
   const s = clamp(Math.min(availW / PW, availH / PH), .4, 1);
   return { x: W / 2 - PW * s / 2, y: top + Math.max(0, Math.min(H > W ? 24 : 1e9, (availH - PH * s) / 2)), s };
 }
 function settleNew(b) { if (railOn || fullKey === 'files') return rootCtx.layout(); fileTargets().forEach(t => t.b.springTo(t.x, t.y, null, t.b === b ? 170 : 200, t.b === b ? 20 : 24)); }      // a new item joins its column; the others make room
 function folderArea() {      // folders: a column on the left
-  const H = vh(), n = root.filter(f => f.kind === 'folder').length, rows = Math.max(1, Math.floor((H - LIST_TOP - 12) / 104));
-  return { x: 10, y: LIST_TOP, w: (n > rows ? 2 : 1) * COL_W + 8, h: H - LIST_TOP - 12 };
+  const H = vh(), n = root.filter(f => f.kind === 'folder').length, rows = Math.max(1, Math.floor((H - listTop() - 12) / 104));
+  return { x: 10 + (dockSide === 'left' ? 76 : 0), y: listTop(), w: (n > rows ? 2 : 1) * COL_W + 8, h: H - listTop() - 12 };
 }
 function rootGeo() { const a = area(), cols = Math.max(2, Math.floor((a.w - 8) / 88)); return { a, cols, colW: (a.w - 8) / cols, rowH: a.side === 'right' ? 104 : 96, y0: a.y + (a.side === 'right' ? 6 : 18) }; }
 function fileTargets() {
@@ -3263,9 +3263,22 @@ function boot() {
     spring ? dk.springTo(x, y, null, 190, 24) : (dk.place(x, y + (side === 'bottom' ? 30 : 0)), dk.springTo(x, y, null, 120, 16));
   };
   // drop it anywhere: it goes to the side your finger is closest to
-  function dockDrop() {      // wherever it is let go, it goes back to the top centre
-    closeToolPop(); dockSide = 'top'; dockCorner = null;
-    if (!dock.classList.contains('circle')) dock.classList.remove('vert');
+  function dockDrop(px, py) {
+    const C = 140, cx = px < C ? 'l' : px > vw() - C ? 'r' : '', cy = py < C ? 't' : py > vh() - C ? 'b' : '';
+    if (cx && cy) {          // a corner: fold into a circle there
+      closeToolPop(); dockCorner = cy + cx;
+      if (!dock.classList.contains('circle')) setDockMini(true); else placeDock(true);
+      return false;
+    }
+    dockCorner = null;
+    const d = { top: py / vh(), bottom: (vh() - py) / vh(), left: px / vw(), right: (vw() - px) / vw() };
+    const side = Object.keys(d).reduce((a, b) => d[a] <= d[b] ? a : b);
+    closeToolPop();
+    if (side !== dockSide) {
+      dockSide = side; try { localStorage.setItem('olaa-dock-side', side); } catch (_) {}
+      if (!dock.classList.contains('circle')) morph(dockWin, () => dock.classList.toggle('vert', side === 'left' || side === 'right'), { spr: SPR_OPEN });
+      syncDock(true); home = computeHome(); if (!fullKey && !W.canvas.min && !canvas75) sheet.springTo(home.x, home.y, home.s, 160, 20); if (!filesState.piled && !railOn && fullKey !== 'files') fileTargets().forEach(t => t.b.springTo(t.x, t.y, null, 170, 22));
+    }
     placeDock(true); return false;
   }
   relayoutDock = placeDock;

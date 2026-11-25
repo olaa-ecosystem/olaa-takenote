@@ -132,6 +132,7 @@ const I18N = {
   'Tap to write here': ['Chạm để viết ở đây', 'タップしてここに書く', '눌러서 여기에 쓰기', 'Touchez pour écrire ici', '点按在此书写'],
   'One pane always holds a note': ['Luôn có một ô là ghi chú', '1つは必ずノートです', '한 칸은 항상 노트예요', 'Un panneau contient toujours une note', '至少一个窗格是笔记'],
   'Yesterday': ['Hôm qua', '昨日', '어제', 'Hier', '昨天'],
+  'Preview': ['Xem trước', 'プレビュー', '미리 보기', 'Aperçu', '预览'],
   'Toolbar options': ['Tuỳ chọn thanh công cụ', 'ツールバーの設定', '도구 막대 옵션', "Options de la barre d'outils", '工具栏选项'],
 };
 let LANG = 'en';
@@ -1320,13 +1321,21 @@ function makePt(ev) {
   if (ink.smooth && prev) { const f = 1 - ink.smooth * .78; x = prev.x + (q.x - prev.x) * f; y = prev.y + (q.y - prev.y) * f; }   // stroke stabiliser
   return { x: +x.toFixed(2), y: +y.toFixed(2), p: +p.toFixed(3) };
 }
+// Precise mode: a ring the size of the eraser follows the tip, so you see exactly what goes
+function eraseRing(q) {
+  if (!q || TOOLS.eraser.mode !== 'precise') return;
+  const d = sizeFor('eraser') * 2 * Z;
+  cursorEl.style.width = cursorEl.style.height = d + 'px'; cursorEl.style.background = '';
+  cursorEl.style.transform = `translate(${(q.x - zx) * Z - d / 2}px,${(q.y - zy) * Z - d / 2}px)`;
+  cursorEl.classList.add('ring', 'on');
+}
 function startInk(e) {
   const r = paper.getBoundingClientRect();
   ink = { id: e.pointerId, type: e.pointerType, r, k: r.width / PW, stroke: null, lastP: .5, lastT: e.timeStamp, pred: [], removed: false, before: current.strokes.slice(), anchor: null, hold: 0, smooth: 0 };
   try { sheetEl.setPointerCapture(e.pointerId); } catch (_) {}
-  document.body.classList.add('inking'); cursorEl.classList.remove('on'); closeToolPop();
+  document.body.classList.add('inking'); cursorEl.classList.remove('on', 'ring'); closeToolPop();
   const q = toLocal(e, r, ink.k);
-  if (tool === 'eraser') { ink.erase = true; eraseAt(q); return; }
+  if (tool === 'eraser') { ink.erase = true; eraseAt(q); eraseRing(q); return; }
   if (tool === 'lasso') {
     if (sel && inSel(q)) { ink.move = { x: q.x, y: q.y, dx: sel.dx, dy: sel.dy }; selMenu.hidden = true; }
     else { clearSel(); ink.lasso = [q]; }
@@ -1344,7 +1353,7 @@ function startInk(e) {
 }
 function moveInk(e) {      // runs for every pen sample; keep it free of layout reads
   const evs = (e.getCoalescedEvents && e.getCoalescedEvents()) || []; const list = evs.length ? evs : [e];
-  if (ink.erase) { for (const ev of list) eraseAt(toLocal(ev, ink.r, ink.k)); return; }
+  if (ink.erase) { let q; for (const ev of list) eraseAt(q = toLocal(ev, ink.r, ink.k)); eraseRing(q); return; }
   if (ink.move) { const q = toLocal(e, ink.r, ink.k); sel.dx = ink.move.dx + q.x - ink.move.x; sel.dy = ink.move.dy + q.y - ink.move.y; updateSelUI(true); scheduleLive(); return; }
   if (ink.lasso) { for (const ev of list) ink.lasso.push(toLocal(ev, ink.r, ink.k)); scheduleLive(); return; }
   if (ink.laser) { const t = performance.now(); for (const ev of list) ink.laser.pts.push({ ...toLocal(ev, ink.r, ink.k), t }); scheduleLive(); return; }
@@ -1427,7 +1436,7 @@ function holdSnap() {
   applyShape(s, res); ink.pred = []; ink.anchor = s.pts[s.pts.length - 1]; scheduleLive();
 }
 function endInk() {
-  if (!ink) return; clearTimeout(ink.hold);
+  if (!ink) return; clearTimeout(ink.hold); cursorEl.classList.remove('ring', 'on');
   const s = ink.stroke;
   if (ink.move) { if (sel.dx || sel.dy) commitSelMove(); else updateSelUI(); }
   else if (ink.lasso) finishLasso(ink.lasso);
@@ -1682,7 +1691,8 @@ const dock = $('#dock'), toolPill = $('#toolPill'), swatches = $('#swatches'), s
 toolPop.addEventListener('click', e => {
   const l = e.target.closest('.lgrow'); if (l) { setLang(l.dataset.l); renderToolPop(); setTimeout(() => { if (popKind === 'lang') closeToolPop(); }, 450); return; }
   const sp = e.target.closest('[data-split]'); if (sp) { const n = +sp.dataset.split; closeToolPop(); if (!n) return exitFull(); return openSplit(n); }
-  const rr = e.target.closest('.rrow'); if (rr) { const f = [...walk(root)].find(x => x.id === rr.dataset.id); const kind = popKind; closeToolPop(); if (!f) return; if (kind === 'pick' && split) return setPaneFile(pickPane, f); if (split) { const i = split.panes.findIndex(p => p.f === f); if (i >= 0) return activatePane(i); return setPaneFile(split.live, f); } openAnywhere(f); return; }
+  const rr = e.target.closest('.rrow'); if (rr && peekJustEnded) return;
+  if (rr) { const f = [...walk(root)].find(x => x.id === rr.dataset.id); const kind = popKind; closeToolPop(); if (!f) return; if (kind === 'pick' && split) return setPaneFile(pickPane, f); if (split) { const i = split.panes.findIndex(p => p.f === f); if (i >= 0) return activatePane(i); return setPaneFile(split.live, f); } openAnywhere(f); return; }
 });
 const selBox = $('#selBox'), selMenu = $('#selMenu');
 let customColor = '#7a6aa8';
@@ -2334,7 +2344,14 @@ document.querySelectorAll('.lights[data-panel]').forEach(l => {
 let fullKey = null; const saved = {};
 const filesState = { piled: false, min: false };
 let W; // window registry, filled at boot
+function syncCollapseFull() {
+  const b = $('#collapseFull'), on = fullKey === 'canvas' || (viewer.open && viewer.full);
+  if (on && b.hidden && !reduceMotion) { b.hidden = false; b.animate([{ opacity: 0, transform: 'scale(.6)' }, { opacity: 1, transform: 'none' }], { duration: SPR.d, easing: SPR.e }); }
+  b.hidden = !on;
+  b.classList.toggle('lift', dockSide === 'bottom' || dockCorner === 'br');      // keeps clear of the toolbar
+}
 function syncLights() {
+  setTimeout(syncCollapseFull, 0);
   const qf = $('#qFiles'); if (qf) qf.setAttribute('aria-pressed', String(fullKey === 'files'));
   document.querySelectorAll('.lights[data-panel]').forEach(l => {
     const k = l.dataset.panel, y = l.querySelector('[data-act="collapse"]'), g = l.querySelector('[data-act="full"]');
@@ -2572,6 +2589,7 @@ draggable(viewer.body, $('#pHead'), {
 $('#pBack').addEventListener('click', () => popView());
 scrim.addEventListener('click', () => closeViewer());
 $('#exitFull').addEventListener('click', () => exitFull());
+$('#collapseFull').addEventListener('click', () => { if (viewer.open && viewer.full) setViewerMode('normal'); else if (fullKey === 'canvas') exitFull(); syncCollapseFull(); });
 // tap the empty background to leave the Today or Files full-screen view
 document.addEventListener('pointerdown', e => {
   if (viewer.open || !fullKey) return;
@@ -2621,7 +2639,7 @@ function openViewer(f, tileEl, opt = {}) {
   if (snapped('sheet') && snap.slots.sheet.length === 1 && !opt.at) setTimeout(() => { if (viewer.open && !snapped('viewer')) { snap.saved.viewer = winSize('viewer'); snap.slots.viewer = mirror(snap.slots.sheet); applySnap(false); } }, 60);
 }
 function closeViewer(v) {
-  if (!viewer.open) return; delete snap.slots.viewer; delete snap.saved.viewer; viewer.open = false; viewer.full = false; viewer.mode = 'normal'; markOpened(null); setTimeout(syncRail, 0);
+  if (!viewer.open) return; setTimeout(syncCollapseFull, 0); delete snap.slots.viewer; delete snap.saved.viewer; viewer.open = false; viewer.full = false; viewer.mode = 'normal'; markOpened(null); setTimeout(syncRail, 0);
   const tile = viewer.origin, fr = panelEl.getBoundingClientRect();
   active.delete(viewer.body);
   let anim;
@@ -3129,6 +3147,74 @@ function snapResize(w, dx, dy, base) {
   applySnap(true);
 }
 
+
+/* ---------- preview from Recent files: drag a file out of the list ----------
+   A preview card lifts and follows your finger. Back on the list, or in a corner of the screen, it is only a preview:
+   let go and it flies back. Drag it all the way out over the workspace and let go: the file opens. */
+let peekArmed = false, peekJustEnded = false;
+function peekBody(f) {
+  if (f.kind === 'note') return '<canvas></canvas>';
+  if (f.kind === 'image') return `<img src="${f.src}" alt="" draggable="false">`;
+  if (f.kind === 'text') return `<pre>${esc((f.body || '').slice(0, 420))}</pre>`;
+  if (f.kind === 'folder') return `<ul>${f.children.slice(0, 7).map(c => `<li>${esc(c.name)}</li>`).join('')}</ul>`;
+  return `<div class="pdoc"><b>${esc(f.ext || '')}</b><span>${esc(f.size || '')}</span></div>`;
+}
+function startPeek(f, row, ev) {
+  const card = document.createElement('div'); card.className = 'peekcard glass';
+  card.innerHTML = `<header><b>${esc(f.name)}</b></header><div class="pv">${peekBody(f)}</div><span class="ptag"></span>`;
+  document.body.append(card);
+  const cv = card.querySelector('canvas'); if (cv) { const pv = card.querySelector('.pv'); paintStrokes(cv, f.strokes, pv.clientWidth, pv.clientHeight); }
+  const r = row.getBoundingClientRect(), pop = toolPop.getBoundingClientRect();
+  toolPop.classList.add('peeking');
+  const d = { card, f, row, pop, sx: ev.clientX, sy: ev.clientY, state: '' };
+  if (!reduceMotion) card.animate([{ opacity: 0, transform: `translate(${r.left + 20 - ev.clientX}px,${r.top - ev.clientY}px) scale(.3)` }, { opacity: 1 }], { duration: 260, easing: 'cubic-bezier(.2,.9,.3,1)', composite: 'add' });
+  movePeek(d, ev); return d;
+}
+function peekState(x, y, pop) {
+  const inPop = x > pop.left - 10 && x < pop.right + 10 && y > pop.top - 10 && y < pop.bottom + 10;
+  const C = 130, corner = (x < C || x > vw() - C) && (y < C || y > vh() - C);
+  const away = Math.max(pop.left - x, x - pop.right, pop.top - y, y - pop.bottom);
+  return inPop || corner || away < 120 ? 'preview' : 'open';
+}
+function movePeek(d, ev) {
+  const away = Math.max(0, Math.max(d.pop.left - ev.clientX, ev.clientX - d.pop.right, d.pop.top - ev.clientY, ev.clientY - d.pop.bottom));
+  const k = 1 + Math.min(.55, away / 500);      // it grows as it leaves the list
+  d.card.style.transform = `translate(${ev.clientX - 120}px,${ev.clientY - 102}px) scale(${k.toFixed(3)})`;
+  const st = peekState(ev.clientX, ev.clientY, d.pop);
+  if (st !== d.state) { d.state = st; d.card.classList.toggle('willopen', st === 'open'); d.card.querySelector('.ptag').textContent = st === 'open' ? t('Open') : t('Preview'); }
+}
+function endPeek(d, ev) {
+  toolPop.classList.remove('peeking'); peekArmed = false;
+  if (ev.type === 'pointerup' && d.state === 'open') {
+    closeToolPop(); openAnywhere(d.f);
+    d.card.animate([{ opacity: 1 }, { opacity: 0, transform: d.card.style.transform + ' scale(1.08)' }], { duration: 260, fill: 'forwards' }).onfinish = () => d.card.remove();
+    return;
+  }
+  const r = d.row.getBoundingClientRect();      // only a preview: back into its row
+  d.card.animate([{ transform: d.card.style.transform, opacity: 1 }, { transform: `translate(${r.left}px,${r.top - 60}px) scale(.3)`, opacity: 0 }],
+    { duration: reduceMotion ? 120 : 380, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'forwards' }).onfinish = () => d.card.remove();
+}
+toolPop.addEventListener('pointerdown', e => {
+  const row = e.target.closest('.rrow'); if (!row || popKind !== 'recent') return;
+  const f = [...walk(root)].find(x => x.id === row.dataset.id); if (!f) return;
+  const sx = e.clientX, sy = e.clientY, id = e.pointerId; let drag = null;
+  const armT = setTimeout(() => { peekArmed = true; row.classList.add('armed'); }, 260);      // hold a moment: then any direction drags (the list stops scrolling)
+  const mv = ev => {
+    if (ev.pointerId !== id) return;
+    const dx = ev.clientX - sx, dy = ev.clientY - sy, dist = Math.hypot(dx, dy);
+    if (!drag) {
+      if ((Math.abs(dx) > 12 && Math.abs(dx) > Math.abs(dy)) || (peekArmed && dist > 6) || (ev.pointerType === 'mouse' && dist > 8)) { clearTimeout(armT); peekArmed = true; drag = startPeek(f, row, ev); }
+      else { if (dist > 10) { clearTimeout(armT); done(); } return; }
+    }
+    movePeek(drag, ev);
+  };
+  const done = ev => {
+    clearTimeout(armT); row.classList.remove('armed'); removeEventListener('pointermove', mv); removeEventListener('pointerup', done); removeEventListener('pointercancel', done);
+    if (drag && ev) { peekJustEnded = true; setTimeout(() => { peekJustEnded = false; }, 350); endPeek(drag, ev); } else peekArmed = false;
+  };
+  addEventListener('pointermove', mv); addEventListener('pointerup', done); addEventListener('pointercancel', done);
+});
+
 /* ---------- long-press menu ---------- */
 const MI = {
   open: '<path d="M14 4h6v6"/><path d="M20 4l-8 8"/><path d="M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/>',
@@ -3546,7 +3632,7 @@ function bringToFront(id) {
 }
 layerOrder.forEach(k => $('#' + k).addEventListener('pointerdown', () => bringToFront(k), true));
 layerOrder.forEach((k, j) => { $('#' + k).style.zIndex = 20 + j * 3; });
-document.addEventListener('touchmove', e => { if (!e.target.closest('pre, .view.scroll, .escroll, #ctxMenu, .dayview, #rail, .rlist2')) e.preventDefault(); }, { passive: false });
+document.addEventListener('touchmove', e => { if (peekArmed || !e.target.closest('pre, .view.scroll, .escroll, #ctxMenu, .dayview, #rail, .rlist2')) e.preventDefault(); }, { passive: false });
 ['gesturestart', 'gesturechange'].forEach(t => document.addEventListener(t, e => e.preventDefault()));
 document.addEventListener('contextmenu', e => { if (!e.target.closest('input, pre')) e.preventDefault(); });
 

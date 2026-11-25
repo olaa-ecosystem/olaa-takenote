@@ -124,6 +124,7 @@
       <div class="t"><input id="pTitle" aria-label="Name. Double-tap to rename" title="Double-tap to rename" maxlength="40" readonly><small id="pSub"></small></div>
     </header>
     <div id="pBody"></div>
+    <div class="vresize" id="vResize" role="slider" aria-label="Resize the window" title="Drag to resize"><svg viewBox="0 0 60 60"><path d="M36.4 6.4A37 37 0 0 1 6.4 36.4"/></svg></div>
   </div>
 </div>
 
@@ -147,6 +148,7 @@
   <button class="qb danger" id="sbDel"><svg class="i" viewBox="0 0 24 24"><path d="M5 7h14"/><path d="M9 7V5h6v2"/><path d="M7 7l1 12a2 2 0 0 0 2 1.8h4a2 2 0 0 0 2-1.8l1-12"/></svg><span>Delete</span></button>
 </div>
 <div id="splitLayer" hidden></div>
+<div id="snapPreview" aria-hidden="true"></div>
 <div class="toast glass" id="toast"></div>
 <div class="grain"></div>
 <input type="file" id="fileInput" multiple hidden>

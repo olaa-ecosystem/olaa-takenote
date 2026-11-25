@@ -316,7 +316,7 @@ function draggable(body, handle, o = {}) {
   let id = null, sx, sy, px, py, moved = false, tgt = null, holdT = 0, held = false;
   handle.addEventListener('pointerdown', e => {
     if (id !== null || (e.pointerType === 'mouse' && e.button !== 0)) return;
-    if (e.target.closest('button, input, .lights')) return;
+    if (e.target.closest('button, input:not([readonly]), .lights')) return;      // a read-only title is part of the bar you grab
     if (o.accept && !o.accept(e)) return;
     e.stopPropagation();
     id = e.pointerId; tgt = e.target; try { handle.setPointerCapture(id); } catch (_) {}
@@ -1547,6 +1547,7 @@ function moveGesture(e) {
   touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
   const pts = [...touches.values()].slice(0, 2); if (pts.length !== gest.n) return startGesture(e);
   const c = centroid(pts); let s = gest.s0;
+  if (gest.n === 1) { if (snapped('sheet') && Math.hypot(c.x - gest.c0.x, c.y - gest.c0.y) > 24) unsnap('sheet'); if (!snapped('sheet')) snapHover(c.x, c.y); }
   if (gest.n > 1 && gest.d0 > 10) { const raw = gest.s0 * Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) / gest.d0; s = raw < .45 ? .45 - (.45 - raw) * .25 : raw > 2.2 ? 2.2 + (raw - 2.2) * .25 : raw; }
   const px = (gest.c0.x - gest.x0) / gest.s0, py = (gest.c0.y - gest.y0) / gest.s0;
   sheet.s = s; sheet.dragTo(c.x - px * s, c.y - py * s, e.timeStamp);
@@ -1555,6 +1556,7 @@ function endGesture(e, all) {
   if (all) touches.clear(); else touches.delete(e.pointerId);
   if (touches.size) return startGesture(e);
   const v = sheet.velocity(e.timeStamp); gest = null;
+  { const z = all ? null : takeSnapHint(); if (all) takeSnapHint(); if (z) { snapTo('sheet', z); return; } }
   if (sheet.s < .45 || sheet.s > 2.2) sheet.ts = clamp(sheet.s, .45, 2.2);
   sheet.release(v.x, v.y); setTimeout(() => sizeCanvases(), 60);
   cornerT = setTimeout(() => sheetEl.classList.remove('near-corner'), 1600);
@@ -1611,16 +1613,18 @@ addEventListener('keyup', e => { if (e.code === 'Space') { spaceDown = false; sh
     canvas75 = false; syncRail();
     id = e.pointerId; try { h.setPointerCapture(id); } catch (_) {}
     cancelAnimationFrame(sizeAnim);
-    s0 = { w: PW, h: PH, x: e.clientX, y: e.clientY, s: sheet.s };
+    s0 = { w: PW, h: PH, x: e.clientX, y: e.clientY, s: sheet.s, ratio: snap.ratio, rows: { ...snap.rows } };
     sheetEl.classList.add('resizing', 'userresize'); document.body.classList.add('inking');
   });
   h.addEventListener('pointermove', e => {
     if (e.pointerId !== id) return;
+    if (snapped('sheet')) return snapResize('sheet', e.clientX - s0.x, e.clientY - s0.y, s0);
     const m = maxSize();
     setSize(rubber(s0.w + (e.clientX - s0.x) / s0.s, MIN_W, m.w), rubber(s0.h + (e.clientY - s0.y) / s0.s, MIN_H, m.h));
   });
   const end = e => {
     if (e.pointerId !== id) return; id = null; document.body.classList.remove('inking');
+    if (snapped('sheet')) { sheetEl.classList.remove('userresize'); sizeCanvases(true); return; }
     const m = maxSize();
     animateSize(clamp(PW, MIN_W, m.w), clamp(PH, MIN_H, m.h), () => { home = computeHome(); sheetEl.classList.remove('userresize'); });
   };
@@ -1640,7 +1644,7 @@ function dblTapRename(input) {
   const start = () => { input.readOnly = false; input.focus(); input.select(); };
   input.addEventListener('pointerdown', e => { if (input.readOnly) e.preventDefault(); });
   input.addEventListener('mousedown', e => { if (input.readOnly) e.preventDefault(); });
-  input.addEventListener('pointerup', e => {
+  input.addEventListener('pointerup', input._tap = e => {
     if (!input.readOnly) return;
     if (e.timeStamp - last < 380 && Math.hypot(e.clientX - lx, e.clientY - ly) < 24) { last = 0; start(); }
     else { last = e.timeStamp; lx = e.clientX; ly = e.clientY; }
@@ -2371,6 +2375,7 @@ function centerTop(spring) {
 
 // full screen: only one window stays, everything else fades away
 function enterFull(k) {
+  clearSnap();
   if (fullKey) exitFull(true);
   if (railOn) exitRail();
   fullKey = k; document.body.dataset.full = k; closePop();
@@ -2514,8 +2519,29 @@ const viewer = { open: false, full: false, collapsed: false, stack: [], origin: 
 viewer.body.bounds = () => { const [x0, x1] = span(panelEl.offsetWidth, vw(), 6), [y0, y1] = span(panelEl.offsetHeight, vh(), 6); return { minX: x0, maxX: x1, minY: y0, maxY: y1 }; };
 draggable(viewer.body, $('#pHead'), {
   accept: () => !viewer.full,
-  end: (e, v) => { if (Math.hypot(v.x, v.y) > 1800) { closeViewer(v); return false; } },
+  moveStart: () => unsnap('viewer'),
+  move: e => snapHover(e.clientX, e.clientY),
+  tap: (e, tg) => { if (tg === pTitle && pTitle._tap) pTitle._tap(e); },      // taps on the title still rename (double-tap)
+  end: (e, v) => { const z = takeSnapHint(); if (z) { snapTo('viewer', z); return false; } if (Math.hypot(v.x, v.y) > 1800) { closeViewer(v); return false; } },
 });
+// the corner of a file or folder window resizes it; snapped, it moves the divider instead
+{
+  const h = $('#vResize'); let id = null, s0 = null;
+  h.addEventListener('pointerdown', e => {
+    if (id !== null || viewer.full) return; e.stopPropagation(); e.preventDefault();
+    id = e.pointerId; try { h.setPointerCapture(id); } catch (_) {} h.classList.add('on');
+    s0 = { x: e.clientX, y: e.clientY, w: panelEl.offsetWidth, h: pBody.offsetHeight, ratio: snap.ratio, rows: { ...snap.rows } };
+    pBody.style.transition = 'none'; bringToFront('panelPos');
+  });
+  h.addEventListener('pointermove', e => {
+    if (e.pointerId !== id) return; const dx = e.clientX - s0.x, dy = e.clientY - s0.y;
+    if (snapped('viewer')) return snapResize('viewer', dx, dy, s0);
+    panelEl.style.width = clamp(s0.w + dx / (viewer.body.s || 1), 320, vw() - 24) + 'px';
+    pBody.style.height = clamp(s0.h + dy / (viewer.body.s || 1), 120, vh() - 140) + 'px';
+  });
+  const end = e => { if (e.pointerId !== id) return; id = null; h.classList.remove('on'); pBody.style.transition = ''; if (viewer.open) renderView(0); };
+  h.addEventListener('pointerup', end); h.addEventListener('pointercancel', end);
+}
 $('#pBack').addEventListener('click', () => popView());
 scrim.addEventListener('click', () => closeViewer());
 $('#exitFull').addEventListener('click', () => exitFull());
@@ -2542,6 +2568,7 @@ function openViewer(f, tileEl, opt = {}) {
     viewer.origin = tileEl; if (!railOn && !tileEl.classList.contains('bgwin')) tileEl.style.visibility = 'hidden'; markOpened(tileEl);
     viewer.stack = [f]; renderView(kept || opt.at ? 0 : 1); bringToFront('panelPos');
     if (opt.at) viewer.body.place(opt.at.x, opt.at.y);
+    else if (snapped('viewer')) applySnap(true);
     else if (kept) { const c = cascadeFrom(viewer.body.x, viewer.body.y, panelEl.offsetWidth, panelEl.offsetHeight); viewer.body.springTo(c.x, c.y, null, 220, 26); }
     if ((kept || opt.at) && !reduceMotion) panelEl.animate([{ opacity: .6, transform: 'scale(.96)' }, { opacity: 1, transform: 'none' }], { duration: SPR_OPEN.d, easing: SPR_OPEN.e });
     return;
@@ -2564,9 +2591,10 @@ function openViewer(f, tileEl, opt = {}) {
   for (const el of [$('#pHead'), pBody]) el.animate([{ opacity: 0 }, { opacity: 0, offset: .25 }, { opacity: 1 }], { duration: Math.max(420, SPR_SOFT.d * .7), easing: 'ease-out' });
   syncLights();
   if (opt.rename) setTimeout(() => toast('New folder. Double-tap its name to rename it.'), 350);
+  if (snapped('sheet') && snap.slots.sheet.length === 1 && !opt.at) setTimeout(() => { if (viewer.open && !snapped('viewer')) { snap.saved.viewer = winSize('viewer'); snap.slots.viewer = mirror(snap.slots.sheet); applySnap(false); } }, 60);
 }
 function closeViewer(v) {
-  if (!viewer.open) return; viewer.open = false; viewer.full = false; viewer.mode = 'normal'; markOpened(null); setTimeout(syncRail, 0);
+  if (!viewer.open) return; delete snap.slots.viewer; delete snap.saved.viewer; viewer.open = false; viewer.full = false; viewer.mode = 'normal'; markOpened(null); setTimeout(syncRail, 0);
   const tile = viewer.origin, fr = panelEl.getBoundingClientRect();
   active.delete(viewer.body);
   let anim;
@@ -2696,7 +2724,7 @@ function loadNote(f, opt = {}) {
       sheet.place(opt.at.x, opt.at.y); sheet.s = opt.at.s; sheet.render();
       if (Math.abs(opt.at.w - PW) > .5 || Math.abs(opt.at.h - PH) > .5) setSize(opt.at.w, opt.at.h);
       sizeCanvases(true);
-    } else { const c = cascadeFrom(sheet.x, sheet.y, PW * sheet.s, PH * sheet.s); sheet.springTo(c.x, c.y, null, 220, 26); }
+    } else if (!snapped('sheet')) { const c = cascadeFrom(sheet.x, sheet.y, PW * sheet.s, PH * sheet.s); sheet.springTo(c.x, c.y, null, 220, 26); }
     swap();
     if (!reduceMotion) $('#sheetWin').animate([{ opacity: .6, transform: 'scale(.97)' }, { opacity: 1, transform: 'none' }], { duration: SPR_OPEN.d, easing: SPR_OPEN.e });
     return;
@@ -2961,6 +2989,82 @@ function setPaneFile(i, f) {
   renderPane(i); if (other >= 0) renderPane(other);
 }
 $('#qSplit').addEventListener('click', e => { e.stopPropagation(); if (popKind === 'split') return closeToolPop(); openToolPop('split', $('#qSplit')); });
+
+
+/* ---------- snap: drag a window to an edge (half) or a corner (quarter), like Windows.
+   Resizing a snapped window by its corner moves the divider; the window beside it gives way. ---------- */
+const snap = { ratio: .5, rows: { l: .5, r: .5 }, slots: {}, saved: {} };      // slots: { sheet: 'l' | 'r' | 'tl' | 'bl' | 'tr' | 'br', viewer: … }
+const snapPrev = $('#snapPreview'); let snapHint = null, snapViewT = 0;
+const snapped = w => !!snap.slots[w];
+function snapArea() {
+  const tb = $('#topWin').getBoundingClientRect(), d = $('#dock .win').getBoundingClientRect();
+  let x0 = 10, y0 = tb.bottom + 10, x1 = vw() - 10, y1 = vh() - 10;
+  if (dockSide === 'bottom') y1 = Math.min(y1, d.top - 10); else if (dockSide === 'top') y0 = Math.max(y0, d.bottom + 10);
+  else if (dockSide === 'left') x0 = Math.max(x0, d.right + 10); else x1 = Math.min(x1, d.left - 10);
+  return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
+}
+function slotRect(slot) {
+  const a = snapArea(), g = 10, col = slot[slot.length - 1], xm = a.x + a.w * snap.ratio;
+  const x = col === 'l' ? a.x : xm + g / 2, w = col === 'l' ? a.w * snap.ratio - g / 2 : a.x + a.w - xm - g / 2;
+  if (slot.length === 1) return { x, y: a.y, w, h: a.h };
+  const ym = a.y + a.h * snap.rows[col], top = slot[0] === 't';
+  return { x, w, y: top ? a.y : ym + g / 2, h: top ? a.h * snap.rows[col] - g / 2 : a.y + a.h - ym - g / 2 };
+}
+function zoneAt(x, y) {
+  if (fullKey || vw() < 760) return null;
+  const a = snapArea(), E = 34, C = 110, side = x < a.x + E ? 'l' : x > a.x + a.w - E ? 'r' : null;
+  if (!side) return null;
+  return y < a.y + C ? 't' + side : y > a.y + a.h - C ? 'b' + side : side;
+}
+function snapHover(x, y) {
+  const z = zoneAt(x, y); if (z === snapHint) return; snapHint = z;
+  if (!z) return snapPrev.classList.remove('on');
+  const fresh = !Object.keys(snap.slots).length, keep = { ratio: snap.ratio, rows: { ...snap.rows } };
+  if (fresh) { snap.ratio = .5; snap.rows = { l: .5, r: .5 }; }
+  const r = slotRect(z); if (fresh) Object.assign(snap, keep);
+  const wasOn = snapPrev.classList.contains('on'); if (!wasOn) { snapPrev.style.transition = 'none'; }      // appears where it will land, then glides between zones
+  Object.assign(snapPrev.style, { left: r.x + 'px', top: r.y + 'px', width: r.w + 'px', height: r.h + 'px' });
+  if (!wasOn) { void snapPrev.offsetWidth; snapPrev.style.transition = ''; } snapPrev.classList.add('on');
+}
+function takeSnapHint() { const z = snapHint; snapHint = null; snapPrev.classList.remove('on'); return z; }
+const mirror = z => z.replace(/[lr]$/, c => c === 'l' ? 'r' : 'l');
+function winSize(w) { return w === 'sheet' ? { w: PW, h: PH } : { w: panelEl.offsetWidth, h: pBody.offsetHeight }; }
+function applyWin(w, r, instant) {
+  if (w === 'sheet') {
+    const k = sheet.s || 1;
+    if (instant) { cancelAnimationFrame(sizeAnim); sheet.place(r.x, r.y); setSize(r.w / k, r.h / k); }
+    else { sheet.springTo(r.x, r.y, null, 210, 26); animateSize(r.w / k, r.h / k, () => sizeCanvases(true)); }
+  } else if (w === 'viewer' && viewer.open) {
+    const hh = $('#pHead').offsetHeight;
+    pBody.style.transition = instant ? 'none' : ''; panelEl.style.width = r.w + 'px'; pBody.style.height = Math.max(80, r.h - hh) + 'px';
+    instant ? viewer.body.place(r.x, r.y) : viewer.body.springTo(r.x, r.y, null, 210, 26);
+    clearTimeout(snapViewT); snapViewT = setTimeout(() => { if (viewer.open) { pBody.style.transition = ''; renderView(0); } }, instant ? 160 : 380);      // the content re-fits once the size settles
+  }
+}
+function applySnap(instant) { for (const [w, slot] of Object.entries(snap.slots)) applyWin(w, slotRect(slot), instant); }
+function snapTo(w, zone) {
+  if (!Object.keys(snap.slots).length) { snap.ratio = .5; snap.rows = { l: .5, r: .5 }; }
+  if (!snapped(w)) snap.saved[w] = winSize(w);
+  for (const [o, z] of Object.entries(snap.slots)) if (o !== w && z === zone) { snap.slots[o] = mirror(zone); }      // the window already there moves across
+  snap.slots[w] = zone;
+  // snap assist: the other open window fills the other half
+  const other = w === 'sheet' ? 'viewer' : 'sheet', otherOpen = other === 'viewer' ? viewer.open : !W.canvas.min;
+  if (zone.length === 1 && otherOpen && !snapped(other)) { snap.saved[other] = winSize(other); snap.slots[other] = mirror(zone); }
+  if (w === 'viewer' || snapped('viewer')) bringToFront('panelPos');
+  applySnap(false);
+}
+function unsnap(w) {
+  if (!snapped(w)) return; delete snap.slots[w]; const sv = snap.saved[w]; delete snap.saved[w];
+  if (sv) { if (w === 'sheet') { cancelAnimationFrame(sizeAnim); setSize(sv.w, sv.h); sizeCanvases(true); } else if (viewer.open) { panelEl.style.width = sv.w + 'px'; pBody.style.height = sv.h + 'px'; renderView(0); } }
+}
+function clearSnap() { for (const w of Object.keys(snap.slots)) unsnap(w); }
+// dragging a snapped window's corner moves the divider (and its row line in a quarter)
+function snapResize(w, dx, dy, base) {
+  const a = snapArea(), slot = snap.slots[w], col = slot[slot.length - 1];
+  snap.ratio = clamp(base.ratio + (col === 'l' ? dx : -dx) / a.w, .2, .8);
+  if (slot.length === 2) snap.rows[col] = clamp(base.rows[col] + (slot[0] === 't' ? dy : -dy) / a.h, .2, .8);
+  applySnap(true);
+}
 
 /* ---------- long-press menu ---------- */
 const MI = {
@@ -3396,7 +3500,7 @@ function boot() {
   sheet = new Body(sheetEl, { x: home.x, y: home.y + 40, s: home.s * .96, tiltK: 0, bounds: sheetBounds });
   sheet.onScaleSettled = () => sizeCanvases();
   sizeCanvases(true);
-  draggable(sheet, $('#grip'), { accept: () => fullKey !== 'split', tap: () => { if (fullKey === 'canvas') return; canvas75 = false; syncRail(); sheet.springTo(home.x, home.y, home.s, 180, 22); } });
+  draggable(sheet, $('#grip'), { accept: () => fullKey !== 'split', moveStart: () => unsnap('sheet'), move: e => snapHover(e.clientX, e.clientY), end: e => { const z = takeSnapHint(); if (z) { snapTo('sheet', z); return false; } }, tap: () => { if (fullKey === 'canvas') return; canvas75 = false; syncRail(); sheet.springTo(home.x, home.y, home.s, 180, 22); } });
 
   const topBody = new Body($('#topbar'), { tiltK: 0, raise: false, bounds: () => { const r = $('#topWin'); return { minX: 6, maxX: vw() - r.offsetWidth - 6, minY: 6, maxY: vh() - r.offsetHeight - 6 }; } });
   draggable(topBody, $('#topDrag'), { accept: () => fullKey !== 'today' }); draggable(topBody, $('#topDrag2'), { accept: () => fullKey !== 'today', tap: () => enterFull('today') });
@@ -3487,7 +3591,7 @@ function boot() {
       if (fullKey) exitFull();
       const prev = home; home = computeHome();
       if (Math.abs(sheet.x - prev.x) < 2 && Math.abs(sheet.y - prev.y) < 2) sheet.springTo(home.x, home.y, home.s); else sheet.settle();
-      placeDock(true); centerTop(true); if (split) setTimeout(layoutSplit, 400);
+      placeDock(true); centerTop(true); if (split) setTimeout(layoutSplit, 400); if (Object.keys(snap.slots).length) setTimeout(() => applySnap(true), 400);
       const h2 = filesHdrHome(); hdr.springTo(h2.x, h2.y);
       if (!filesState.piled) fileTargets().forEach(t => t.b.springTo(t.x, t.y, null, 150, 18));
       const mp = moodsEl.querySelector('.mood[aria-pressed="true"]'); if (mp && !moodsEl.hidden) slidePill(moodPill, mp, true);

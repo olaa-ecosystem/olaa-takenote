@@ -714,6 +714,17 @@ body[data-full="split"] #exitFull { display: none; }
 .raildrag.willopen .rd-open { opacity: 1; transform: translateX(-50%) scale(1); }
 .rail .item.dragging-out .lift, #railList .item.dragging-out .lift { opacity: .35; }
 body.rail-dragging #rail .rlist { overflow: hidden; }
+/* resize corner on file and folder windows, like the note's */
+.vresize { position: absolute; z-index: 5; right: -2px; bottom: -2px; width: 44px; height: 44px; cursor: nwse-resize; touch-action: none; }
+.vresize svg { position: absolute; left: -12px; top: -12px; width: 60px; height: 60px; overflow: visible; fill: none; stroke: var(--ink); stroke-width: 5; stroke-linecap: round; opacity: .35; transition: opacity .25s; pointer-events: none; }
+.vresize:hover svg, .vresize.on svg { opacity: .85; }
+:is(#panel,.g-panel) { position: relative; }
+.bgwin .vresize { display: none; }
+/* snap: where the window will land */
+#snapPreview { position: fixed; z-index: 18; left: 0; top: 0; width: 0; height: 0; border-radius: 26px; pointer-events: none; opacity: 0;
+  background: color-mix(in srgb, var(--accent) 14%, transparent); box-shadow: inset 0 0 0 2px var(--accent);
+  transition: opacity .2s, left .3s cubic-bezier(.32,.72,0,1), top .3s cubic-bezier(.32,.72,0,1), width .3s cubic-bezier(.32,.72,0,1), height .3s cubic-bezier(.32,.72,0,1); }
+#snapPreview.on { opacity: 1; }
 .stamp { position: fixed; z-index: 70; width: 44px; height: 44px; border-radius: 50%; pointer-events: none; border: 2px solid var(--warm); opacity: 0; }
 #ctxMenu { position: fixed; z-index: 59; left: 0; top: 0; width: 256px; max-width: calc(100vw - 20px); border-radius: 18px; padding: 6px; display: grid; transform-origin: top left; }
 #ctxMenu .mhead { display: flex; align-items: center; gap: 10px; padding: 8px 10px 10px; }

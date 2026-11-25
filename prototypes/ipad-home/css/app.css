@@ -627,7 +627,7 @@ input[type=color] { width: 44px; height: 28px; border: 0; padding: 0; background
 .stage canvas { background: radial-gradient(var(--dot) 1px, transparent 1.4px) 8px 8px / 16px 16px, var(--sheet); }
 .stage pre { margin: 0; align-self: stretch; justify-self: stretch; overflow: auto; touch-action: pan-y; font: 14px/1.6 var(--font); white-space: pre-wrap; padding: 18px 20px; border-radius: 18px; background: var(--sheet); -webkit-user-select: text; user-select: text; }
 .stage .nopreview { display: grid; justify-items: center; gap: 10px; color: var(--ink-2); text-align: center; }
-.foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-right: 30px; }      /* the corner stays free for resizing */
+.foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .foot small { color: var(--ink-2); font-size: 12.5px; }
 .cta { padding: 11px 18px; border-radius: 999px; font-weight: 600; font-size: 13.5px; color: var(--bg); background: var(--ink); box-shadow: 0 10px 24px -12px var(--shadow);
   transition: transform .45s cubic-bezier(.3,1.7,.5,1), opacity .3s; }
@@ -729,6 +729,7 @@ body.rail-dragging #rail .rlist { overflow: hidden; }
 .vresize:hover svg, .vresize.on svg { opacity: .85; }
 :is(#panel,.g-panel) { position: relative; }
 .bgwin .vresize { display: none; }
+:is(#panel,.g-panel):has(.view:not(.leaving) .foot .cta) .vresize { display: none; }      /* a note preview has Open in that corner: no resizing there */
 /* snap: where the window will land */
 #snapPreview { position: fixed; z-index: 18; left: 0; top: 0; width: 0; height: 0; border-radius: 26px; pointer-events: none; opacity: 0;
   background: color-mix(in srgb, var(--accent) 14%, transparent); box-shadow: inset 0 0 0 2px var(--accent);

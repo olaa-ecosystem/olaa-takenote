@@ -3104,9 +3104,10 @@ function snapTo(w, zone) {
   if (w === 'viewer' || snapped('viewer')) bringToFront('panelPos');
   applySnap(false);
 }
+// leaving a snap keeps the window's snapped size and shape; only resizing it by hand changes that
 function unsnap(w) {
-  if (!snapped(w)) return; delete snap.slots[w]; const sv = snap.saved[w]; delete snap.saved[w];
-  if (sv) { if (w === 'sheet') { cancelAnimationFrame(sizeAnim); setSize(sv.w, sv.h); sizeCanvases(true); } else if (viewer.open) { panelEl.style.width = sv.w + 'px'; pBody.style.height = sv.h + 'px'; renderView(0); } }
+  if (!snapped(w)) return; delete snap.slots[w]; delete snap.saved[w];
+  if (w === 'sheet') sizeCanvases(true);
 }
 function clearSnap() { for (const w of Object.keys(snap.slots)) unsnap(w); }
 // dragging a snapped window's corner moves the divider (and its row line in a quarter)

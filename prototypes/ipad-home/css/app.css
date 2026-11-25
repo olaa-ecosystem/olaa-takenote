@@ -707,6 +707,13 @@ body[data-full="split"] #exitFull { display: none; }
   :is(#dock,.g-dock):not(.circle) .win { touch-action: pan-x; overflow-x: auto; -webkit-overflow-scrolling: touch; }
   #topbar .apps, #topbar .apps + .vsep { display: none; }
 }
+.raildrag { position: fixed; z-index: 60; pointer-events: none; margin: 0; overflow: visible !important; box-shadow: inset 0 1px .5px var(--rim), 0 24px 44px -14px var(--shadow); }
+.raildrag .rd-open { position: absolute; left: 50%; bottom: -26px; transform: translateX(-50%) scale(.8); padding: 3px 10px; border-radius: 99px; font: 600 11px var(--font);
+  color: var(--ink); background: var(--accent-soft); box-shadow: inset 0 0 0 1.5px var(--accent); opacity: 0; transition: opacity .2s, transform .3s cubic-bezier(.3,1.6,.5,1); white-space: nowrap; }
+.raildrag.willopen { outline: 2.5px solid var(--accent); outline-offset: 3px; }
+.raildrag.willopen .rd-open { opacity: 1; transform: translateX(-50%) scale(1); }
+.rail .item.dragging-out .lift, #railList .item.dragging-out .lift { opacity: .35; }
+body.rail-dragging #rail .rlist { overflow: hidden; }
 .stamp { position: fixed; z-index: 70; width: 44px; height: 44px; border-radius: 50%; pointer-events: none; border: 2px solid var(--warm); opacity: 0; }
 #ctxMenu { position: fixed; z-index: 59; left: 0; top: 0; width: 256px; max-width: calc(100vw - 20px); border-radius: 18px; padding: 6px; display: grid; transform-origin: top left; }
 #ctxMenu .mhead { display: flex; align-items: center; gap: 10px; padding: 8px 10px 10px; }

@@ -1996,13 +1996,51 @@ function makeItem(f, ctx, x, y, extraClass = '') {
   el.addEventListener('click', () => { if (!el.classList.contains('inrail')) return; if (railHeld) { railHeld = false; return; } if (selecting) return togglePick(f, el); if (f === current && W.canvas.min) return restore('canvas'); openViewer(f, el.querySelector('.tile')); });
   el.addEventListener('pointerdown', e => {
     if (!el.classList.contains('inrail')) return;
-    railHeld = false; const sx = e.clientX, sy = e.clientY;
+    railHeld = false; const sx = e.clientX, sy = e.clientY; let drag = null;
     const t = setTimeout(() => { railHeld = true; openCtx(f, rootCtx, el); }, 500);
-    const done = () => { clearTimeout(t); removeEventListener('pointermove', mv); removeEventListener('pointerup', done); removeEventListener('pointercancel', done); };
-    const mv = ev => { if (Math.hypot(ev.clientX - sx, ev.clientY - sy) > 8) done(); };
+    const done = ev => {
+      clearTimeout(t); removeEventListener('pointermove', mv); removeEventListener('pointerup', done); removeEventListener('pointercancel', done);
+      if (drag) { railHeld = true; endRailDrag(drag, f, ev); }      // railHeld: the click that follows must not open it a second time
+    };
+    // sideways out of the column: the file comes with your finger; a vertical swipe still scrolls the column
+    const mv = ev => {
+      const dx = ev.clientX - sx, dy = ev.clientY - sy;
+      if (drag) return moveRailDrag(drag, ev);
+      if (dx > 12 && Math.abs(dx) > Math.abs(dy) * 1.2) { clearTimeout(t); closeCtx(true); drag = startRailDrag(el, ev); return; }
+      if (Math.hypot(dx, dy) > 8) done();
+    };
     addEventListener('pointermove', mv); addEventListener('pointerup', done); addEventListener('pointercancel', done);
   });
   return { el, b };
+}
+
+/* drag a file or folder out of the left Files column and let go over the workspace: it opens there */
+function startRailDrag(el, ev) {
+  const tile = el.querySelector('.tile'), r = tile.getBoundingClientRect(), g = tile.cloneNode(true);
+  const sc = tile.querySelectorAll('canvas'), gc = g.querySelectorAll('canvas');
+  gc.forEach((c, i) => { try { c.getContext('2d').drawImage(sc[i], 0, 0); } catch (_) {} });
+  g.classList.add('raildrag'); g.style.left = r.left + 'px'; g.style.top = r.top + 'px'; g.style.width = r.width + 'px'; g.style.height = r.height + 'px';
+  const badge = document.createElement('b'); badge.className = 'rd-open'; badge.textContent = t('Open'); g.append(badge);
+  document.body.append(g); el.classList.add('dragging-out'); document.body.classList.add('rail-dragging');
+  if (!reduceMotion) g.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.1)' }], { duration: 180, easing: 'ease-out', fill: 'forwards' });
+  const d = { g, el, r, ox: ev.clientX - r.left, oy: ev.clientY - r.top, over: false };
+  moveRailDrag(d, ev); return d;
+}
+function moveRailDrag(d, ev) {
+  d.g.style.translate = `${ev.clientX - d.ox - d.r.left}px ${ev.clientY - d.oy - d.r.top}px`;
+  const edge = $('#rail').getBoundingClientRect().right;
+  const over = ev.clientX > edge + 16; if (over !== d.over) { d.over = over; d.g.classList.toggle('willopen', over); }
+}
+function endRailDrag(d, f, ev) {
+  d.el.classList.remove('dragging-out'); document.body.classList.remove('rail-dragging');
+  if (ev && ev.type === 'pointerup' && d.over) {
+    if (f.kind === 'note') { if (f === current && W.canvas.min) restore('canvas'); else loadNote(f); }
+    else openViewer(f, d.g);
+    d.g.animate([{ opacity: 1 }, { opacity: 0, transform: 'scale(.9)' }], { duration: 260, delay: 120, fill: 'forwards' }).onfinish = () => d.g.remove();
+    return;
+  }
+  // not far enough: it flies back into the column
+  d.g.animate([{ translate: d.g.style.translate, transform: 'scale(1.1)' }, { translate: '0px 0px', transform: 'scale(1)' }], { duration: SPR.d, easing: SPR.e, fill: 'forwards' }).onfinish = () => d.g.remove();
 }
 
 /* iPhone-style grouping: hold a file over another to make a folder, or over a folder to file it */

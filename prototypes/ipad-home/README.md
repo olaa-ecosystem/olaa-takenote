@@ -79,5 +79,6 @@ The repository contains no emoji artwork. The app draws emoji with the device's 
 | Split screen | **Split** in the top bar: 2 side by side, 3 (one large, two stacked) or 4 in a grid; stacked on a phone. The note pane you are in is live (green outline); touch another note pane to write there. Text and images can be read and scrolled in their panes. **Change file** swaps what a pane shows. |
 | Layout | On opening, the note sits in the centre, folders in a column on the left, files on the right. |
 | Toolbar | Always the top layer: notes, open files and dragged files pass underneath it. Bottom centre by default; drop it near another edge to move it there, or near a corner to fold it into a circle. Colours, pen, pencil, highlighter, eraser, lasso, undo, redo, page style, finger drawing, this note, recent files. |
+| Files column (75% window) | Tap opens, hold shows the menu, a vertical swipe scrolls. Drag a file or folder sideways out of the column and let go over the workspace to open it. |
 | Files | Drag freely; hold one over another to make a folder; press and hold a file or folder for its menu; press and hold empty space to select, group, delete or change icons. |
 | Top bar | Mood emoji, New note, Import, Files, language, light or dark. Tap the date for the calendar and habits. |

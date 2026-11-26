@@ -19,7 +19,8 @@ test('draws a stroke on the note', async ({ page }) => {
   const r = await page.locator('#sheet .paper').boundingBox();
   await page.mouse.move(r.x + 100, r.y + 200); await page.mouse.down();
   await page.mouse.move(r.x + 300, r.y + 230, { steps: 12 }); await page.mouse.up();
-  await expect(page.locator('#noteMeta')).toContainText('1 stroke');
+  // the note no longer shows a stroke count: check that ink landed on the canvas instead
+  await expect.poll(() => page.evaluate(() => { const c = document.querySelector('#base'), d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let n = 0; for (let i = 3; i < d.length; i += 4) if (d[i]) n++; return n; })).toBeGreaterThan(50);
 });
 
 test('picks a feeling and shows its line in the top bar', async ({ page }) => {

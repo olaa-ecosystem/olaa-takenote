@@ -26,8 +26,18 @@ jobs:
         working-directory: prototypes
     steps:
       - uses: actions/checkout@v4
-      # the device folders must match source/: fails if someone edited generated files or forgot to rebuild
-      - run: python3 tools/build.py --check
+      # The device folders must match source/. On main that is strict. On a pull request a stale build is rebuilt here
+      # and tested anyway: prototype-sync.yml commits the rebuild to the branch, but a bot push (GITHUB_TOKEN) never
+      # starts a new pull-request run, so failing here would leave the check red after the sync has fixed it.
+      - name: Check the device builds are current
+        run: |
+          if python3 tools/build.py --check; then exit 0; fi
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "::warning::The iPad/iPhone builds were out of date; testing a fresh build. prototype-sync.yml commits it to the branch."
+            python3 tools/build.py
+          else
+            exit 1
+          fi
       - uses: actions/setup-node@v4
         with:
           node-version: 22

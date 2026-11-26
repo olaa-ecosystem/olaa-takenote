@@ -1,5 +1,8 @@
 // Smoke tests for the iPhone build (iphone-home/), with touch at iPhone 15 size in Chromium. Real iPhone Safari still needs a check by hand.
 import { test, expect } from '@playwright/test';
+import { writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 test.beforeEach(async ({ page }, info) => {
   const problems = [];
@@ -40,6 +43,13 @@ test('Files shows every file, and a file opens the width of the phone', async ({
   await page.waitForTimeout(800);      // the window grows out of the file's icon first
   const p = await page.locator('#panel').boundingBox();
   expect(p.width).toBeGreaterThan(page.viewportSize().width - 24);
+});
+
+test('an imported file shows up in Files (the desk is hidden on iPhone)', async ({ page }) => {
+  const file = join(tmpdir(), 'olaa-phone.txt'); writeFileSync(file, 'hello from the iPhone test');
+  const [chooser] = await Promise.all([page.waitForEvent('filechooser'), page.locator('#qImport').tap()]);
+  await chooser.setFiles(file);
+  await expect(page.locator('#files > .item', { hasText: 'olaa-phone.txt' })).toBeVisible();
 });
 
 test('the toolbar fits the screen and scrolls sideways', async ({ page }) => {

@@ -67,6 +67,7 @@ const I18N = {
   'Next': ['Tiếp', '次へ', '다음', 'Suivant', '下一步'],
   'Back': ['Quay lại', '戻る', '이전', 'Retour', '返回'],
   'Show button tips': ['Xem hướng dẫn nút', 'ボタンのヒントを表示', '버튼 도움말 보기', 'Voir l’aide des boutons', '查看按钮提示'],
+  'Starts a blank page. One finger draws, two fingers move and zoom.': ['Mở một trang trắng. Một ngón để vẽ, hai ngón để di chuyển và phóng to.', '白紙のページを開きます。1本指で描き、2本指で移動とズーム。', '빈 페이지를 엽니다. 한 손가락으로 그리고, 두 손가락으로 이동과 확대.', 'Ouvre une page vierge. Un doigt dessine, deux doigts déplacent et zooment.', '新建空白页。单指书写，双指移动和缩放。'],
   'Starts a blank page. Apple Pencil draws, one finger scrolls, two fingers zoom (25% to 400%).': ['Mở một trang trắng. Apple Pencil để viết, một ngón để cuộn, hai ngón để phóng to thu nhỏ (25% đến 400%).', '白紙のページを開きます。Apple Pencilで書き、1本指でスクロール、2本指でズーム(25%〜400%)。', '빈 페이지를 엽니다. Apple Pencil로 쓰고, 한 손가락으로 스크롤, 두 손가락으로 확대·축소(25%~400%).', 'Ouvre une page vierge. Apple Pencil écrit, un doigt fait défiler, deux doigts zooment (25 % à 400 %).', '新建空白页。Apple Pencil 书写，单指滚动，双指缩放（25% 到 400%）。'],
   'Brings in photos, PDFs and text files from your iPad.': ['Đưa ảnh, PDF và tệp văn bản từ iPad vào.', 'iPadから写真、PDF、テキストを取り込みます。', 'iPad의 사진, PDF, 텍스트 파일을 가져옵니다.', 'Importe photos, PDF et fichiers texte depuis l’iPad.', '从 iPad 导入照片、PDF 和文本文件。'],
   'Puts two to four notes or files side by side.': ['Đặt hai đến bốn ghi chú hoặc tệp cạnh nhau.', '2〜4つのノートやファイルを並べて表示します。', '노트나 파일 2~4개를 나란히 놓습니다.', 'Affiche deux à quatre notes ou fichiers côte à côte.', '并排显示两到四个笔记或文件。'],
@@ -2178,7 +2179,7 @@ function renderToolPop() {
     if ('pressure' in T) h += switchH('pressure', 'Pressure sensitivity', T.pressure);
     if (k === 'hl') h += switchH('straight', 'Straight lines only', T.straight) + '<p class="tip">Hold still at the end of a stroke to straighten it.</p>';
     if (k === 'shape') h += switchH('fill', 'Fill closed shapes', T.fill) + '<p class="tip">Draw a line, circle, triangle or rectangle. It snaps to a clean shape when you lift.</p>';
-    if (k === 'pen' || k === 'pencil') h += switchH('holdShape', 'Draw and hold to make a shape', prefs.holdShape) + '<p class="tip">Draw a line, circle, triangle or rectangle, then keep the Pencil still for half a second. It snaps to a clean shape.</p>';
+    if (k === 'pen' || k === 'pencil') h += switchH('holdShape', 'Draw and hold to make a shape', prefs.holdShape) + '<p class="tip">Draw a line, circle, triangle or rectangle, then keep ' + (PHONE ? 'your finger' : 'the Pencil') + ' still for half a second. It snaps to a clean shape.</p>';
     if (k === 'eraser') h += switchH('hlOnly', 'Erase highlighter only', T.hlOnly) + '<button class="ghost danger" id="clearPage">Clear page</button>';
     if (k === 'lasso') h += '<p class="tip">Draw a loop around strokes to select them. Drag inside the selection to move it. The menu above it recolours, duplicates or deletes.</p><button class="ghost" id="selAll">Select everything</button>';
     if (k === 'laser') h += '<p class="tip">Point at things while you explain. The trail fades on its own and is never saved. Pick its colour in the toolbar.</p>';
@@ -2334,7 +2335,7 @@ $('#confirmCatch').addEventListener('pointerdown', e => { e.preventDefault(); co
 addEventListener('keydown', e => { if (!confirmDone) return; if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); confirmDone(false); } }, true);
 /* first visit: a short tour of the buttons, one at a time (replay it from the menu on empty space) */
 const TOUR = [
-  ['#qNew', 'New note', 'Starts a blank page. Apple Pencil draws, one finger scrolls, two fingers zoom (25% to 400%).'],
+  ['#qNew', 'New note', PHONE ? 'Starts a blank page. One finger draws, two fingers move and zoom.' : 'Starts a blank page. Apple Pencil draws, one finger scrolls, two fingers zoom (25% to 400%).'],
   ['#qImport', 'Import', 'Brings in photos, PDFs and text files from your iPad.'],
   ['#qSplit', 'Split', 'Puts two to four notes or files side by side.'],
   ['#qFiles', 'Files', 'Shows every file at once, sorted by date, name, type, size or favourites.'],
@@ -3298,7 +3299,7 @@ function importFiles(files, at, into) {
       root.push(f); const spot = at ? { x: at.x + i * 24, y: at.y + i * 18 } : freeSpot(rootCtx, area());
       const { b } = makeItem(f, rootCtx, at ? spot.x : orb.x, at ? spot.y : orb.y, 'pop');
       setTimeout(() => settleNew(b), 60 + i * 40);
-      if (++done === files.length) { toast(`Imported ${files.length} file${files.length > 1 ? 's' : ''}`); updateCount(); syncFilesBar(); if (fullKey === 'files') setTimeout(() => fullGrid(), 350); }
+      if (++done === files.length) { toast(`Imported ${files.length} file${files.length > 1 ? 's' : ''}`); updateCount(); syncFilesBar(); if (PHONE && fullKey !== 'files') enterFull('files'); else if (fullKey === 'files') setTimeout(() => fullGrid(), 350); }      // on iPhone the desk is hidden: show the new file in Files
     };
     readFile(file, place);
   });

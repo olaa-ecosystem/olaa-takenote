@@ -1,0 +1,15 @@
+{
+  "name": "@olaa/takenote-prototypes",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Clickable UI prototypes of Olaa Takenote for iPad and iPhone, built from one source. Not production code.",
+  "scripts": {
+    "serve": "python3 -m http.server 4173 --bind 127.0.0.1",
+    "test": "playwright test",
+    "build": "python3 tools/build.py",
+    "build:standalone": "python3 tools/build.py --standalone dist"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  }
+}

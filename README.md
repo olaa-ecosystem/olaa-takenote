@@ -9,6 +9,9 @@ Independent note-taking and knowledge workspace
 ## Repository status
 Foundation stage — repository scaffold and documentation only. No production functionality is implemented.
 
+## Try the iPad prototype
+A clickable design prototype (not production code) is in `prototypes/ipad-home/`. It installs on an iPad from Safari with Add to Home Screen; see its README.
+
 ## Start here
 1. Read `docs/product/SCOPE.md`.
 2. Read `docs/architecture/ARCHITECTURE.md` and `TECH_STACK.md`.

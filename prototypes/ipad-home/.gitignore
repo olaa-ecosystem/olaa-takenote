@@ -1,0 +1,7 @@
+node_modules/
+dist/
+test-results/
+playwright-report/
+# private builds that may contain Apple emoji artwork
+*.apple.html
+*.local.*

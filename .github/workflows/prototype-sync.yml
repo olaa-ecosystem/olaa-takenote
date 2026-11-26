@@ -1,0 +1,35 @@
+# Keeps the iPad and iPhone builds in step with the one source. When a push changes prototypes/source/ or
+# prototypes/tools/, this rebuilds shared/, ipad-home/ and iphone-home/ (sizes for each device included) and, if
+# anything changed, commits the generated files back to the same branch. Never runs on main: changes reach main
+# through a reviewed pull request, where prototype-pages.yml checks the builds are current.
+# Pushes made with GITHUB_TOKEN do not start new workflow runs, so this cannot loop.
+name: Prototype (sync device builds)
+
+on:
+  push:
+    branches-ignore: [main]
+    paths: ['prototypes/source/**', 'prototypes/tools/**', '.github/workflows/prototype-sync.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: prototype-sync-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+      - run: python3 prototypes/tools/build.py
+      - name: Commit the generated files if they changed
+        run: |
+          git add prototypes/shared prototypes/ipad-home prototypes/iphone-home
+          if git diff --cached --quiet; then echo "builds already current"; exit 0; fi
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -m "chore(prototype): sync iPad and iPhone builds from source"
+          git push origin HEAD:${GITHUB_REF#refs/heads/}

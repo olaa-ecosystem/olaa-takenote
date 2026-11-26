@@ -1,4 +1,4 @@
-// Smoke tests for the iPad home prototype. They use a mouse; Apple Pencil behaviour still needs a real iPad.
+// Smoke tests for the iPad build (ipad-home/). They use a mouse; Apple Pencil behaviour still needs a real iPad.
 import { test, expect } from '@playwright/test';
 import { writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -9,7 +9,7 @@ test.beforeEach(async ({ page }, info) => {
   page.on('pageerror', e => problems.push(`script error: ${e.message}`));
   page.on('console', m => { if ((m.type() === 'error' && !/fonts\.g|ERR_INTERNET_DISCONNECTED/.test(m.text())) || /Content Security Policy/i.test(m.text())) problems.push(m.text()); });
   info.problems = problems;
-  await page.goto('/');
+  await page.goto('./');
   await expect(page.locator('#noteMeta')).toContainText('Draft');
 });
 

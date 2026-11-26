@@ -1,0 +1,21 @@
+{
+  "_about": "One entry per device build. tools/build.py reads this. barScale scales the top bar and pen toolbar (sizes, icons, text) relative to the shared CSS; iconScale is the size of file and folder icons. Change a number here and rebuild: every size that depends on it follows.",
+  "ipad": {
+    "folder": "ipad-home",
+    "title": "Olaa Takenote iPad",
+    "name": "Olaa Notes",
+    "description": "Olaa Takenote iPad prototype: handwritten notes for Apple Pencil.",
+    "orientation": "any",
+    "barScale": 1.0,
+    "iconScale": 0.9
+  },
+  "iphone": {
+    "folder": "iphone-home",
+    "title": "Olaa Takenote iPhone",
+    "name": "Olaa Notes",
+    "description": "Olaa Takenote iPhone prototype: handwritten notes with your finger.",
+    "orientation": "portrait",
+    "barScale": 0.86,
+    "iconScale": 0.8
+  }
+}

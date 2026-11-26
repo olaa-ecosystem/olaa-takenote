@@ -1,20 +1,21 @@
-# Tests the iPad prototype and publishes it to GitHub Pages so it can be installed from Safari (Add to Home Screen).
+# Tests the iPad and iPhone prototypes and publishes both to GitHub Pages so they can be installed from Safari
+# (Add to Home Screen). The site root sends iPhones to iphone-home/ and everything else to ipad-home/.
 # One-time setup by a repository admin: Settings → Pages → Source: GitHub Actions.
 name: Prototype (test and publish)
 
 on:
   push:
     branches: [main]
-    paths: ['prototypes/ipad-home/**', '.github/workflows/prototype-pages.yml']
+    paths: ['prototypes/**', '.github/workflows/prototype-pages.yml']
   pull_request:
-    paths: ['prototypes/ipad-home/**', '.github/workflows/prototype-pages.yml']
+    paths: ['prototypes/**', '.github/workflows/prototype-pages.yml']
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: prototype-pages
+  group: prototype-pages-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -22,9 +23,11 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: prototypes/ipad-home
+        working-directory: prototypes
     steps:
       - uses: actions/checkout@v4
+      # the device folders must match source/: fails if someone edited generated files or forgot to rebuild
+      - run: python3 tools/build.py --check
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -34,7 +37,7 @@ jobs:
 
   publish:
     needs: test
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       pages: write
@@ -44,12 +47,21 @@ jobs:
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      # publish only the app's own files: no tests, tooling or docs
+      # publish only the apps' own files: no source, tests, tooling or docs
       - name: Collect site
         run: |
-          mkdir -p _site
-          cd prototypes/ipad-home
-          cp -r index.html manifest.webmanifest sw.js css js data icons ../../_site/
+          mkdir -p _site/ipad-home _site/iphone-home
+          cd prototypes
+          cp -r shared ../_site/
+          (cd ipad-home && cp -r index.html manifest.webmanifest sw.js css js ../../_site/ipad-home/)
+          (cd iphone-home && cp -r index.html manifest.webmanifest sw.js css js ../../_site/iphone-home/)
+          cat > ../_site/index.html <<'EOF'
+          <!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+          <title>Olaa Notes</title><meta name="referrer" content="no-referrer">
+          <p>Opening Olaa Notes… <a href="ipad-home/">iPad</a> · <a href="iphone-home/">iPhone</a></p>
+          <script src="pick.js"></script>
+          EOF
+          echo "location.replace(/iPhone|iPod/.test(navigator.userAgent) || Math.min(screen.width, screen.height) < 600 ? 'iphone-home/' : 'ipad-home/');" > ../_site/pick.js
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site

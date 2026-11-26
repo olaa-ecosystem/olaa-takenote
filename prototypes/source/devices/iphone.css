@@ -1,0 +1,36 @@
+/* iPhone layout, after the shared CSS. The note fills the screen between a compact top bar and the pen toolbar;
+   files open from the Files button instead of sitting on the desk; window chrome that needs a big screen is hidden. */
+
+/* top bar: full width, icons only */
+#topWin { width: calc(100vw - 16px); max-width: none; }
+#topbar .row { justify-content: space-between; gap: 2px; padding: 5px 6px; min-height: 0; }
+#topbar .lights, #topbar .brand, #topbar .apps, #topbar .when, #topbar .vsep, #qSplit { display: none !important; }
+#qNew > span { display: none; }
+#qNew { width: 31px; padding: 0; justify-content: center; }
+
+/* the note is the screen: no window buttons, grip or resize corner */
+:is(#sheet,.g-sheet) :is(.lights, .grip, .resize, .sizetag) { display: none !important; }
+:is(#sheet,.g-sheet) .title { left: 18px; }
+:is(#sheet,.g-sheet) .hint { padding: 0 24px; text-align: center; }
+
+/* files live in Files (top bar), not on the desk */
+body:not([data-full="files"]) #files, #filesHdr, #tray, #parked, #rail { display: none !important; }
+#filesBar { left: 8px; right: 8px; transform: none !important; translate: none; max-width: none; overflow-x: auto; scrollbar-width: none; justify-content: flex-start; }
+#filesBar::-webkit-scrollbar { display: none; }
+#filesBar .fbl, #filesBar > .vsep { display: none; }
+#filesBar #fbCount { flex: none; padding-left: 6px; }
+/* a folder or file opened from Files covers the sort bar instead of sliding under it */
+body:has(#panelPos:not([hidden])) #filesBar { visibility: hidden; }
+
+/* the pen toolbar stays at the bottom and scrolls sideways */
+:is(#dock,.g-dock):not(.circle) .win { max-width: calc(100vw - 16px); }
+/* Recent files rides at the right end while the tools scroll under it: a soft edge keeps the tools readable */
+:is(#recentTb,.g-recentTb) { box-shadow: -14px 0 12px -4px var(--glass-hi, rgba(255,255,255,.7)); }
+
+/* file windows: the phone's width, only the close button */
+#pHead .lights :is(.lt-y, .lt-g) { display: none; }
+.vresize { display: none; }
+
+/* menus and sheets fit the phone */
+:is(#toolPop, #ctxMenu) { max-width: calc(100vw - 16px); }
+#confirmBox, #tourTip { width: calc(100vw - 32px); }

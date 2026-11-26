@@ -85,6 +85,8 @@ const I18N = {
   'Red closes, yellow sets the window to 75%, green goes full screen.': ['Đỏ để đóng, vàng đưa cửa sổ về 75%, xanh để toàn màn hình.', '赤で閉じる、黄で75%、緑でフルスクリーン。', '빨강은 닫기, 노랑은 75% 창, 초록은 전체 화면.', 'Rouge ferme, jaune passe à 75 %, vert en plein écran.', '红色关闭，黄色设为 75%，绿色全屏。'],
   'Files on the desk': ['Tệp trên màn hình', 'デスクのファイル', '데스크의 파일', 'Fichiers sur le bureau', '桌面上的文件'],
   'Tap to open, press and hold for the menu, hold one file over another to make a folder.': ['Chạm để mở, giữ để mở menu, giữ một tệp lên tệp khác để tạo thư mục.', 'タップで開く、長押しでメニュー、重ねて待つとフォルダに。', '눌러서 열고, 길게 눌러 메뉴, 파일을 다른 파일 위에 올려 두면 폴더가 돼요.', 'Touchez pour ouvrir, maintenez pour le menu, posez un fichier sur un autre pour créer un dossier.', '点按打开，长按出菜单，把一个文件停在另一个上方即可建文件夹。'],
+  'Oversized': ['Khổ lớn', '特大', '특대', 'Très grand', '超大'],
+  'Rotates': ['Xoay được', '回転可', '회전 가능', 'Pivote', '可旋转'],
   'Move to Delete': ['Chuyển vào mục Xoá', '「削除」へ移動', '삭제 항목으로 이동', 'Déplacer vers Supprimés', '移到“删除”'],
   'Move folder to Delete': ['Chuyển thư mục vào mục Xoá', 'フォルダを「削除」へ移動', '폴더를 삭제 항목으로 이동', 'Déplacer le dossier vers Supprimés', '将文件夹移到“删除”'],
   'Restore': ['Khôi phục', '復元', '복원', 'Restaurer', '恢复'],
@@ -1213,13 +1215,14 @@ function allocCanvas(w, h, k) {
   redrawBase();
 }
 function sizeCanvases(force) {      // the ink is re-rendered sharp for the window scale and the zoom
-  const w = PW / Math.min(1, Z), h = PH / Math.min(1, Z), k = Math.min(4, (devicePixelRatio || 1) * clamp(sheet.s * Z, 1, 3), Math.sqrt(12e6 / (w * h)));
+  const big = isBig(), w = big ? current.frame.bw : PW / Math.min(1, Z), h = big ? current.frame.bh : PH / Math.min(1, Z), k = Math.min(4, (devicePixelRatio || 1) * clamp(sheet.s * Z, 1, 3), Math.sqrt(12e6 / (w * h)));
   if (!force && Math.abs(k - canvasK) < .05 && CW === Math.ceil(w) && CH === Math.ceil(h)) return;
   allocCanvas(w, h, k);
 }
 const ZMIN = .25, ZMAX = 4, ZSTEPS = [.25, .5, .75, 1, 1.25, 1.5, 2, 2.5, 3, 4], PAPER_PAT = { grid: [24, 24, 0, 0], dots: [22, 22, 11, 11], lines: [0, 32, 0, 70] };
 // where the visible corner may sit: on the page when zoomed in; the page stays centred when zoomed out (down to 25%)
 function panRange(z) {
+  if (isBig()) { const f = current.frame, vw_ = PW / z, vh_ = PH / z; return { x0: -vw_ * .6, x1: f.bw - vw_ * .4, y0: -vh_ * .6, y1: f.bh - vh_ * .4 }; }      // the page can move until 40% of the window still shows it
   if (z >= 1) return { x0: 0, x1: PW - PW / z, y0: 0, y1: PH - PH / z };
   const cx = (PW - PW / z) / 2, cy = (PH - PH / z) / 2; return { x0: cx, x1: cx, y0: cy, y1: cy };
 }
@@ -1229,18 +1232,18 @@ function overscrolled() { const R = panRange(Z); return Z < ZMIN - 1e-3 || Z > Z
 function applyZoom(soft) {
   if (!soft) clampPan(); if (zpinch || zpan || zAnim) zoomHud();
   const inkEl = $('#sheet .ink'); inkEl.style.transformOrigin = '0 0';
-  inkEl.style.transform = Z === 1 && !zx && !zy ? '' : `scale(${Z.toFixed(4)}) translate(${(-zx).toFixed(2)}px,${(-zy).toFixed(2)}px)`;
+  const rotT = ROT ? `translate(${(PW / 2).toFixed(1)}px,${(PH / 2).toFixed(1)}px) rotate(${ROT.toFixed(4)}rad) translate(${(-PW / 2).toFixed(1)}px,${(-PH / 2).toFixed(1)}px) ` : '';
+  const viewT = rotT + `scale(${Z.toFixed(4)}) translate(${(-zx).toFixed(2)}px,${(-zy).toFixed(2)}px)`;
+  inkEl.style.transform = Z === 1 && !zx && !zy && !ROT ? '' : viewT;
+  { const big = isBig(); paper.classList.toggle('bigmode', big); let bp = paper.querySelector('.bigpage');
+    if (big) { if (!bp) { bp = document.createElement('i'); paper.prepend(bp); } bp.className = 'bigpage pp-' + (current.paper || 'grid'); bp.style.width = current.frame.bw + 'px'; bp.style.height = current.frame.bh + 'px'; bp.style.transform = viewT; bp.style.setProperty('--lw', (1 / Z).toFixed(3)); bp.style.setProperty('--zs', (1 / Z).toFixed(3)); }
+    else if (bp) bp.remove(); }
   const P = PAPER_PAT[current.paper || 'grid'];          // the paper pattern zooms with the ink
   if (!P || (Z === 1 && !zx && !zy)) paper.style.backgroundSize = paper.style.backgroundPosition = '';
   else { paper.style.backgroundSize = P[0] ? `${P[0] * Z}px ${P[1] * Z}px` : `100% ${P[1] * Z}px`; paper.style.backgroundPosition = `${((P[2] - zx) * Z).toFixed(1)}px ${((P[3] - zy) * Z).toFixed(1)}px`; }
-  paper.style.setProperty('--zs', Z.toFixed(4)); paper.classList.toggle('zoomed', Z > 1.01); paper.classList.toggle('zoomout', Z < .99);
-  { let fe = paper.querySelector('.frame'); const F = current.frame;
-    if (F) { if (!fe) { fe = document.createElement('i'); fe.className = 'frame'; fe.innerHTML = '<b></b>'; paper.append(fe); }
-      fe.style.width = F.fw + 'px'; fe.style.height = F.fh + 'px'; fe.style.transform = `scale(${Z.toFixed(4)}) translate(${(F.x - zx).toFixed(2)}px,${(F.y - zy).toFixed(2)}px)`;
-      fe.querySelector('b').textContent = `${F.w} × ${F.h}`; fe.style.setProperty('--zi', (1 / Z).toFixed(4)); }
-    else if (fe) fe.remove(); }
+  paper.style.setProperty('--zs', Z.toFixed(4)); paper.classList.toggle('zoomed', Z > 1.01); paper.classList.toggle('zoomout', Z < .99 && !isBig());
   { let pe = paper.querySelector('.pageedge'); if (!pe) { pe = document.createElement('i'); pe.className = 'pageedge'; paper.prepend(pe); }
-    if (Z < .99) { pe.style.width = PW + 'px'; pe.style.height = PH + 'px'; pe.style.transform = `scale(${Z.toFixed(4)}) translate(${(-zx).toFixed(2)}px,${(-zy).toFixed(2)}px)`; } }      // line and dot sizes scale with the zoom
+    if (Z < .99 && !isBig()) { pe.style.width = PW + 'px'; pe.style.height = PH + 'px'; pe.style.transform = `scale(${Z.toFixed(4)}) translate(${(-zx).toFixed(2)}px,${(-zy).toFixed(2)}px)`; } }      // line and dot sizes scale with the zoom
   try { if (sel) updateSelUI(true); } catch (_) {}
 }
 function zoomSettled() { clearTimeout(zSettleT); zSettleT = setTimeout(() => { sizeCanvases(true); try { if (sel) updateSelUI(); } catch (_) {} }, 120); }
@@ -1264,9 +1267,9 @@ function zoomTo(z1, cx, cy, instant) {
 }
 // after a gesture: back inside the limits, keeping the point under the fingers (sx, sy on screen) where it is
 function settleView(sx, sy) {
-  let z1 = clamp(Z, ZMIN, ZMAX); if (Math.abs(z1 - 1) < .15) z1 = 1;
+  let z1 = clamp(Z, ZMIN, ZMAX); if (Math.abs(z1 - 1) < .15 && !isBig()) z1 = 1;
   if (sx == null || Math.abs(z1 - Z) < 1e-3) { const R = panRange(z1); if (!overscrolled() && z1 === Z) return zoomSettled(); return animateView(z1, clamp(zx, R.x0, R.x1), clamp(zy, R.y0, R.y1)); }
-  const r = paper.getBoundingClientRect(), k = r.width / PW, ax = zx + (sx - r.left) / k / Z, ay = zy + (sy - r.top) / k / Z;
+  const r = paper.getBoundingClientRect(), k = r.width / PW, { x: ax, y: ay } = toLocal({ clientX: sx, clientY: sy }, r, k);
   zoomTo(z1, ax, ay);
 }
 function zoomStep(dir) {
@@ -1274,7 +1277,7 @@ function zoomStep(dir) {
   if (n != null) zoomTo(n); else nudge($('#sheetWin'));
 }
 function startPan(e) { cancelAnimationFrame(zglide); try { sheetEl.setPointerCapture(e.pointerId); } catch (_) {} zpan = { id: e.pointerId, x: e.clientX, y: e.clientY, lx: e.clientX, ly: e.clientY, zx, zy, k: paper.getBoundingClientRect().width / PW, vx: 0, vy: 0, t: e.timeStamp }; }
-function movePan(e) { const dt = Math.max(8, e.timeStamp - zpan.t); zpan.vx = zpan.vx * .5 + (e.clientX - zpan.lx) / dt * .5; zpan.vy = zpan.vy * .5 + (e.clientY - zpan.ly) / dt * .5; zpan.t = e.timeStamp; zpan.lx = e.clientX; zpan.ly = e.clientY; zx = zpan.zx - (e.clientX - zpan.x) / zpan.k / Z; zy = zpan.zy - (e.clientY - zpan.y) / zpan.k / Z; clampPan(true); applyZoom(true); }
+function movePan(e) { const dt = Math.max(8, e.timeStamp - zpan.t); zpan.vx = zpan.vx * .5 + (e.clientX - zpan.lx) / dt * .5; zpan.vy = zpan.vy * .5 + (e.clientY - zpan.ly) / dt * .5; zpan.t = e.timeStamp; zpan.lx = e.clientX; zpan.ly = e.clientY; { const d = urv((e.clientX - zpan.x) / zpan.k / Z, (e.clientY - zpan.y) / zpan.k / Z); zx = zpan.zx - d.x; zy = zpan.zy - d.y; } clampPan(true); applyZoom(true); }
 let zpinch = null, zglide = 0, zhudT = 0, looseFinger = null;
 // where every finger on the glass is right now; a pinch measures from these, never from a stale or missing point
 const fingerAt = new Map();
@@ -1304,7 +1307,7 @@ document.addEventListener('pointerdown', e => {
 }, true);
 // the zoom level shows while you change it, then fades (as GoodNotes and Notability do)
 function zoomHud() {
-  const h = $('#zoomHud'); h.textContent = Math.round(Z * 100) + '%'; h.classList.add('on');
+  const h = $('#zoomHud'); h.textContent = Math.round(Z * 100) + '%' + (ROT ? ` · ${Math.round(((ROT * 180 / Math.PI) % 360 + 360) % 360)}°` : ''); h.classList.add('on');
   clearTimeout(zhudT); zhudT = setTimeout(() => h.classList.remove('on'), 700);
 }
 function startPinch(a, e) {      // a: the finger already down {id, x, y}; e: the second finger
@@ -1313,7 +1316,7 @@ function startPinch(a, e) {      // a: the finger already down {id, x, y}; e: th
   cancelAnimationFrame(zAnim); cancelAnimationFrame(zglide); zAnim = 0; $('#sheet .ink').classList.add('zooming');
   const pts = new Map([[a.id, { x: a.x, y: a.y }], [e.pointerId, { x: e.clientX, y: e.clientY }]]);
   const [p, q] = [...pts.values()], r = paper.getBoundingClientRect(), k = r.width / PW, c = { x: (p.x + q.x) / 2, y: (p.y + q.y) / 2 };
-  zpinch = { pts, d0: Math.max(20, Math.hypot(p.x - q.x, p.y - q.y)), Z0: Z, r, k, anchor: toLocal({ clientX: c.x, clientY: c.y }, r, k) };
+  zpinch = { pts, d0: Math.max(20, Math.hypot(p.x - q.x, p.y - q.y)), Z0: Z, r, k, anchor: toLocal({ clientX: c.x, clientY: c.y }, r, k), big: isBig(), R0: ROT, a0: Math.atan2(q.y - p.y, q.x - p.x) };
 }
 function movePinch(e) {
   zpinch.pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -1322,10 +1325,13 @@ function movePinch(e) {
   z = z < ZMIN ? Math.max(.18, ZMIN - (ZMIN - z) * .35) : z > ZMAX ? ZMAX + (z - ZMAX) * .3 : z;          // a little give past the limits
   const c = { x: (p.x + q.x) / 2, y: (p.y + q.y) / 2 }; zpinch.c = c;
   // the page point that was between the fingers stays between them
-  Z = z; zx = anchor.x - (c.x - r.left) / k / z; zy = anchor.y - (c.y - r.top) / k / z; clampPan(true); applyZoom(true);
+  if (zpinch.big) { let a = Math.atan2(q.y - p.y, q.x - p.x) - zpinch.a0; a = Math.atan2(Math.sin(a), Math.cos(a)); ROT = zpinch.R0 + a; }
+  Z = z; { const u = unrot((c.x - r.left) / k, (c.y - r.top) / k); zx = anchor.x - u.x / z; zy = anchor.y - u.y / z; } clampPan(true); applyZoom(true);
 }
 let zpinch_c = null;
 function endPinch(e) {
+  if (zpinch && zpinch.big) { const q90 = Math.PI / 2, n = Math.round(ROT / q90); if (Math.abs(ROT - n * q90) < .07) { const c = zpinch.c, r = paper.getBoundingClientRect(), k = r.width / PW, keep = c && toLocal({ clientX: c.x, clientY: c.y }, r, k); ROT = n * q90; if (keep) { const u = unrot((c.x - r.left) / k, (c.y - r.top) / k); zx = keep.x - u.x / Z; zy = keep.y - u.y / Z; } }
+    ROT = Math.atan2(Math.sin(ROT), Math.cos(ROT)); if (Math.abs(ROT) < 1e-4) ROT = 0; }      // within 4° of square, it settles square
   zpinch_c = zpinch.c; zpinch = null; $('#sheet .ink').classList.remove('zooming');
   const c = zpinch_c || null; zpinch_c = null;
   settleView(c && c.x, c && c.y);      // eases back inside the limits around the same point; close to 100% snaps to it
@@ -1334,7 +1340,7 @@ let lastTap = { t: 0, x: 0, y: 0 }, tapDown = null;
 function glide(vx, vy, k) {        // px per ms on screen; slows to a stop like a scroll view
   if (reduceMotion || Math.hypot(vx, vy) < .25) return;
   let last = performance.now();
-  const step = now => { const dt = Math.min(32, now - last); last = now; zx -= vx * dt / k / Z; zy -= vy * dt / k / Z; const f = Math.pow(.994, dt); vx *= f; vy *= f; applyZoom();
+  const step = now => { const dt = Math.min(32, now - last); last = now; { const d = urv(vx * dt / k / Z, vy * dt / k / Z); zx -= d.x; zy -= d.y; } const f = Math.pow(.994, dt); vx *= f; vy *= f; applyZoom();
     if (Math.hypot(vx, vy) > .02) zglide = requestAnimationFrame(step); };
   zglide = requestAnimationFrame(step);
 }
@@ -1444,7 +1450,10 @@ function frame() {
   }
   if (again) scheduleLive();
 }
-function toLocal(ev, r, k) { return { x: (ev.clientX - r.left) / k / Z + zx, y: (ev.clientY - r.top) / k / Z + zy }; }      // screen → page, through the zoom
+// screen → page, through the zoom (and the oversized page's rotation about the window centre)
+function unrot(x, y) { if (!ROT) return { x, y }; const c = Math.cos(-ROT), s_ = Math.sin(-ROT), dx = x - PW / 2, dy = y - PH / 2; return { x: c * dx - s_ * dy + PW / 2, y: s_ * dx + c * dy + PH / 2 }; }
+function urv(dx, dy) { if (!ROT) return { x: dx, y: dy }; const c = Math.cos(-ROT), s_ = Math.sin(-ROT); return { x: c * dx - s_ * dy, y: s_ * dx + c * dy }; }
+function toLocal(ev, r, k) { const q = unrot((ev.clientX - r.left) / k, (ev.clientY - r.top) / k); return { x: q.x / Z + zx, y: q.y / Z + zy }; }
 function makePt(ev) {
   const q = toLocal(ev, ink.r, ink.k); let p;
   const pts = ink.stroke.pts, prev = pts[pts.length - 1];
@@ -1469,7 +1478,7 @@ function startInk(e) {
   if (current.frame && !inFrame(toLocal(e, r, r.width / PW))) return;      // outside the canvas frame
   ink = { id: e.pointerId, type: e.pointerType, r, k: r.width / PW, stroke: null, lastP: .5, lastT: e.timeStamp, pred: [], removed: false, before: current.strokes.slice(), anchor: null, hold: 0, smooth: 0 };
   try { sheetEl.setPointerCapture(e.pointerId); } catch (_) {}
-  document.body.classList.add('inking'); cursorEl.classList.remove('on', 'ring'); closeToolPop();
+  document.body.classList.add('inking'); cursorEl.classList.remove('on', 'ring'); if (e.pointerType !== 'pen' || popKind === 'recent' || popKind === 'lang') closeToolPop();      // the pen menu stays open while the Pencil writes, so you can tune and try
   const q = toLocal(e, r, ink.k);
   if (tool === 'eraser') { ink.erase = true; eraseAt(q); eraseRing(q); return; }
   if (tool === 'text') { ink.textAt = performance.now() - textClosedAt < 80 ? null : q; ink.isText = true; return; }
@@ -1741,23 +1750,47 @@ function updateMeta() {
   syncNoteChip();
 }
 /* canvas size: the whole window, or a fixed frame you draw inside (sized for the screen it's going to) */
-const FRAMES = [{ id: 'fit', name: 'Fit window' }, { id: 'hd', name: 'Landscape', w: 1920, h: 1080 }, { id: 'story', name: 'Story', w: 1080, h: 1920 }, { id: 'feed', name: 'Feed post', w: 1000, h: 1350 }];
+const FRAMES = [{ id: 'fit', name: 'Fit window' }, { id: 'big', name: 'Oversized', big: true }, { id: 'hd', name: 'Landscape', w: 1920, h: 1080 }, { id: 'story', name: 'Story', w: 1080, h: 1920 }, { id: 'feed', name: 'Feed post', w: 1000, h: 1350 }];
+let freeSize = null, ROT = 0;      // the window's size before a format took over; the oversized page's rotation (radians)
+const isFmt = () => !!(current.frame && current.frame.pw);
+const isBig = () => !!(current.frame && current.frame.big);
+function fmtBox() { return { w: vw() - 2 * Math.max(40, vw() * .08), h: vh() - 220 }; }
+function sizeForFormat(F) { const b = fmtBox(), sc = Math.min(b.w / F.w, b.h / F.h); return { w: Math.round(F.w * sc), h: Math.round(F.h * sc) }; }
+function showFormat(f, instant) {      // size and place the window for note f's page
+  if (fullKey === 'canvas') exitFull(true);
+  const fr = f.frame;
+  if (fr && fr.pw) {
+    const x = (vw() - fr.pw) / 2, y = clamp((vh() - fr.ph) / 2 - 10, 84, vh());
+    sheet.springTo(x, y, 1, 190, 27); canvas75 = false;
+    if (Math.abs(PW - fr.pw) > 1 || Math.abs(PH - fr.ph) > 1) instant ? (setSize(fr.pw, fr.ph), sizeCanvases(true)) : animateSize(fr.pw, fr.ph, () => { home = computeHome(); });
+  } else if (freeSize && (Math.abs(PW - freeSize.w) > 1 || Math.abs(PH - freeSize.h) > 1)) { animateSize(freeSize.w, freeSize.h, () => { home = computeHome(); }); }
+  sheetEl.classList.toggle('fmt', !!(fr && fr.pw)); sheetEl.classList.toggle('narrow', !!(fr && fr.pw && fr.pw < 480)); sheetEl.classList.toggle('bigpaper', !!(fr && fr.big));
+}
 function setFrame(id) {
   const F = FRAMES.find(x => x.id === id); if (!F) return;
-  if (!F.w) { delete current.frame; }
-  else {      // fit the frame inside the page as it is now, under the title
-    const top = 78, m = 22, sc = Math.min((PW - m * 2) / F.w, (PH - top - m) / F.h), fw = F.w * sc, fh = F.h * sc;
-    current.frame = { id: F.id, w: F.w, h: F.h, x: (PW - fw) / 2, y: top + (PH - top - m - fh) / 2, fw, fh };
-  }
-  markEdited && markEdited(current); applyZoom(); toast(F.w ? `Canvas: ${F.w} × ${F.h}` : 'Canvas fits the window');
+  if (!isFmt()) freeSize = { w: PW, h: PH };
+  ROT = 0;
+  if (F.big) current.frame = { id: 'big', big: true, bw: Math.round(PW * 3), bh: Math.round(PH * 3) };
+  else if (!F.w) delete current.frame;
+  else { const sz = sizeForFormat(F); current.frame = { id: F.id, w: F.w, h: F.h, pw: sz.w, ph: sz.h }; }
+  markEdited && markEdited(current);
+  showFormat(current);
+  if (F.big) bigHome();
+  else { Z = 1; zx = zy = 0; }
+  sizeCanvases(true); applyZoom(); zoomSettled();
+  toast(F.big ? 'Oversized paper: two fingers pan, zoom and rotate' : F.w ? `Page: ${F.w} × ${F.h}` : 'Page fits the window');
 }
-function inFrame(q) { const f = current.frame; return !f || (q.x >= f.x && q.x <= f.x + f.fw && q.y >= f.y && q.y <= f.y + f.fh); }
+function bigFitZ() { const f = current.frame; return clamp(Math.min(PW / f.bw, PH / f.bh) * .9, ZMIN, 1); }
+function bigHome() { const f = current.frame; Z = bigFitZ(); zx = f.bw / 2 - PW / Z / 2; zy = f.bh / 2 - PH / Z / 2; }
+function inFrame(q) { const f = current.frame; return !f || !f.big || (q.x >= 0 && q.y >= 0 && q.x <= f.bw && q.y <= f.bh); }
 function exportPng() {
-  const f = current.frame, k = f ? f.w / f.fw : 2, x0 = f ? f.x : 0, y0 = f ? f.y : 0, w = f ? f.w : Math.round(PW * 2), h = f ? f.h : Math.round(PH * 2);
+  const f = current.frame, big = f && f.big;
+  const pw = big ? f.bw : PW, ph = big ? f.bh : PH, k = f && f.w ? f.w / PW : big ? Math.min(2, Math.sqrt(16e6 / (pw * ph))) : 2;
+  const w = Math.round(pw * k), h = Math.round(ph * k);
   const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d');
-  g.fillStyle = getComputedStyle(paper).backgroundColor || '#fbf8f1'; g.fillRect(0, 0, w, h);
-  g.setTransform(k, 0, 0, k, -x0 * k, -y0 * k); for (const s of current.strokes) drawStroke(g, s);
-  const name = (current.name || 'note').replace(/[\\/:*?"<>|]+/g, ' ') + (f ? ` ${f.w}x${f.h}` : '') + '.png';
+  g.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--sheet').trim() || '#fbf8f1'; g.fillRect(0, 0, w, h);
+  g.setTransform(k, 0, 0, k, 0, 0); for (const s of current.strokes) drawStroke(g, s);
+  const name = (current.name || 'note').replace(/[\\/:*?"<>|]+/g, ' ') + (f && f.w ? ` ${f.w}x${f.h}` : '') + '.png';
   if (dlNs) {      // inside claude.ai the viewer saves through the host (it asks first)
     return c.toBlob(blob => dlNs.save({ filename: name, data: blob }).then(() => toast(`Exported ${w} × ${h} PNG`), err => { if (err && err.code !== 'declined') toast('This view can’t save files.'); }), 'image/png');
   }
@@ -1784,7 +1817,8 @@ sheetEl.addEventListener('pointerdown', e => {
   if (!fingerDraws && e.timeStamp - lastPen < 500) return;
   // double-tap: 200% at that spot, or back to 100%
   if (!fingerDraws && e.timeStamp - lastTap.t < 320 && Math.hypot(e.clientX - lastTap.x, e.clientY - lastTap.y) < 36) {
-    lastTap.t = 0; const r = paper.getBoundingClientRect(), q = toLocal(e, r, r.width / PW); zoomTo(Math.abs(Z - 1) > .05 ? 1 : 2, q.x, q.y); return;
+    lastTap.t = 0; const r = paper.getBoundingClientRect(), q = toLocal(e, r, r.width / PW); if (isBig()) { const f = current.frame, fz = bigFitZ(), home = Math.abs(Z - fz) > .03 || ROT, z1 = home ? fz : 1; ROT = 0; const R = panRange(z1); return animateView(z1, home ? f.bw / 2 - PW / z1 / 2 : clamp(q.x - PW / z1 / 2, R.x0, R.x1), home ? f.bh / 2 - PH / z1 / 2 : clamp(q.y - PH / z1 / 2, R.y0, R.y1)); }
+    zoomTo(Math.abs(Z - 1) > .05 ? 1 : 2, q.x, q.y); return;
   }
   tapDown = { id: e.pointerId, t: e.timeStamp, x: e.clientX, y: e.clientY };
   // inside the page a finger scrolls the page; the strip along the top (title, grip) moves the window
@@ -2079,8 +2113,8 @@ function renderToolPop() {
   } else if (k === 'paper') {
     const fid = current.frame ? current.frame.id : 'fit';
     h = `<h4>Page</h4><div class="papers">${[['dots', 'Dots'], ['lines', 'Lines'], ['grid', 'Grid'], ['blank', 'Blank']].map(([v, l]) => `<button data-p="${v}" aria-pressed="${current.paper === v}"><i class="pp-${v}"></i>${l}</button>`).join('')}</div>
-      <h4 class="h4b">${esc(t('Canvas'))}</h4><div class="frames">${FRAMES.map(F => `<button data-fr="${F.id}" aria-pressed="${fid === F.id}"><i style="aspect-ratio:${F.w ? F.w + ' / ' + F.h : '4 / 3'}"${F.w ? '' : ' class="fit"'}></i><span>${esc(t(F.name))}</span><small>${F.w ? F.w + ' × ' + F.h : esc(t('Whole window'))}</small></button>`).join('')}</div>
-      <button class="ghost" id="exportPng">${esc(current.frame ? t('Export {w} × {h} PNG', { w: current.frame.w, h: current.frame.h }) : t('Export PNG'))}</button><p class="tip">Applies to this note.</p>`;
+      <h4 class="h4b">${esc(t('Canvas'))}</h4><div class="frames">${FRAMES.map(F => `<button data-fr="${F.id}" aria-pressed="${fid === F.id}"><i style="aspect-ratio:${F.w ? F.w + ' / ' + F.h : '4 / 3'}"${F.big ? ' class="big"' : F.w ? '' : ' class="fit"'}>${F.big ? '<svg viewBox="0 0 24 24"><path d="M19 12a7 7 0 1 1-2.05-4.95"/><path d="M19 4.5v3.2h-3.2"/></svg>' : ''}</i><span>${esc(t(F.name))}</span><small>${F.w ? F.w + ' × ' + F.h : F.big ? esc(t('Rotates')) : esc(t('Whole window'))}</small></button>`).join('')}</div>
+      <button class="ghost" id="exportPng">${esc(current.frame && current.frame.w ? t('Export {w} × {h} PNG', { w: current.frame.w, h: current.frame.h }) : t('Export PNG'))}</button><p class="tip">Applies to this note.</p>`;
   } else {
     const T = TOOLS[k], sz = sizeFor(k);
     h = `<h4>${T.label}${T.sizes ? `<small id="szTxt">${sz.toFixed(1)} pt</small>` : ''}</h4>`;
@@ -2697,12 +2731,13 @@ function sleepDock() {
   document.body.classList.remove('dock-wake');
 }
 function nearDock(e, pad) { const r = $('#dock .win').getBoundingClientRect(); return e.clientX > r.left - pad && e.clientX < r.right + pad && e.clientY > r.top - pad && e.clientY < r.bottom + pad; }
-addEventListener('pointermove', e => { if (document.body.classList.contains('vfull') && e.pointerType === 'mouse' && nearDock(e, 70)) wakeDock(); }, true);
-addEventListener('pointerdown', e => { if (document.body.classList.contains('vfull') && (nearDock(e, 60) || e.target.closest('#dock, #toolPop'))) wakeDock(); }, true);
+addEventListener('pointermove', e => { if (!document.body.classList.contains('vfull')) return; if (e.pointerType === 'pen' || (e.pointerType === 'mouse' && nearDock(e, 70))) wakeDock(); }, true);      // Pencil hover always brings the toolbar back
+addEventListener('pointerdown', e => { if (document.body.classList.contains('vfull') && (e.pointerType === 'pen' || nearDock(e, 60) || e.target.closest('#dock, #toolPop'))) wakeDock(); }, true);
 function syncCollapseFull() {
   const vf = !!(viewer.open && viewer.full);
   $('#panel').classList.toggle('isfull', vf);      // full screen: no resize corner
   document.body.classList.toggle('vfull', vf); if (!vf) document.body.classList.remove('dock-wake');
+  const tv = !!(viewer.open && viewer.stack[0] && viewer.stack[0].isTrash); for (const id of ['#qTrash', '#railTrash']) { const b = $(id); if (b) b.setAttribute('aria-pressed', String(tv)); }
 }
 function syncLights() {
   setTimeout(syncCollapseFull, 0);
@@ -2759,9 +2794,10 @@ function windowed(k) {
   if (W.canvas.min) restore('canvas');
   const tw = Math.round(vw() * .75), th = Math.round(vh() * .75);
   if (fullKey === 'canvas') { leaveFull(); if (relayoutDock) setTimeout(() => relayoutDock(true), 60); }
-  else if (Math.abs(PW - tw) < 2 && Math.abs(PH - th) < 2 && Math.abs(sheet.s - 1) < .01) { canvas75 = true; syncRail(); return nudge(sheetWin); }
-  sheet.springTo((vw() - tw) / 2, clamp((vh() - th) / 2, 80, vh()), 1, 190, 27);
-  animateSize(tw, th, () => { home = computeHome(); });
+  else if (!isFmt() && Math.abs(PW - tw) < 2 && Math.abs(PH - th) < 2 && Math.abs(sheet.s - 1) < .01) { canvas75 = true; syncRail(); return nudge(sheetWin); }
+  if (isFmt()) { const sc = Math.min(tw / PW, th / PH); sheet.springTo((vw() - PW * sc) / 2, clamp((vh() - PH * sc) / 2, 80, vh()), sc, 190, 27); }
+  else { sheet.springTo((vw() - tw) / 2, clamp((vh() - th) / 2, 80, vh()), 1, 190, 27);
+  animateSize(tw, th, () => { home = computeHome(); }); }
   const dw = $('#dock .win').offsetWidth, ty = clamp((vh() - th) / 2, 80, vh());
   W.tools.body.springTo((vw() - dw) / 2, Math.min(ty + th + 10, vh() - 64), null, 190, 27);     // the pen bar sits under the note, clear of the file column
   canvas75 = true; syncRail();
@@ -2783,8 +2819,9 @@ function enterFull(k) {
   if (k === 'today') { selKey = todayKey; calMonth = new Date(TODAY.getFullYear(), TODAY.getMonth(), 1); }
   if (k === 'canvas') {
     saved.canvas = { x: sheet.x, y: sheet.y, s: sheet.s, w: PW, h: PH, c75: canvas75 }; saved.dock = { x: W.tools.body.x, y: W.tools.body.y }; canvas75 = false;
-    sheetEl.classList.add('fullbleed'); bringToFront('sheet');
-    sheet.springTo(0, 0, 1, 190, 27); animateSize(vw(), vh());
+    if (isFmt()) { const sc = Math.min((vw() - 24) / PW, (vh() - 24) / PH); bringToFront('sheet'); sheet.springTo((vw() - PW * sc) / 2, (vh() - PH * sc) / 2, sc, 190, 27); }
+    else { sheetEl.classList.add('fullbleed'); bringToFront('sheet');
+    sheet.springTo(0, 0, 1, 190, 27); animateSize(vw(), vh()); }
     if (relayoutDock) relayoutDock(true);      // same side or corner as before, never pushed off screen
   } else if (k === 'today') {
     saved.today = { x: W.today.body.x, y: W.today.body.y };
@@ -3042,7 +3079,7 @@ function subtitle(f) {
 function renderView(dir) {
   const f = viewer.stack[viewer.stack.length - 1];
   pTitle.value = f.isTrash ? t('Delete') : f.name; $('#pSub').innerHTML = subtitle(f);
-  panelEl.classList.toggle('trashmode', viewer.stack[0] === trash); $('#pDone').hidden = viewer.stack[0] !== trash;
+  panelEl.classList.toggle('trashmode', viewer.stack[0] === trash); setTimeout(syncCollapseFull, 0); $('#pDone').hidden = viewer.stack[0] !== trash;
   $('#pBack').hidden = viewer.stack.length < 2;
   const old = pBody.querySelector('.view:not(.leaving)');
   const view = document.createElement('div'); view.className = 'view'; pBody.append(view);
@@ -3153,7 +3190,7 @@ function loadNote(f, opt = {}) {
   if (sheetEl.classList.contains('collapsed')) sheetEl.classList.remove('collapsed');
   const inkEl = $('#sheet .ink');
   const swap = () => {
-    clearSel(); current = f; Z = 1; zx = zy = 0; titleIn.value = f.name; setPaper(f.paper || 'grid'); redrawBase(); setMood(f.mood, false); noteChanged(); setCurrentMarker();
+    clearSel(); const wasFmt = isFmt(); if (!wasFmt && f.frame && f.frame.pw) freeSize = { w: PW, h: PH }; current = f; Z = 1; zx = zy = 0; ROT = 0; if (f.frame && f.frame.big) { const fr = f.frame; Z = clamp(Math.min(PW / fr.bw, PH / fr.bh) * .9, ZMIN, 1); zx = fr.bw / 2 - PW / Z / 2; zy = fr.bh / 2 - PH / Z / 2; } if (wasFmt || (f.frame && f.frame.pw)) showFormat(f); else sheetEl.classList.toggle('bigpaper', isBig()); titleIn.value = f.name; setPaper(f.paper || 'grid'); redrawBase(); setMood(f.mood, false); noteChanged(); setCurrentMarker();
     inkEl.animate([{ opacity: 0, transform: 'scale(1.02)' }, { opacity: 1, transform: 'none' }], { duration: SPR_SOFT.d, easing: SPR_SOFT.e });
   };
   if (kept || opt.at) {       // a new window: the old note stays behind as its own window, this one comes forward
@@ -3299,7 +3336,7 @@ addEventListener('keydown', e => {
   sheetEl.addEventListener('gestureend', () => { if (gz) { gz = null; settleView(); } });
 }
 sheetEl.addEventListener('wheel', e => {
-  if (!e.ctrlKey && !e.metaKey) { if (Z > 1) { e.preventDefault(); zx += e.deltaX / Z; zy += e.deltaY / Z; applyZoom(); } return; }
+  if (!e.ctrlKey && !e.metaKey) { if (Z > 1 || isBig()) { e.preventDefault(); const d = urv(e.deltaX / Z, e.deltaY / Z); zx += d.x; zy += d.y; applyZoom(); } return; }
   e.preventDefault(); const r = paper.getBoundingClientRect(), q = toLocal(e, r, r.width / PW); zoomTo(Z * Math.exp(-e.deltaY * .01), q.x, q.y, true);
 }, { passive: false });
 
@@ -3829,7 +3866,7 @@ function fadeOut(v) {
 }
 /* Trash: deleting moves a file here; it can be put back where it was, or deleted for good */
 const trash = { id: 'trash', kind: 'folder', name: 'Delete', children: [], isTrash: true };
-const TRASH_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><g class="lid"><path d="M5 7.5h14"/><path d="M9.5 7.5V5.8a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v1.7"/></g><path d="M6.8 7.5l.9 11a2 2 0 0 0 2 1.8h4.6a2 2 0 0 0 2-1.8l.9-11"/><path d="M10.2 11v5.6M13.8 11v5.6"/></svg>';
+const TRASH_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><g class="lid"><path d="M5.2 7.6h13.6"/><path d="M9.4 7.6V6.3a1.8 1.8 0 0 1 1.8-1.8h1.6a1.8 1.8 0 0 1 1.8 1.8v1.3"/></g><path d="M7 7.6l.8 10.3a2.6 2.6 0 0 0 2.6 2.4h3.2a2.6 2.6 0 0 0 2.6-2.4L17 7.6"/><path d="M10.4 11.2v5M13.6 11.2v5"/></svg>';
 const inTrash = ctx => !!(ctx && ctx.parent && ctx.parent.isTrash);
 let trashPick = null;      // the Delete window's selection, or null when not selecting
 const trashEl = $('#qTrash');
@@ -3841,7 +3878,7 @@ function syncTrash(gulp) {
 function trashView() { return viewer.open && viewer.stack[0] === trash; }
 function refreshTrashView() { if (!trashView()) { trashPick = null; return; } if (trashPick) for (const c of [...trashPick]) if (!trash.children.includes(c)) trashPick.delete(c); viewer.stack = [trash]; renderView(0); $('#pSub').innerHTML = subtitle(trash); }
 function openTrash(fromEl) {
-  if (trashView() && viewer.stack.length === 1) return bringToFront('panelPos');
+  if (trashView()) { if (fromEl && fromEl !== viewer.origin) viewer.origin = fromEl; return closeViewer(); }      // a second tap closes it, back into the button
   openViewer(trash, fromEl);
   if (fromEl) fromEl.style.visibility = '';      // a button stays where it is
 }

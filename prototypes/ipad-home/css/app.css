@@ -374,6 +374,7 @@ body.theming, body.theming *, body.theming *::before, body.theming *::after { tr
 :is(#sheet,.g-sheet).userresize .sizetag { opacity: 1; }
 :is(#sheet,.g-sheet) .ink { position: absolute; inset: 0; transition: opacity .3s, filter .3s; }
 :is(#sheet,.g-sheet).collapsed :is(.ink, .hint, .cursor) { opacity: 0 !important; }
+:is(#sheet,.g-sheet).narrow .grip { display: none; }
 .grip { position: absolute; z-index: 3; top: 8px; left: 50%; width: 96px; height: 26px; margin-left: -48px; border-radius: 99px; cursor: grab; touch-action: none; display: grid; place-items: center; }
 .grip i { width: 38px; height: 5px; border-radius: 9px; background: var(--ink-3); transition: width .4s cubic-bezier(.3,1.7,.5,1), background .3s; }
 .grip:hover i, :is(#sheet,.g-sheet).dragging .grip i { width: 54px; background: var(--ink-2); }
@@ -405,14 +406,22 @@ body.theming, body.theming *, body.theming *::before, body.theming *::after { tr
   box-shadow: 0 0 0 1.2px color-mix(in srgb, var(--ink) 30%, transparent), 0 0 0 30000px color-mix(in srgb, var(--ink) 10%, transparent); }
 .paper .frame b { position: absolute; left: 0; bottom: 100%; margin-bottom: 6px; transform-origin: 0 100%; scale: var(--zi, 1); font: 600 10.5px var(--font); color: var(--ink-2); letter-spacing: .02em; white-space: nowrap; }
 .h4b { margin-top: 14px !important; }
-.frames { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; align-items: end; }
+.frames { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; align-items: end; }
 .frames button { display: grid; gap: 3px; justify-items: center; font-size: 11px; color: var(--ink-2); }
 .frames button span { font-weight: 600; color: var(--ink); }
 .frames button small { font-size: 9.5px; color: var(--ink-3); white-space: nowrap; }
 .frames i { width: 70%; max-height: 54px; border-radius: 6px; background: var(--sheet); box-shadow: inset 0 0 0 .5px var(--rim-lo), 0 4px 10px -6px var(--shadow); }
+.frames i.big { width: 92%; display: grid; place-items: center; color: var(--ink-3); background-image: linear-gradient(to right, var(--grid) 1px, transparent 1px), linear-gradient(to bottom, var(--grid) 1px, transparent 1px); background-size: 6px 6px; }
+.frames i.big svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .frames i.fit { width: 86%; border: 1.5px dashed var(--ink-3); background: none; box-sizing: border-box; }
 .frames button[aria-pressed="true"] i { box-shadow: 0 0 0 2px var(--accent); }
 #exportPng { margin-top: 10px; width: 100%; }
+:is(#sheet,.g-sheet).fmt .resize { display: none; }      /* a format keeps its shape: the window scales instead */
+.paper.bigmode { background-image: none !important; background-color: color-mix(in srgb, var(--ink) 13%, var(--sheet)); }
+.bigpage.pp-grid { background-image: linear-gradient(to right, var(--grid) calc(1px * var(--lw, 1)), transparent calc(1px * var(--lw, 1))), linear-gradient(to bottom, var(--grid) calc(1px * var(--lw, 1)), transparent calc(1px * var(--lw, 1))); }
+.bigpage.pp-lines { background-image: linear-gradient(to bottom, transparent calc(32px - 1px * var(--lw, 1)), var(--dot) calc(32px - 1px * var(--lw, 1)), var(--dot) 32px); }
+.bigpage { position: absolute; z-index: 0; left: 0; top: 0; transform-origin: 0 0; pointer-events: none; background-color: var(--sheet); --zs: 1;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 10%, transparent), 0 24px 60px -24px var(--shadow); border-radius: 4px; }
 .pageedge { display: none; position: absolute; z-index: 0; left: 0; top: 0; transform-origin: 0 0; pointer-events: none; background: var(--sheet); border-radius: 6px;
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 12%, transparent), 0 14px 34px -14px var(--shadow); }
 /* zoomed in, the writing passes under a soft header so the title stays readable */
@@ -427,6 +436,7 @@ body.theming, body.theming *, body.theming *::before, body.theming *::after { tr
 
 /* ---------- tool window ---------- */
 :is(#dock,.g-dock) { z-index: 55 !important; }
+:is(#dock,.g-dock) .win button, #toolPop button, #toolPop input { touch-action: manipulation; }
 /* a file in full screen: the pen bar waits out of sight and comes back when you reach for it */
 body.vfull :is(#dock,.g-dock) { transition: opacity .3s ease, translate .45s cubic-bezier(.3,1.4,.5,1); }
 body.vfull:not(.dock-wake) :is(#dock,.g-dock) { opacity: 0 !important; translate: 0 22px; pointer-events: none !important; }
@@ -550,9 +560,10 @@ input[type=color] { width: 44px; height: 28px; border: 0; padding: 0; background
 #files { position: fixed; inset: 0; pointer-events: none; }      /* no stacking layer of its own: each file sits on the page layers */
 #files > .item { z-index: 9; }
 #rail { position: fixed; z-index: 24; left: calc(9px + env(safe-area-inset-left, 0px)); top: 79.2px; bottom: 14.4px; width: 93.6px; border-radius: 23.4px; display: grid; grid-template-rows: auto 1fr auto; overflow: hidden; }
-#rail .rtrash { display: grid; justify-items: center; gap: 2.7px; margin: 0 7.2px 9px; padding: 8.1px 0 6.3px; border-radius: 16.2px; border-top: 1px solid color-mix(in srgb, var(--ink) 9%, transparent); color: var(--ink-2); font: 600 9.5px var(--font); }
-#rail .rtrash:hover { background: var(--glass-hi); } #rail .rtrash:active { transform: scale(.94); }
-#rail .rt-ic { position: relative; width: 36px; height: 36px; display: grid; place-items: center; border-radius: 11.7px; background: var(--glass-hi); box-shadow: inset 0 1px .5px var(--rim); }
+#rail .rtrash { display: grid; justify-items: center; gap: 0; margin: 0 7.2px 9px; padding: 8px 0; border-radius: 16.2px; border-top: 1px solid color-mix(in srgb, var(--ink) 9%, transparent); color: var(--ink-2); font: 600 9.5px var(--font); }
+#rail .rtrash:hover { background: var(--glass-hi); }
+#rail .rtrash[aria-pressed="true"] .rt-ic { color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1.5px var(--accent); } #rail .rtrash:active { transform: scale(.94); }
+#rail .rt-ic { position: relative; width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; background: var(--glass-hi); box-shadow: inset 0 1px .5px var(--rim); }
 #rail .rt-ic svg { width: 19.8px; height: 19.8px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 #rail .rt-ic .n { position: absolute; right: -4.5px; top: -3.6px; font-style: normal; min-width: 15.3px; height: 15.3px; padding: 0 3.6px; border-radius: 8.1px; font-size: 8.6px; line-height: 15.3px; text-align: center; color: #fff; background: var(--ink-2); }
 #rail .rt-ic .n:empty { display: none; }

@@ -400,6 +400,7 @@ body.theming, body.theming *, body.theming *::before, body.theming *::after { tr
 .zoomhud.on { opacity: 1; transform: translateX(-50%) scale(1); }
 .bgwin .zoomhud { display: none; }
 .ink.zooming { will-change: transform; }
+:is(#sheet,.g-sheet) .ink canvas { position: absolute; }
 .paper.zoomout { background-image: none !important; background-color: color-mix(in srgb, var(--ink) 7%, var(--sheet)); }
 .paper.zoomout .pageedge { display: block; }
 .paper .frame { position: absolute; z-index: 1; left: 0; top: 0; transform-origin: 0 0; pointer-events: none; border-radius: 3px;

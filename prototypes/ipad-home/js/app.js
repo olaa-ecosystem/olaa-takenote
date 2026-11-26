@@ -1207,18 +1207,30 @@ function span(size, view, m) { return size <= view - 2 * m ? [m, view - size - m
 function sheetBounds(b) { const m = fullKey === 'canvas' ? 0 : 8, [x0, x1] = span(PW * b.s, vw(), m), [y0, y1] = span(PH * b.s, vh(), m); return { minX: x0, maxX: x1, minY: y0, maxY: y1 }; }
 let canvasK = 0;
 // canvases match the window size (with headroom while resizing), never stretched
-function allocCanvas(w, h, k) {
-  CW = Math.ceil(w); CH = Math.ceil(h); canvasK = k;
-  for (const [c, x] of [[baseC, bctx], [liveC, lctx]]) {
-    c.width = Math.round(CW * k); c.height = Math.round(CH * k); c.style.width = CW + 'px'; c.style.height = CH + 'px'; x.setTransform(k, 0, 0, k, 0, 0);
+/* The ink is drawn for what you see, like a vector app: the two canvases cover the window plus a margin, at screen
+   resolution for the current zoom, rotation and window scale. While a gesture runs the last drawing just moves with
+   CSS (cheap, so the oversized page stays smooth); when it settles, everything is drawn again, sharp. */
+let RV = null, MX = 0, MY = 0, lastRender = 0;
+function viewM(z, x, y, r, pw, ph) { let m = new DOMMatrix(); if (r) m = m.translate(pw / 2, ph / 2).rotate(r * 180 / Math.PI).translate(-pw / 2, -ph / 2); return m.scale(z).translate(-x, -y); }
+function clr(x) { x.save(); x.setTransform(1, 0, 0, 1, 0, 0); x.clearRect(0, 0, x.canvas.width, x.canvas.height); x.restore(); }
+function renderInk() {
+  const r = paper.getBoundingClientRect(), kw = r.width / PW || 1;
+  MX = Math.round(PW * .3); MY = Math.round(PH * .3);
+  const w = PW + 2 * MX, h = PH + 2 * MY;
+  const k = Math.max(.5, Math.min(4, (devicePixelRatio || 1) * kw, Math.sqrt(14e6 / (w * h))));
+  const cw = Math.round(w * k), ch = Math.round(h * k);
+  for (const c of [baseC, liveC]) {
+    if (c.width !== cw || c.height !== ch) { c.width = cw; c.height = ch; }
+    c.style.width = w + 'px'; c.style.height = h + 'px'; c.style.left = -MX + 'px'; c.style.top = -MY + 'px';
   }
-  redrawBase();
+  CW = w; CH = h; canvasK = k;
+  const m = new DOMMatrix([k, 0, 0, k, MX * k, MY * k]).multiply(viewM(Z, zx, zy, ROT, PW, PH));
+  for (const x of [bctx, lctx]) x.setTransform(m.a, m.b, m.c, m.d, m.e, m.f);
+  RV = { Z, zx, zy, ROT, PW, PH }; lastRender = performance.now();
+  $('#sheet .ink').style.transform = '';
+  redrawBase(); clr(lctx); if (ink) ink.inc = null; scheduleLive();
 }
-function sizeCanvases(force) {      // the ink is re-rendered sharp for the window scale and the zoom
-  const big = isBig(), w = big ? current.frame.bw : PW / Math.min(1, Z), h = big ? current.frame.bh : PH / Math.min(1, Z), k = Math.min(4, (devicePixelRatio || 1) * clamp(sheet.s * Z, 1, 3), Math.sqrt(12e6 / (w * h)));
-  if (!force && Math.abs(k - canvasK) < .05 && CW === Math.ceil(w) && CH === Math.ceil(h)) return;
-  allocCanvas(w, h, k);
-}
+function sizeCanvases() { if (ink && ink.stroke) return zoomSettled(); renderInk(); }      // never mid-stroke: the live layer would lose its tip
 const ZMIN = .25, ZMAX = 4, ZSTEPS = [.25, .5, .75, 1, 1.25, 1.5, 2, 2.5, 3, 4], PAPER_PAT = { grid: [24, 24, 0, 0], dots: [22, 22, 11, 11], lines: [0, 32, 0, 70] };
 // where the visible corner may sit: on the page when zoomed in; the page stays centred when zoomed out (down to 25%)
 function panRange(z) {
@@ -1234,7 +1246,12 @@ function applyZoom(soft) {
   const inkEl = $('#sheet .ink'); inkEl.style.transformOrigin = '0 0';
   const rotT = ROT ? `translate(${(PW / 2).toFixed(1)}px,${(PH / 2).toFixed(1)}px) rotate(${ROT.toFixed(4)}rad) translate(${(-PW / 2).toFixed(1)}px,${(-PH / 2).toFixed(1)}px) ` : '';
   const viewT = rotT + `scale(${Z.toFixed(4)}) translate(${(-zx).toFixed(2)}px,${(-zy).toFixed(2)}px)`;
-  inkEl.style.transform = Z === 1 && !zx && !zy && !ROT ? '' : viewT;
+  if (RV) {
+    const d = viewM(Z, zx, zy, ROT, PW, PH).multiply(viewM(RV.Z, RV.zx, RV.zy, RV.ROT, RV.PW, RV.PH).inverse()), same = d.isIdentity || (Math.abs(d.a - 1) < 1e-5 && Math.abs(d.b) < 1e-5 && Math.abs(d.c) < 1e-5 && Math.abs(d.d - 1) < 1e-5 && Math.abs(d.e) < .01 && Math.abs(d.f) < .01);
+    inkEl.style.transform = same ? '' : `matrix(${d.a},${d.b},${d.c},${d.d},${d.e},${d.f})`;
+    if (!same) { const sc = Math.sqrt(Math.abs(d.a * d.d - d.b * d.c));
+      if ((sc > 1.5 || sc < .66 || Math.abs(d.e) > MX * .7 || Math.abs(d.f) > MY * .7) && performance.now() - lastRender > 90 && !(ink && ink.stroke)) renderInk(); else zoomSettled(); }
+  }
   { const big = isBig(); paper.classList.toggle('bigmode', big); let bp = paper.querySelector('.bigpage');
     if (big) { if (!bp) { bp = document.createElement('i'); paper.prepend(bp); } bp.className = 'bigpage pp-' + (current.paper || 'grid'); bp.style.width = current.frame.bw + 'px'; bp.style.height = current.frame.bh + 'px'; bp.style.transform = viewT; bp.style.setProperty('--lw', (1 / Z).toFixed(3)); bp.style.setProperty('--zs', (1 / Z).toFixed(3)); }
     else if (bp) bp.remove(); }
@@ -1295,7 +1312,7 @@ function secondFinger(e) {
     if (gest && touches.size) { touches.clear(); gest = null; }
     return false;
   }
-  if (ink && ink.type === 'touch') { const keep = { id: ink.id, x: ink.lx ?? e.clientX, y: ink.ly ?? e.clientY }; ink.stroke = null; ink.removed = false; lctx.clearRect(0, 0, CW, CH); ink = null; document.body.classList.remove('inking'); startPinch(keep, e); return true; }
+  if (ink && ink.type === 'touch') { const keep = { id: ink.id, x: ink.lx ?? e.clientX, y: ink.ly ?? e.clientY }; ink.stroke = null; ink.removed = false; clr(lctx); ink = null; document.body.classList.remove('inking'); startPinch(keep, e); return true; }
   if (zpan && zpan.id !== e.pointerId) { const keep = { id: zpan.id, x: zpan.lx, y: zpan.ly }; zpan = null; startPinch(keep, e); return true; }
   if (looseFinger && looseFinger.id !== e.pointerId && e.timeStamp - looseFinger.t < 1500) { const a = looseFinger; looseFinger = null; startPinch(a, e); return true; }
   if (gest && touches.size === 1) { const [id, pt] = [...touches.entries()][0]; endGesture(e, true); sheet.place(sheet.x, sheet.y); startPinch({ id, x: pt.x, y: pt.y }, e); return true; }      // the window stops dead: the pinch zooms the page, not the window
@@ -1344,8 +1361,8 @@ function glide(vx, vy, k) {        // px per ms on screen; slows to a stop like 
     if (Math.hypot(vx, vy) > .02) zglide = requestAnimationFrame(step); };
   zglide = requestAnimationFrame(step);
 }
-function ensureCanvas(w, h) { if (w > CW || h > CH) allocCanvas(Math.max(w, CW) + 160, Math.max(h, CH) + 120, canvasK || (devicePixelRatio || 1)); }
-function redrawBase() { bctx.clearRect(0, 0, CW, CH); const ex = sel ? new Set(sel.strokes) : null; for (const s of current.strokes) if (!ex || !ex.has(s)) drawStroke(bctx, s); }
+function ensureCanvas(w, h) { if (!RV) return; if (Math.abs(w - RV.PW) > MX * .6 || Math.abs(h - RV.PH) > MY * .6) renderInk(); else zoomSettled(); }
+function redrawBase() { clr(bctx); const ex = sel ? new Set(sel.strokes) : null; for (const s of current.strokes) if (!ex || !ex.has(s)) drawStroke(bctx, s); }
 function setSize(w, h) {
   PW = w; PH = h; ensureCanvas(w, h);
   sheetEl.style.setProperty('--pw', w.toFixed(1) + 'px'); sheetEl.style.setProperty('--ph', h.toFixed(1) + 'px');
@@ -1431,7 +1448,7 @@ function frame() {
   liveRaf = 0;
   if (ink && ink.stroke && !sel && !ink.lasso && !lasers.length && !fading.length && incrementable(ink.stroke)) return liveIncremental(ink.stroke);
   if (ink) ink.inc = null;
-  lctx.clearRect(0, 0, CW, CH); let again = false; const t = performance.now();
+  clr(lctx); let again = false; const t = performance.now();
   if (sel) { lctx.save(); lctx.translate(sel.dx, sel.dy); lctx.shadowColor = themeColor('--accent'); lctx.shadowBlur = 6; for (const s of sel.strokes) drawStroke(lctx, s); lctx.restore(); }
   if (ink && ink.stroke) drawStroke(lctx, ink.stroke, ink.pred);
   if (ink && ink.lasso && ink.lasso.length > 1) {
@@ -1574,7 +1591,7 @@ function recognize(pts, lineOnly) {
   }
   return null;
 }
-function applyShape(s, res) { if (ink) ink.inc = null; lctx.clearRect(0, 0, CW, CH); s.pts = res.pts; s.closed = res.closed; s.shaped = true; s.bb = null; liveC.classList.remove('flash'); void liveC.offsetWidth; liveC.classList.add('flash'); }
+function applyShape(s, res) { if (ink) ink.inc = null; clr(lctx); s.pts = res.pts; s.closed = res.closed; s.shaped = true; s.bb = null; liveC.classList.remove('flash'); void liveC.offsetWidth; liveC.classList.add('flash'); }
 function holdSnap() {
   if (!ink || !ink.stroke || ink.stroke.shaped) return;
   const s = ink.stroke, hl = s.tool === 'hl';
@@ -1595,7 +1612,7 @@ function endInk() {
     if (s.tool === 'shape' && !s.shaped) { const res = recognize(s.pts); if (res) applyShape(s, res); }
     ink.pred = []; commit(ink.before); current.strokes.push(s); drawStroke(bctx, s);
   } else if (ink.removed) commit(ink.before);
-  const hadInc = ink.inc; ink = null; if (hadInc) lctx.clearRect(0, 0, CW, CH); scheduleLive();
+  const hadInc = ink.inc; ink = null; if (hadInc) clr(lctx); scheduleLive();
   document.body.classList.remove('inking');
   noteChanged();
 }
@@ -2373,7 +2390,7 @@ function makeItem(f, ctx, x, y, extraClass = '') {
     move: e => {
       if (popped) return;
       if (ctx.root) overTrash(e);
-      if (!ctx.root && viewer.open && wantsOut(e, b)) { popped = true; return popOutOfFolder(f, ctx, e, el); }
+      if (!ctx.root && viewer.open && mainUI() && wantsOut(e, b)) { popped = true; return popOutOfFolder(f, ctx, e, el); }
       if (!hoverRaf) hoverRaf = requestAnimationFrame(() => { hoverRaf = 0; if (!popped) hoverCheck(f, ctx); });      // once a frame, not on every pointer event
     },
     hold: () => openCtx(f, ctx, el),
@@ -2609,7 +2626,8 @@ function paintGhost(g) {
   const base = g.el.querySelector('.g-base'), live = g.el.querySelector('.g-live'); if (!base) return;
   if (live) live.getContext('2d').clearRect(0, 0, live.width, live.height);
   const x = base.getContext('2d'); x.setTransform(1, 0, 0, 1, 0, 0); x.clearRect(0, 0, base.width, base.height);
-  x.setTransform(g.k, 0, 0, g.k, 0, 0); for (const st of g.f.strokes) drawStroke(x, st);
+  { const ik = g.el.querySelector('.ink'); if (ik) ik.style.transform = ''; }
+  x.setTransform(g.k, 0, 0, g.k, (g.mx || 0) * g.k, (g.my || 0) * g.k); for (const st of g.f.strokes) drawStroke(x, st);
 }
 function stackGhosts() { ghosts.forEach((g, i) => { g.el.style.zIndex = 19 - (ghosts.length - 1 - i); }); }
 function addGhost(g, src) {
@@ -2629,7 +2647,7 @@ function ghostCurrentNote(force) {
   const f = current; if (!f || !fileExists(f) || (!force && !f.strokes.length && f.draft)) return false;      // an empty draft isn't kept
   if (ghosts.some(g => g.f === f)) return false;
   const el = ghostClone(sheetEl);
-  const g = { kind: 'note', f, el, x: sheet.x, y: sheet.y, s: sheet.s, w: PW, h: PH, k: canvasK };
+  const g = { kind: 'note', f, el, x: sheet.x, y: sheet.y, s: sheet.s, w: PW, h: PH, k: canvasK, mx: MX, my: MY };
   addGhost(g, sheetEl); return true;
 }
 function ghostViewer() {
@@ -3817,6 +3835,10 @@ function showInfo(f, ctx) {
   ctxMenu.onclick = e => { if (e.target.closest('[data-act="back"]')) backToMenu(); };
 }
 // out only on purpose: past the window's edge, or close to it while still moving outward
+// the main interface: no full screen of any kind, no Files column, no split
+function mainUI() { return !fullKey && !railOn && !viewer.full && !document.body.dataset.full; }
+let swallowTapUntil = 0;      // after a file leaves its folder, the lift of that same finger opens nothing
+document.addEventListener('click', e => { if (performance.now() < swallowTapUntil) { e.stopPropagation(); e.preventDefault(); } }, true);
 function wantsOut(e, b) {
   const r = panelEl.getBoundingClientRect(), m = 28;
   if (e.clientX < r.left - 6 || e.clientX > r.right + 6 || e.clientY < r.top - 6 || e.clientY > r.bottom + 6) return true;
@@ -3826,6 +3848,7 @@ function wantsOut(e, b) {
 function outsidePanel(e) { const r = panelEl.getBoundingClientRect(); return e.clientX < r.left - 10 || e.clientX > r.right + 10 || e.clientY < r.top - 10 || e.clientY > r.bottom + 10; }
 // the file leaves the folder under your finger: the folder closes and you keep dragging it on the desktop
 function popOutOfFolder(f, ctx, e, oldEl) {
+  swallowTapUntil = performance.now() + 1e9;      // until this finger lifts (then a short grace)
   if (inTrash(ctx)) { delete f.trashed; delete f.from; setTimeout(syncTrash, 0); }
   const t = oldEl.querySelector('.tile').getBoundingClientRect(), offX = e.clientX - t.left + 8, offY = e.clientY - t.top;
   ctx.list.splice(ctx.list.indexOf(f), 1); ctx.views.delete(f.id); delete f._pos; oldEl.remove();
@@ -3837,7 +3860,7 @@ function popOutOfFolder(f, ctx, e, oldEl) {
   const up = ev => {
     if (ev.pointerId !== pid) return;
     removeEventListener('pointermove', mv); removeEventListener('pointerup', up); removeEventListener('pointercancel', up);
-    document.body.classList.remove('file-drag'); b.el.querySelector('.lift').style.transform = '';
+    document.body.classList.remove('file-drag'); b.el.querySelector('.lift').style.transform = ''; swallowTapUntil = performance.now() + 450;
     if (dropOn(f, rootCtx)) { b.el.classList.remove('dragging'); return; }
     const v = b.velocity(ev.timeStamp); b.release(v.x, v.y);
   };

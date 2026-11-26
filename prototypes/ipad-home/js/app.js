@@ -44,7 +44,7 @@ const I18N = {
   '{n} selected': ['Đã chọn {n}', '{n}件を選択', '{n}개 선택됨', '{n} sélectionné(s)', '已选 {n} 项'],
   'Delete {n}?': ['Xoá {n} tệp?', '{n}件を削除?', '{n}개 삭제?', 'Supprimer {n} ?', '删除 {n} 项?'],
   'Tap again to delete': ['Chạm lần nữa để xoá', 'もう一度タップで削除', '한 번 더 누르면 삭제', 'Touchez encore pour supprimer', '再点一次删除'],
-  'Apple Pencil draws · one finger moves · pinch to zoom': ['Apple Pencil để viết · một ngón để kéo · chụm để phóng to', 'Apple Pencilで書く · 1本指で移動 · ピンチでズーム', 'Apple Pencil로 쓰기 · 한 손가락으로 이동 · 핀치로 확대', 'Apple Pencil pour écrire · un doigt déplace · pincez pour zoomer', 'Apple Pencil 书写 · 单指移动 · 双指缩放'],
+  'Apple Pencil draws · one finger scrolls · pinch to zoom': ['Apple Pencil để viết · một ngón để cuộn · chụm để phóng to', 'Apple Pencilで書く · 1本指でスクロール · ピンチでズーム', 'Apple Pencil로 쓰기 · 한 손가락으로 스크롤 · 핀치로 확대', 'Apple Pencil pour écrire · un doigt fait défiler · pincez pour zoomer', 'Apple Pencil 书写 · 单指滚动 · 双指缩放'],
   'Start with one line.': ['Bắt đầu bằng một dòng thôi.', 'まずは一行から。', '한 줄부터 시작해요.', 'Commencez par une ligne.', '从一行开始。'],
   'Small notes count too.': ['Ghi chú nhỏ cũng đáng giá.', '小さなメモも大切。', '작은 메모도 소중해요.', 'Les petites notes comptent aussi.', '小小的笔记也有意义。'],
   'Write it down. Let it settle.': ['Viết ra, rồi để lòng lắng lại.', '書き出して、心を落ち着けて。', '적어 두고, 마음을 내려놓아요.', 'Écrivez-le. Laissez reposer.', '写下来，让心安静下来。'],
@@ -67,7 +67,7 @@ const I18N = {
   'Empty': ['Trống', '空', '비어 있음', 'Vide', '空'],
   'Trash is empty': ['Thùng rác trống', 'ゴミ箱は空です', '휴지통이 비어 있어요', 'La corbeille est vide', '废纸篓是空的'],
   'Deleted files wait here. Put one back, or empty the Trash to remove them for good.': ['Tệp đã xoá nằm ở đây. Khôi phục, hoặc dọn thùng rác để xoá hẳn.', '削除したファイルはここに残ります。元に戻すか、ゴミ箱を空にすると完全に削除されます。', '삭제한 파일은 여기 남아요. 되돌리거나 휴지통을 비우면 완전히 삭제돼요.', 'Les fichiers supprimés attendent ici. Remettez-les, ou videz la corbeille pour les effacer.', '删除的文件会留在这里。可以放回，或清倒废纸篓彻底删除。'],
-  'Drag a file here, or choose Move to Trash from its menu.': ['Kéo tệp vào đây, hoặc chọn Chuyển vào thùng rác trong menu của tệp.', 'ファイルをここにドラッグするか、メニューから「ゴミ箱に入れる」を選びます。', '파일을 여기로 끌어오거나 메뉴에서 휴지통으로 이동을 고르세요.', 'Glissez un fichier ici, ou choisissez Placer dans la corbeille dans son menu.', '把文件拖到这里，或在菜单中选择“移到废纸篓”。'],
+  'Drag a file onto Trash in the top bar, or choose Move to Trash from its menu.': ['Kéo tệp vào đây, hoặc chọn Chuyển vào thùng rác trong menu của tệp.', 'ファイルをここにドラッグするか、メニューから「ゴミ箱に入れる」を選びます。', '파일을 여기로 끌어오거나 메뉴에서 휴지통으로 이동을 고르세요.', 'Glissez un fichier ici, ou choisissez Placer dans la corbeille dans son menu.', '把文件拖到这里，或在菜单中选择“移到废纸篓”。'],
   'Save': ['Lưu', '保存', '저장', 'Enregistrer', '保存'],
   'Open this note': ['Mở ghi chú này', 'このノートを開く', '이 노트 열기', 'Ouvrir cette note', '打开这条笔记'],
   'Save this note': ['Lưu ghi chú này', 'このノートを保存', '이 노트 저장', 'Enregistrer cette note', '保存这条笔记'],
@@ -1169,8 +1169,8 @@ function sizeCanvases(force) {      // the ink is re-rendered sharp for the wind
   if (!force && Math.abs(k - canvasK) < .05 && CW === Math.ceil(w) && CH === Math.ceil(h)) return;
   allocCanvas(w, h, k);
 }
-const ZMIN = 1, ZMAX = 4, ZSTEPS = [1, 1.25, 1.5, 2, 2.5, 3, 4], PAPER_PAT = { grid: [24, 24, 0, 0], dots: [22, 22, 11, 11], lines: [0, 32, 0, 70] };
-// where the visible corner may sit: on the page when zoomed in; centred while pinched below 100%
+const ZMIN = .25, ZMAX = 4, ZSTEPS = [.25, .5, .75, 1, 1.25, 1.5, 2, 2.5, 3, 4], PAPER_PAT = { grid: [24, 24, 0, 0], dots: [22, 22, 11, 11], lines: [0, 32, 0, 70] };
+// where the visible corner may sit: on the page when zoomed in; the page stays centred when zoomed out (down to 25%)
 function panRange(z) {
   if (z >= 1) return { x0: 0, x1: PW - PW / z, y0: 0, y1: PH - PH / z };
   const cx = (PW - PW / z) / 2, cy = (PH - PH / z) / 2; return { x0: cx, x1: cx, y0: cy, y1: cy };
@@ -1185,7 +1185,9 @@ function applyZoom(soft) {
   const P = PAPER_PAT[current.paper || 'grid'];          // the paper pattern zooms with the ink
   if (!P || (Z === 1 && !zx && !zy)) paper.style.backgroundSize = paper.style.backgroundPosition = '';
   else { paper.style.backgroundSize = P[0] ? `${P[0] * Z}px ${P[1] * Z}px` : `100% ${P[1] * Z}px`; paper.style.backgroundPosition = `${((P[2] - zx) * Z).toFixed(1)}px ${((P[3] - zy) * Z).toFixed(1)}px`; }
-  paper.style.setProperty('--zs', Z.toFixed(4)); paper.classList.toggle('zoomed', Z > 1.01);      // line and dot sizes scale with the zoom
+  paper.style.setProperty('--zs', Z.toFixed(4)); paper.classList.toggle('zoomed', Z > 1.01); paper.classList.toggle('zoomout', Z < .99);
+  { let pe = paper.querySelector('.pageedge'); if (!pe) { pe = document.createElement('i'); pe.className = 'pageedge'; paper.prepend(pe); }
+    if (Z < .99) { pe.style.width = PW + 'px'; pe.style.height = PH + 'px'; pe.style.transform = `scale(${Z.toFixed(4)}) translate(${(-zx).toFixed(2)}px,${(-zy).toFixed(2)}px)`; } }      // line and dot sizes scale with the zoom
   try { if (sel) updateSelUI(true); } catch (_) {}
 }
 function zoomSettled() { clearTimeout(zSettleT); zSettleT = setTimeout(() => { sizeCanvases(true); try { if (sel) updateSelUI(); } catch (_) {} }, 120); }
@@ -1264,7 +1266,7 @@ function movePinch(e) {
   zpinch.pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
   const [p, q] = [...zpinch.pts.values()], d = Math.hypot(p.x - q.x, p.y - q.y), { anchor } = zpinch, r = paper.getBoundingClientRect(), k = r.width / PW;
   let z = zpinch.Z0 * d / zpinch.d0;
-  z = z < ZMIN ? Math.max(.6, ZMIN - (ZMIN - z) * .35) : z > ZMAX ? ZMAX + (z - ZMAX) * .3 : z;          // a little give past the limits
+  z = z < ZMIN ? Math.max(.18, ZMIN - (ZMIN - z) * .35) : z > ZMAX ? ZMAX + (z - ZMAX) * .3 : z;          // a little give past the limits
   const c = { x: (p.x + q.x) / 2, y: (p.y + q.y) / 2 }; zpinch.c = c;
   // the page point that was between the fingers stays between them
   Z = z; zx = anchor.x - (c.x - r.left) / k / z; zy = anchor.y - (c.y - r.top) / k / z; clampPan(true); applyZoom(true);
@@ -1702,10 +1704,12 @@ sheetEl.addEventListener('pointerdown', e => {
   if (!fingerDraws && e.timeStamp - lastPen < 500) return;
   // double-tap: 200% at that spot, or back to 100%
   if (!fingerDraws && e.timeStamp - lastTap.t < 320 && Math.hypot(e.clientX - lastTap.x, e.clientY - lastTap.y) < 36) {
-    lastTap.t = 0; const r = paper.getBoundingClientRect(), q = toLocal(e, r, r.width / PW); zoomTo(Z > 1.05 ? 1 : 2, q.x, q.y); return;
+    lastTap.t = 0; const r = paper.getBoundingClientRect(), q = toLocal(e, r, r.width / PW); zoomTo(Math.abs(Z - 1) > .05 ? 1 : 2, q.x, q.y); return;
   }
   tapDown = { id: e.pointerId, t: e.timeStamp, x: e.clientX, y: e.clientY };
-  if ((Z > 1 || fullKey === 'split') && !touches.size && !gest) { if (!zpan) startPan(e); return; }
+  // inside the page a finger scrolls the page; the strip along the top (title, grip) moves the window
+  const sr = sheetEl.getBoundingClientRect(), inHead = (e.clientY - sr.top) / (sheet.s || 1) < 64;
+  if (!collapsed && !inHead && !touches.size && !gest) { if (!zpan) startPan(e); return; }
   addTouch(e);
 });
 function addTouch(e) { try { sheetEl.setPointerCapture(e.pointerId); } catch (_) {} touches.set(e.pointerId, { x: e.clientX, y: e.clientY }); startGesture(e); }
@@ -2148,8 +2152,8 @@ function updateCount() { const n = root.length; $('#fileCount').textContent = t(
 
 const rootCtx = { parent: null, list: root, container: filesLayer, views: new Map(), bounds: () => ({ minX: -6, maxX: vw() - 74, minY: 0, maxY: vh() - 96 }), root: true };
 function overTrash(e) {
-  if (fullKey || getComputedStyle(trashEl).pointerEvents === 'none') return trashEl.classList.remove('hot');
-  const r = trashEl.querySelector('.tile').getBoundingClientRect(), pad = 26;
+  if (fullKey === 'split' || !trashEl.offsetParent) return trashEl.classList.remove('hot');
+  const r = trashEl.getBoundingClientRect(), pad = 18;
   const hot = e.clientX > r.left - pad && e.clientX < r.right + pad && e.clientY > r.top - pad && e.clientY < r.bottom + pad;
   if (hot !== trashEl.classList.contains('hot')) { trashEl.classList.toggle('hot', hot); document.body.classList.toggle('trash-hot', hot); if (hot) clearHover(); }
 }
@@ -2188,7 +2192,7 @@ function makeItem(f, ctx, x, y, extraClass = '') {
     holdCancel: () => closeCtx(),
     end: () => {
       if (popped) return false;
-      if (ctx.root && trashEl.classList.contains('hot')) { trashEl.classList.remove('hot'); document.body.classList.remove('trash-hot'); clearHover(); const c = centerOf(trashEl.querySelector('.tile')); deleteFile(f, ctx, { fly: { x: c.x - 40, y: c.y - 32 } }); return false; }
+      if (ctx.root && trashEl.classList.contains('hot')) { trashEl.classList.remove('hot'); document.body.classList.remove('trash-hot'); clearHover(); const c = centerOf(trashEl); deleteFile(f, ctx, { fly: { x: c.x - 40, y: c.y - 32 } }); return false; }
       if (dropOn(f, ctx)) return false;
       if (ctx.grid || (ctx.root && fullKey === 'files')) {        // inside a folder: drop back into a tidy slot (reorders)
         const to = ctx.slotAt(ctx.views.get(f.id).b.x, ctx.views.get(f.id).b.y);
@@ -2891,7 +2895,7 @@ function buildFolder(view, f) {
     view.append(bar);
   }
   const space = document.createElement('div'); space.className = 'space grid'; view.append(space);
-  if (!f.children.length) { space.innerHTML = f.isTrash ? `<div class="empty"><b>${esc(t('Trash is empty'))}</b><small>${esc(t('Drag a file here, or choose Move to Trash from its menu.'))}</small></div>` : '<div class="empty"><b>This folder is empty</b><small>Drag a file onto it to add one.</small></div>'; space.style.height = f.isTrash ? 'calc(100% - 70px)' : '100%'; return; }
+  if (!f.children.length) { space.innerHTML = f.isTrash ? `<div class="empty"><b>${esc(t('Trash is empty'))}</b><small>${esc(t('Drag a file onto Trash in the top bar, or choose Move to Trash from its menu.'))}</small></div>` : '<div class="empty"><b>This folder is empty</b><small>Drag a file onto it to add one.</small></div>'; space.style.height = f.isTrash ? 'calc(100% - 70px)' : '100%'; return; }
   const ROW = 112, ctx = { parent: f, list: f.children, container: space, views: new Map(), grid: true };
   const geo = () => { const w = space.clientWidth || 560, cols = Math.max(2, Math.floor(w / 104)); return { cols, colW: w / cols }; };
   const slot = i => { const { cols, colW } = geo(); return { x: (i % cols) * colW + (colW - 80) / 2, y: 8 + Math.floor(i / cols) * ROW }; };
@@ -3067,7 +3071,7 @@ function setLang(c) {
 langBtn.addEventListener('click', e => { e.stopPropagation(); if (popKind === 'lang') return closeToolPop(); openToolPop('lang', langBtn); });
 
 /* ---------- tap empty space: close whatever is open, like stamping it shut ---------- */
-const OPEN_UI = '#trashBin, .bgwin, .pane, #topbar, #sheet, #dock, #files .item, #rail, #filesHdr, #panelPos, #scrim, #appPop, #emojiPop, #ctxMenu, #ctxCatch, #toolPop, #tray, #exitFull, #filesBar, #selBar, #parked, #toast';
+const OPEN_UI = '.bgwin, .pane, #topbar, #sheet, #dock, #files .item, #rail, #filesHdr, #panelPos, #scrim, #appPop, #emojiPop, #ctxMenu, #ctxCatch, #toolPop, #tray, #exitFull, #filesBar, #selBar, #parked, #toast';
 let outside = null;
 document.addEventListener('pointerdown', e => {
   outside = e.isPrimary && !e.target.closest(OPEN_UI) ? { x: e.clientX, y: e.clientY, t: e.timeStamp, open: anythingOpen() } : null;
@@ -3461,7 +3465,7 @@ function ctxItems(f, ctx) {
   ];
 }
 function kindIcon(f) { return f.kind === 'folder' ? MI.move.split('<path d="M10')[0] : f.kind === 'note' ? MI.canvas : f.kind === 'image' ? '<rect x="4" y="5" width="16" height="14" rx="2.5"/><path d="M4 16l4.5-4.5 4 4 2.5-2.5 5 5"/>' : MI.newnote.split('<path d="M12')[0]; }
-function menuHead(f) { if (f.isTrash) return `<button class="mhead" data-act="head" aria-label="${esc(t('Trash'))}"><span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${MI.trash}</svg></span><div><b>${esc(t('Trash'))}</b><small>${esc(trashEl.querySelector('small').textContent)}</small></div>${ico('chev', 'go')}</button>`; return `<button class="mhead" data-act="head" title="Open" aria-label="Open ${esc(f.name)}"><span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${kindIcon(f)}</svg></span><div><b>${esc(f.name)}</b><small>${esc(t(KIND[f.kind]))}</small></div>${ico('chev', 'go')}</button>`; }
+function menuHead(f) { if (f.isTrash) return `<button class="mhead" data-act="head" aria-label="${esc(t('Trash'))}"><span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${MI.trash}</svg></span><div><b>${esc(t('Trash'))}</b><small>${trash.children.length}</small></div>${ico('chev', 'go')}</button>`; return `<button class="mhead" data-act="head" title="Open" aria-label="Open ${esc(f.name)}"><span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${kindIcon(f)}</svg></span><div><b>${esc(f.name)}</b><small>${esc(t(KIND[f.kind]))}</small></div>${ico('chev', 'go')}</button>`; }
 function renderMenu(groups, head) {
   ctxMenu.innerHTML = head + groups.map(g => g.map(([act, label, icon, flag]) =>
     `<button class="mi${flag === 'danger' ? ' danger' : ''}" role="menuitem" data-act="${act}">${ico(icon)}<span>${esc(t(label))}</span>${flag === 'sub' ? ico('chev', 'chev') : ''}</button>`).join('')).join('<div class="msep"></div>');
@@ -3541,7 +3545,7 @@ function showSave(f, ctx) {
 }
 ctxMenu.addEventListener('click', e => {
   if (ctxMenu.onclick || !ctxState) return;
-  if (e.target.closest('.mhead')) { const { f, ctx, el } = ctxState; closeCtx(); if (f.isTrash) return openTrash(el.querySelector('.tile')); return openItem(f, ctx, el); }
+  if (e.target.closest('.mhead')) { const { f, ctx, el } = ctxState; closeCtx(); if (f.isTrash) return openTrash(trashEl); return openItem(f, ctx, el); }
   const b = e.target.closest('.mi'); if (!b) return;
   const { f, ctx, el } = ctxState, act = b.dataset.act;
   if (act === 'restore') { closeCtx(); return restoreFile(f, ctx); }
@@ -3549,7 +3553,7 @@ ctxMenu.addEventListener('click', e => {
     if (!b.classList.contains('arm')) { b.classList.add('arm'); b.querySelector('span').textContent = t('Tap again to empty'); return; }
     closeCtx(); return emptyTrash();
   }
-  if (act === 'open' && f.isTrash) { closeCtx(); return openTrash(trashEl.querySelector('.tile')); }
+  if (act === 'open' && f.isTrash) { closeCtx(); return openTrash(trashEl); }
   if (act === 'delete' && !inTrash(ctx)) { closeCtx(); return deleteFile(f, ctx); }      // it can be put back, so no second tap
   if (act === 'delete') {
     if (!b.classList.contains('arm')) { b.classList.add('arm'); b.querySelector('span').textContent = t('Tap again to delete'); b.animate([{ transform: 'scale(1)' }, { transform: 'scale(.96)' }, { transform: 'scale(1)' }], { duration: 300, easing: 'cubic-bezier(.32,.72,0,1)' }); return; }
@@ -3632,14 +3636,10 @@ function fadeOut(v) {
 const trash = { id: 'trash', kind: 'folder', name: 'Trash', children: [], isTrash: true };
 const TRASH_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><g class="lid"><path d="M5 7.5h14"/><path d="M9.5 7.5V5.8a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v1.7"/></g><path d="M6.8 7.5l.9 11a2 2 0 0 0 2 1.8h4.6a2 2 0 0 0 2-1.8l.9-11"/><path d="M10.2 11v5.6M13.8 11v5.6"/></svg>';
 const inTrash = ctx => !!(ctx && ctx.parent && ctx.parent.isTrash);
-const trashEl = $('#trashBin');
+const trashEl = $('#qTrash');
 function syncTrash(gulp) {
-  const n = trash.children.length;
-  trashEl.classList.toggle('full', n > 0);
-  trashEl.querySelector('.tile').innerHTML = TRASH_ICON + (n ? `<span class="fcount">${n}</span>` : '');
-  trashEl.querySelector('small').textContent = n ? (n === 1 ? t('1 item') : t('{n} items', { n })) : t('Empty');
-  trashEl.setAttribute('aria-label', `${t('Trash')}, ${n}`);
-  $('#fbTrash .n').textContent = n || '';
+  const n = trash.children.length, rt = $('#railTrash');
+  for (const el of [trashEl, rt]) { el.classList.toggle('full', n > 0); el.querySelector('.n').textContent = n || ''; el.setAttribute('aria-label', n ? `${t('Trash')}, ${n}` : t('Trash')); }
   if (gulp && !reduceMotion) { trashEl.classList.remove('gulp'); void trashEl.offsetWidth; trashEl.classList.add('gulp'); }
 }
 function trashView() { return viewer.open && viewer.stack[0] === trash; }
@@ -3647,7 +3647,7 @@ function refreshTrashView() { if (!trashView()) return; viewer.stack = [trash]; 
 function openTrash(fromEl) {
   if (trashView() && viewer.stack.length === 1) return bringToFront('panelPos');
   openViewer(trash, fromEl);
-  if (fromEl && fromEl.id === 'fbTrash') fromEl.style.visibility = '';      // a bar button stays where it is
+  if (fromEl) fromEl.style.visibility = '';      // a button stays where it is
 }
 function restoreFile(f, ctx) {
   const i = trash.children.indexOf(f); if (i < 0) return;
@@ -3687,15 +3687,8 @@ function deleteFile(f, ctx, opt = {}) {
   refreshTrashView();
   if (!opt.quiet) toast(`Moved “${f.name}” to Trash`);
 }
-$('#fbTrash').addEventListener('click', e => openTrash(e.currentTarget));
-{ // the Trash on the home screen: tap opens it, press and hold (or right-click) shows Empty Trash
-  let holdT = 0, held = false; const trashCtx = { parent: null, list: [], views: new Map(), container: filesLayer, root: true };
-  trashEl.addEventListener('pointerdown', e => { held = false; clearTimeout(holdT); holdT = setTimeout(() => { held = true; openCtx(trash, trashCtx, trashEl); }, 480); });
-  for (const ty of ['pointerup', 'pointercancel', 'pointerleave']) trashEl.addEventListener(ty, () => clearTimeout(holdT));
-  trashEl.addEventListener('click', () => { if (held) { held = false; return; } openTrash(trashEl.querySelector('.tile')); });
-  trashEl.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openTrash(trashEl.querySelector('.tile')); } });
-  trashEl.addEventListener('contextmenu', e => { e.preventDefault(); openCtx(trash, trashCtx, trashEl); });
-}
+trashEl.addEventListener('click', () => openTrash(trashEl));
+$('#railTrash').addEventListener('click', e => openTrash(e.currentTarget));
 syncTrash();
 function cloneFile(f) {
   const c = JSON.parse(JSON.stringify(f, (k, v) => (k === '_pos' || k === 'undo' || k === 'redo') ? undefined : v));

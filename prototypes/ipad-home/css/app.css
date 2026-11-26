@@ -647,6 +647,33 @@ input[type=color] { width: 44px; height: 28px; border: 0; padding: 0; background
 #filesBar .fbl { font-size: 12px; color: var(--ink-2); }
 #filesBar .seg { width: auto; flex: none; grid-auto-columns: max-content; }
 #filesBar .seg button { padding: 0 13px; white-space: nowrap; }
+/* Trash: bottom-right of the home screen, under the windows */
+#trashBin { position: fixed; z-index: 8; right: calc(22px + env(safe-area-inset-right, 0px)); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); display: grid; justify-items: center; gap: 5px; width: 86px; cursor: pointer; -webkit-user-select: none; user-select: none; touch-action: none;
+  transition: opacity .4s ease, transform .5s cubic-bezier(.3,1.6,.5,1); }
+#trashBin .tile { position: relative; width: 64px; height: 64px; border-radius: var(--r-tile); color: color-mix(in srgb, var(--ink) 62%, transparent); transition: transform .45s cubic-bezier(.3,1.7,.5,1), color .25s, box-shadow .25s;
+  box-shadow: inset 0 1px .5px var(--rim), inset 0 0 0 1.5px color-mix(in srgb, var(--ink) 20%, transparent), 0 12px 24px -12px color-mix(in srgb, var(--ink) 55%, transparent); }
+#trashBin .tile svg { width: 32px; height: 32px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+#trashBin .tile .lid { transform-origin: 5px 7.5px; transition: transform .35s cubic-bezier(.3,1.6,.5,1); }
+#trashBin.full .tile .lid, #trashBin.hot .tile .lid { transform: rotate(-11deg) translateY(-.4px); }
+#trashBin .tile .paper { fill: color-mix(in srgb, var(--warm, #e0402a) 16%, var(--sheet)); stroke-width: 1.3; opacity: 0; transition: opacity .25s; }
+#trashBin.full .tile .paper { opacity: 1; }
+#trashBin .fcount { right: 5px; bottom: 4px; }
+#trashBin .label { color: var(--ink); font-weight: 650; text-shadow: 0 0 10px var(--bg), 0 0 4px var(--bg), 0 0 2px var(--bg); }
+#trashBin .label small { color: color-mix(in srgb, var(--ink) 72%, transparent); font-weight: 500; }
+#trashBin:hover .tile { transform: scale(1.05); } #trashBin:active .tile { transform: scale(.9); }
+body.file-drag #trashBin .tile { color: var(--ink); }
+#trashBin.hot .tile { transform: scale(1.16); color: var(--danger, #d8463a); box-shadow: inset 0 1px .5px var(--rim), inset 0 0 0 2px color-mix(in srgb, var(--danger, #d8463a) 60%, transparent), 0 16px 30px -12px color-mix(in srgb, var(--danger, #d8463a) 55%, transparent); }
+body.trash-hot .item.dragging .lift { transform: scale(.62); opacity: .8; transition: transform .3s cubic-bezier(.3,1.4,.5,1), opacity .2s; }
+#trashBin.gulp .tile { animation: gulp .5s cubic-bezier(.3,1.6,.5,1); }
+body[data-full] #trashBin, body.rail-on #trashBin { opacity: 0; pointer-events: none; transform: scale(.85); }
+#fbTrash .n { font-style: normal; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; font-size: 10.5px; line-height: 18px; text-align: center; background: var(--glass-hi); color: var(--ink-2); }
+#fbTrash .n:empty { display: none; }
+.trashbar { display: flex; align-items: center; gap: 10px; margin: 4px 6px 10px; padding: 8px 8px 8px 14px; border-radius: 16px; background: color-mix(in srgb, var(--ink) 5%, transparent); }
+.trashbar small { flex: 1; font-size: 11.5px; color: var(--ink-2); line-height: 1.35; }
+.trashbar button { flex: none; height: 32px; padding: 0 13px; border-radius: 99px; font: 600 12px var(--font); color: var(--danger, #d8463a); background: var(--glass-hi); box-shadow: inset 0 1px .5px var(--rim); }
+.trashbar button.arm { color: #fff; background: var(--danger, #d8463a); }
+.trashbar button:disabled { opacity: .4; }
+.item .tile .gone { position: absolute; left: 50%; bottom: -1px; transform: translateX(-50%); font-size: 8.5px; font-weight: 600; color: var(--ink-2); white-space: nowrap; }
 #parked { position: fixed; z-index: 45; left: calc(18px + env(safe-area-inset-left, 0px)); bottom: calc(18px + env(safe-area-inset-bottom, 0px)); display: grid; justify-items: center; gap: 5px; width: 92px; }
 #parked .tile { width: 64px; height: 64px; border-radius: 18px; display: grid; place-items: center; transition: transform .45s cubic-bezier(.3,1.7,.5,1); }
 #parked .tile:hover { transform: scale(1.05); } #parked .tile:active { transform: scale(.9); }

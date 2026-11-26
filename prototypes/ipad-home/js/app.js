@@ -57,6 +57,17 @@ const I18N = {
   'Saved': ['Đã lưu', '保存済み', '저장됨', 'Enregistrée', '已保存'],
   'Closed': ['Đã đóng', '閉じています', '닫힘', 'Fermée', '已关闭'],
   'Open': ['Mở', '開く', '열기', 'Ouvrir', '打开'],
+  'Trash': ['Thùng rác', 'ゴミ箱', '휴지통', 'Corbeille', '废纸篓'],
+  'Move to Trash': ['Chuyển vào thùng rác', 'ゴミ箱に入れる', '휴지통으로 이동', 'Placer dans la corbeille', '移到废纸篓'],
+  'Move folder to Trash': ['Chuyển thư mục vào thùng rác', 'フォルダをゴミ箱に入れる', '폴더를 휴지통으로 이동', 'Placer le dossier dans la corbeille', '将文件夹移到废纸篓'],
+  'Put back': ['Khôi phục', '元に戻す', '되돌려 놓기', 'Remettre', '放回原处'],
+  'Delete now': ['Xoá vĩnh viễn', '今すぐ削除', '지금 삭제', 'Supprimer définitivement', '立即删除'],
+  'Empty Trash': ['Dọn thùng rác', 'ゴミ箱を空にする', '휴지통 비우기', 'Vider la corbeille', '清倒废纸篓'],
+  'Tap again to empty': ['Chạm lần nữa để dọn', 'もう一度タップで空にする', '한 번 더 누르면 비움', 'Touchez encore pour vider', '再点一次清倒'],
+  'Empty': ['Trống', '空', '비어 있음', 'Vide', '空'],
+  'Trash is empty': ['Thùng rác trống', 'ゴミ箱は空です', '휴지통이 비어 있어요', 'La corbeille est vide', '废纸篓是空的'],
+  'Deleted files wait here. Put one back, or empty the Trash to remove them for good.': ['Tệp đã xoá nằm ở đây. Khôi phục, hoặc dọn thùng rác để xoá hẳn.', '削除したファイルはここに残ります。元に戻すか、ゴミ箱を空にすると完全に削除されます。', '삭제한 파일은 여기 남아요. 되돌리거나 휴지통을 비우면 완전히 삭제돼요.', 'Les fichiers supprimés attendent ici. Remettez-les, ou videz la corbeille pour les effacer.', '删除的文件会留在这里。可以放回，或清倒废纸篓彻底删除。'],
+  'Drag a file here, or choose Move to Trash from its menu.': ['Kéo tệp vào đây, hoặc chọn Chuyển vào thùng rác trong menu của tệp.', 'ファイルをここにドラッグするか、メニューから「ゴミ箱に入れる」を選びます。', '파일을 여기로 끌어오거나 메뉴에서 휴지통으로 이동을 고르세요.', 'Glissez un fichier ici, ou choisissez Placer dans la corbeille dans son menu.', '把文件拖到这里，或在菜单中选择“移到废纸篓”。'],
   'Save': ['Lưu', '保存', '저장', 'Enregistrer', '保存'],
   'Open this note': ['Mở ghi chú này', 'このノートを開く', '이 노트 열기', 'Ouvrir cette note', '打开这条笔记'],
   'Save this note': ['Lưu ghi chú này', 'このノートを保存', '이 노트 저장', 'Enregistrer cette note', '保存这条笔记'],
@@ -1210,6 +1221,10 @@ function zoomStep(dir) {
 function startPan(e) { cancelAnimationFrame(zglide); try { sheetEl.setPointerCapture(e.pointerId); } catch (_) {} zpan = { id: e.pointerId, x: e.clientX, y: e.clientY, lx: e.clientX, ly: e.clientY, zx, zy, k: paper.getBoundingClientRect().width / PW, vx: 0, vy: 0, t: e.timeStamp }; }
 function movePan(e) { const dt = Math.max(8, e.timeStamp - zpan.t); zpan.vx = zpan.vx * .5 + (e.clientX - zpan.lx) / dt * .5; zpan.vy = zpan.vy * .5 + (e.clientY - zpan.ly) / dt * .5; zpan.t = e.timeStamp; zpan.lx = e.clientX; zpan.ly = e.clientY; zx = zpan.zx - (e.clientX - zpan.x) / zpan.k / Z; zy = zpan.zy - (e.clientY - zpan.y) / zpan.k / Z; clampPan(true); applyZoom(true); }
 let zpinch = null, zglide = 0, zhudT = 0, looseFinger = null;
+// where every finger on the glass is right now; a pinch measures from these, never from a stale or missing point
+const fingerAt = new Map();
+for (const ty of ['pointerdown', 'pointermove']) addEventListener(ty, e => { if (e.pointerType === 'touch') fingerAt.set(e.pointerId, { x: e.clientX, y: e.clientY }); }, true);
+for (const ty of ['pointerup', 'pointercancel']) addEventListener(ty, e => { fingerAt.delete(e.pointerId); }, true);
 // a finger that lands on the empty desktop next to the note may be the first half of a pinch
 for (const [ty, fn] of [['pointerdown', e => { if (e.pointerType === 'touch' && e.isPrimary && !sheetEl.contains(e.target) && isBackground(e.target)) looseFinger = { id: e.pointerId, x: e.clientX, y: e.clientY, t: e.timeStamp }; }],
   ['pointermove', e => { if (looseFinger && e.pointerId === looseFinger.id) { looseFinger.x = e.clientX; looseFinger.y = e.clientY; } }],
@@ -1238,6 +1253,7 @@ function zoomHud() {
   clearTimeout(zhudT); zhudT = setTimeout(() => h.classList.remove('on'), 700);
 }
 function startPinch(a, e) {      // a: the finger already down {id, x, y}; e: the second finger
+  { const at = fingerAt.get(a.id); if (at) a = { id: a.id, x: at.x, y: at.y }; }
   try { sheetEl.setPointerCapture(e.pointerId); } catch (_) {} try { sheetEl.setPointerCapture(a.id); } catch (_) {}
   cancelAnimationFrame(zAnim); cancelAnimationFrame(zglide); zAnim = 0; $('#sheet .ink').classList.add('zooming');
   const pts = new Map([[a.id, { x: a.x, y: a.y }], [e.pointerId, { x: e.clientX, y: e.clientY }]]);
@@ -2131,6 +2147,12 @@ function repaintThumbs(f) { document.querySelectorAll(`canvas[data-note="${f.id}
 function updateCount() { const n = root.length; $('#fileCount').textContent = t('Files'); $('#qFiles').title = `Open all files (${n})`; }
 
 const rootCtx = { parent: null, list: root, container: filesLayer, views: new Map(), bounds: () => ({ minX: -6, maxX: vw() - 74, minY: 0, maxY: vh() - 96 }), root: true };
+function overTrash(e) {
+  if (fullKey || getComputedStyle(trashEl).pointerEvents === 'none') return trashEl.classList.remove('hot');
+  const r = trashEl.querySelector('.tile').getBoundingClientRect(), pad = 26;
+  const hot = e.clientX > r.left - pad && e.clientX < r.right + pad && e.clientY > r.top - pad && e.clientY < r.bottom + pad;
+  if (hot !== trashEl.classList.contains('hot')) { trashEl.classList.toggle('hot', hot); document.body.classList.toggle('trash-hot', hot); if (hot) clearHover(); }
+}
 function makeItem(f, ctx, x, y, extraClass = '') {
   const el = document.createElement('div'); el.className = `body item ${extraClass}`; el.dataset.id = f.id;
   const r = rng(parseInt(f.id.slice(1), 10) * 13 + 7);
@@ -2145,7 +2167,7 @@ function makeItem(f, ctx, x, y, extraClass = '') {
     scale: ctx.root ? null : () => viewer.body.s,
     accept: e => { if (el.classList.contains('inrail')) return false; if (e.target.closest('.rn')) return false; if (ctx.root && filesState.piled) { togglePanel('files', 'collapse'); return false; } return true; },
     down: e => { pinTo(el, e); document.body.classList.add('file-drag'); if (ctx.root) liftItem(el); },
-    up: () => document.body.classList.remove('file-drag'),
+    up: () => { document.body.classList.remove('file-drag'); setTimeout(() => { trashEl.classList.remove('hot'); document.body.classList.remove('trash-hot'); }, 0); },
     tap: (e, t) => {
       if (selecting && ctx.root) return togglePick(f, el);
       const open = () => {
@@ -2158,6 +2180,7 @@ function makeItem(f, ctx, x, y, extraClass = '') {
     },
     move: e => {
       if (popped) return;
+      if (ctx.root) overTrash(e);
       if (!ctx.root && viewer.open && wantsOut(e, b)) { popped = true; return popOutOfFolder(f, ctx, e, el); }
       if (!hoverRaf) hoverRaf = requestAnimationFrame(() => { hoverRaf = 0; if (!popped) hoverCheck(f, ctx); });      // once a frame, not on every pointer event
     },
@@ -2165,6 +2188,7 @@ function makeItem(f, ctx, x, y, extraClass = '') {
     holdCancel: () => closeCtx(),
     end: () => {
       if (popped) return false;
+      if (ctx.root && trashEl.classList.contains('hot')) { trashEl.classList.remove('hot'); document.body.classList.remove('trash-hot'); clearHover(); const c = centerOf(trashEl.querySelector('.tile')); deleteFile(f, ctx, { fly: { x: c.x - 40, y: c.y - 32 } }); return false; }
       if (dropOn(f, ctx)) return false;
       if (ctx.grid || (ctx.root && fullKey === 'files')) {        // inside a folder: drop back into a tidy slot (reorders)
         const to = ctx.slotAt(ctx.views.get(f.id).b.x, ctx.views.get(f.id).b.y);
@@ -2229,6 +2253,7 @@ let hover = { id: null }, hoverRaf = 0;
 const centerOf = el => { const r = el.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; };
 function clearHover() { clearTimeout(hover.timer); if (hover.v) hover.v.el.classList.remove('near', 'merge', 'new', 'into'); if (hover.me) hover.me.classList.remove('merging'); hover = { id: null }; }
 function hoverCheck(f, ctx) {
+  if (inTrash(ctx)) return;
   const me = ctx.views.get(f.id); if (!me) return; const c = centerOf(me.el.querySelector('.tile'));
   let best = null, bd = 30;
   for (const [id, v] of ctx.views) { if (id === f.id) continue; const p = centerOf(v.el.querySelector('.tile')); const d = Math.hypot(c.x - p.x, c.y - p.y); if (d < bd) { bd = d; best = v; } }
@@ -2554,6 +2579,7 @@ function syncFilesBar() {
   $('#fbSort').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.s === fileSort)));
 }
 $('#fbSort').addEventListener('click', e => { const b = e.target.closest('button'); if (b) sortRoot(b.dataset.s); });
+
 function nudge(el) { el.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.015)' }, { transform: 'scale(1)' }], { duration: 300, easing: 'ease-out' }); }
 function leaveFull() { sheetEl.classList.remove('fullbleed'); fullKey = null; delete document.body.dataset.full; $('#exitFull').hidden = true; $('#filesBar').hidden = true; syncLights(); }
 function windowed(k) {
@@ -2834,6 +2860,7 @@ function setViewerMode(mode) {
 function pushView(f) { viewer.stack.push(f); renderView(1); }
 function popView() { if (viewer.stack.length > 1) { viewer.stack.pop(); renderView(-1); } }
 function subtitle(f) {
+  if (f.isTrash) return `${f.children.length} item${f.children.length === 1 ? '' : 's'} · put back or delete for good`;
   if (f.kind === 'folder') return `${f.children.length} item${f.children.length === 1 ? '' : 's'} · hold one file over another to group them`;
   if (f.kind === 'note') return `Handwritten note · ${esc(f.date)}${f.mood != null ? ' · ' + emo(f.mood, 14) + ' ' + MOODS[f.mood].n : ''}`;
   if (f.kind === 'image') return f.file ? `Image · ${esc(f.file)}` : 'Image';
@@ -2855,8 +2882,16 @@ function renderView(dir) {
 }
 function buildFolder(view, f) {
   view.classList.add('scroll');
+  if (f.isTrash) {
+    const bar = document.createElement('div'); bar.className = 'trashbar';
+    bar.innerHTML = `<small>${esc(t('Deleted files wait here. Put one back, or empty the Trash to remove them for good.'))}</small><button type="button"${f.children.length ? '' : ' disabled'}>${esc(t('Empty Trash'))}</button>`;
+    const eb = bar.querySelector('button');
+    eb.addEventListener('pointerdown', e => e.stopPropagation());
+    eb.addEventListener('click', () => { if (!eb.classList.contains('arm')) { eb.classList.add('arm'); eb.textContent = t('Tap again to empty'); return; } emptyTrash(); });
+    view.append(bar);
+  }
   const space = document.createElement('div'); space.className = 'space grid'; view.append(space);
-  if (!f.children.length) { space.innerHTML = '<div class="empty"><b>This folder is empty</b><small>Drag a file onto it to add one.</small></div>'; space.style.height = '100%'; return; }
+  if (!f.children.length) { space.innerHTML = f.isTrash ? `<div class="empty"><b>${esc(t('Trash is empty'))}</b><small>${esc(t('Drag a file here, or choose Move to Trash from its menu.'))}</small></div>` : '<div class="empty"><b>This folder is empty</b><small>Drag a file onto it to add one.</small></div>'; space.style.height = f.isTrash ? 'calc(100% - 70px)' : '100%'; return; }
   const ROW = 112, ctx = { parent: f, list: f.children, container: space, views: new Map(), grid: true };
   const geo = () => { const w = space.clientWidth || 560, cols = Math.max(2, Math.floor(w / 104)); return { cols, colW: w / cols }; };
   const slot = i => { const { cols, colW } = geo(); return { x: (i % cols) * colW + (colW - 80) / 2, y: 8 + Math.floor(i / cols) * ROW }; };
@@ -2879,8 +2914,8 @@ function buildDetail(view, f) {
     const e = extent(f.strokes), h = parseFloat(pBody.style.height) - 20 - 60 - 14, w = Math.min(parseFloat(panelEl.style.width) - 40, h * e.w / e.h);
     c.style.width = w + 'px'; c.style.height = w * e.h / e.w + 'px'; paintStrokes(c, f.strokes, w, w * e.h / e.w);
     const isCur = f === current && !W.canvas.min;
-    foot.innerHTML = `<small>${f.strokes.length ? f.strokes.length + (f.strokes.length === 1 ? ' stroke' : ' strokes') : 'Empty page'}</small><button class="cta">Open</button>`;
-    foot.querySelector('.cta').addEventListener('click', () => { closeViewer(); setTimeout(() => loadNote(f), 140); });
+    foot.innerHTML = `<small>${f.strokes.length ? f.strokes.length + (f.strokes.length === 1 ? ' stroke' : ' strokes') : 'Empty page'}</small><button class="cta">${f.trashed ? esc(t('Put back')) : 'Open'}</button>`;
+    foot.querySelector('.cta').addEventListener('click', () => { if (f.trashed) { popView(); return setTimeout(() => restoreFile(f), 120); } closeViewer(); setTimeout(() => loadNote(f), 140); });
   } else if (f.kind === 'image') {
     stage.innerHTML = `<img src="${f.src}" alt="${esc(f.name)}" draggable="false">`;
     foot.innerHTML = `<small>${f.file ? 'Imported today' : 'Sample photo'}</small>`;
@@ -3016,7 +3051,7 @@ function applyLang() {
   langBtn.querySelector('b').innerHTML = flagSVG(LANG, 24); langBtn.setAttribute('aria-label', `${t('Language')}: ${langOf(LANG)[2]}`); langBtn.title = t('Language');
   $('#today').textContent = fmtL().format(new Date());
   if (current.mood == null) $('#moodName').textContent = t("How's today?");
-  setHintLine(); updateMeta(); updateCount(); syncFilesBar(); syncSelBar(); syncThemeTg();
+  setHintLine(); updateMeta(); updateCount(); syncFilesBar(); syncSelBar(); syncThemeTg(); try { syncTrash(); } catch (_) {}
 }
 function langListHTML() {
   return `<h4>${esc(t('Language'))}</h4><div class="lglist" role="radiogroup" aria-label="${esc(t('Language'))}">${LANGS.map(([c, ab, full]) =>
@@ -3032,7 +3067,7 @@ function setLang(c) {
 langBtn.addEventListener('click', e => { e.stopPropagation(); if (popKind === 'lang') return closeToolPop(); openToolPop('lang', langBtn); });
 
 /* ---------- tap empty space: close whatever is open, like stamping it shut ---------- */
-const OPEN_UI = '.bgwin, .pane, #topbar, #sheet, #dock, #files .item, #rail, #filesHdr, #panelPos, #scrim, #appPop, #emojiPop, #ctxMenu, #ctxCatch, #toolPop, #tray, #exitFull, #filesBar, #selBar, #parked, #toast';
+const OPEN_UI = '#trashBin, .bgwin, .pane, #topbar, #sheet, #dock, #files .item, #rail, #filesHdr, #panelPos, #scrim, #appPop, #emojiPop, #ctxMenu, #ctxCatch, #toolPop, #tray, #exitFull, #filesBar, #selBar, #parked, #toast';
 let outside = null;
 document.addEventListener('pointerdown', e => {
   outside = e.isPrimary && !e.target.closest(OPEN_UI) ? { x: e.clientX, y: e.clientY, t: e.timeStamp, open: anythingOpen() } : null;
@@ -3059,6 +3094,11 @@ addEventListener('keydown', e => {
   if (!(e.metaKey || e.ctrlKey) || e.target.closest('input, textarea')) return;
   if (e.key === '=' || e.key === '+') { e.preventDefault(); zoomStep(1); } else if (e.key === '-') { e.preventDefault(); zoomStep(-1); } else if (e.key === '0') { e.preventDefault(); zoomTo(1); }
 });
+{ let gz = null;
+  sheetEl.addEventListener('gesturestart', e => { if (zpinch || fingerAt.size) return; const r = paper.getBoundingClientRect(); gz = { Z0: Z, q: toLocal(e, r, r.width / PW) }; });
+  sheetEl.addEventListener('gesturechange', e => { if (!gz || zpinch || fingerAt.size) return; zoomTo(gz.Z0 * e.scale, gz.q.x, gz.q.y, true); });
+  sheetEl.addEventListener('gestureend', () => { if (gz) { gz = null; settleView(); } });
+}
 sheetEl.addEventListener('wheel', e => {
   if (!e.ctrlKey && !e.metaKey) { if (Z > 1) { e.preventDefault(); zx += e.deltaX / Z; zy += e.deltaY / Z; applyZoom(); } return; }
   e.preventDefault(); const r = paper.getBoundingClientRect(), q = toLocal(e, r, r.width / PW); zoomTo(Z * Math.exp(-e.deltaY * .01), q.x, q.y, true);
@@ -3405,21 +3445,23 @@ const ctxMenu = $('#ctxMenu'), ctxCatch = $('#ctxCatch');
 ctxCatch.addEventListener('pointerdown', e => { e.preventDefault(); closeCtx(); });
 function ctxItems(f, ctx) {
   const folder = f.kind === 'folder', note = f.kind === 'note';
+  if (f.isTrash) return [[['open', 'Open', 'move']], [['empty', 'Empty Trash', 'trash', 'danger']]];
+  if (inTrash(ctx)) return [[['restore', 'Put back', 'back'], ['info', 'Get info', 'info', 'sub']], [['delete', 'Delete now', 'trash', 'danger']]];
   if (folder) return [
     [['rename', 'Rename', 'rename'], ['newnote', 'New note inside', 'newnote'], ['import', 'Import into folder', 'import']],
     [['icon', 'Change icon', 'smile'], ['sort', 'Sort items', 'sort', 'sub'], ['ungroup', 'Ungroup', 'ungroup'], ['move', 'Move to…', 'move', 'sub'], ['fav', f.fav ? 'Remove from Favourites' : 'Add to Favourites', 'fav']],
     [['home', 'Add to Home Screen', 'home'], ['share', 'Share folder…', 'share'], ['info', 'Get info', 'info', 'sub']],
-    [['delete', !f.children.length ? 'Delete folder' : f.children.length === 1 ? 'Delete folder and 1 item' : t('Delete folder and {n} items', { n: f.children.length }), 'trash', 'danger']],
+    [['delete', 'Move folder to Trash', 'trash', 'danger']],
   ];
   return [
     [...(note ? [['newnote', 'New note', 'newnote'], ['save', 'Save…', 'save', 'sub']] : []), ['rename', 'Rename', 'rename'], ['dup', 'Duplicate', 'dup']],
     [['move', 'Move to…', 'move', 'sub'], ['icon', 'Change icon', 'smile'], ['fav', f.fav ? 'Remove from Favourites' : 'Add to Favourites', 'fav']],
     [['home', 'Add to Home Screen', 'home'], ['share', `Share ${note ? 'note' : 'file'}…`, 'share'], ['info', 'Get info', 'info', 'sub']],
-    [['delete', `Delete ${note ? 'note' : 'file'}`, 'trash', 'danger']],
+    [['delete', 'Move to Trash', 'trash', 'danger']],
   ];
 }
 function kindIcon(f) { return f.kind === 'folder' ? MI.move.split('<path d="M10')[0] : f.kind === 'note' ? MI.canvas : f.kind === 'image' ? '<rect x="4" y="5" width="16" height="14" rx="2.5"/><path d="M4 16l4.5-4.5 4 4 2.5-2.5 5 5"/>' : MI.newnote.split('<path d="M12')[0]; }
-function menuHead(f) { return `<button class="mhead" data-act="head" title="Open" aria-label="Open ${esc(f.name)}"><span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${kindIcon(f)}</svg></span><div><b>${esc(f.name)}</b><small>${esc(t(KIND[f.kind]))}</small></div>${ico('chev', 'go')}</button>`; }
+function menuHead(f) { if (f.isTrash) return `<button class="mhead" data-act="head" aria-label="${esc(t('Trash'))}"><span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${MI.trash}</svg></span><div><b>${esc(t('Trash'))}</b><small>${esc(trashEl.querySelector('small').textContent)}</small></div>${ico('chev', 'go')}</button>`; return `<button class="mhead" data-act="head" title="Open" aria-label="Open ${esc(f.name)}"><span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${kindIcon(f)}</svg></span><div><b>${esc(f.name)}</b><small>${esc(t(KIND[f.kind]))}</small></div>${ico('chev', 'go')}</button>`; }
 function renderMenu(groups, head) {
   ctxMenu.innerHTML = head + groups.map(g => g.map(([act, label, icon, flag]) =>
     `<button class="mi${flag === 'danger' ? ' danger' : ''}" role="menuitem" data-act="${act}">${ico(icon)}<span>${esc(t(label))}</span>${flag === 'sub' ? ico('chev', 'chev') : ''}</button>`).join('')).join('<div class="msep"></div>');
@@ -3499,9 +3541,16 @@ function showSave(f, ctx) {
 }
 ctxMenu.addEventListener('click', e => {
   if (ctxMenu.onclick || !ctxState) return;
-  if (e.target.closest('.mhead')) { const { f, ctx, el } = ctxState; closeCtx(); return openItem(f, ctx, el); }
+  if (e.target.closest('.mhead')) { const { f, ctx, el } = ctxState; closeCtx(); if (f.isTrash) return openTrash(el.querySelector('.tile')); return openItem(f, ctx, el); }
   const b = e.target.closest('.mi'); if (!b) return;
   const { f, ctx, el } = ctxState, act = b.dataset.act;
+  if (act === 'restore') { closeCtx(); return restoreFile(f, ctx); }
+  if (act === 'empty') {
+    if (!b.classList.contains('arm')) { b.classList.add('arm'); b.querySelector('span').textContent = t('Tap again to empty'); return; }
+    closeCtx(); return emptyTrash();
+  }
+  if (act === 'open' && f.isTrash) { closeCtx(); return openTrash(trashEl.querySelector('.tile')); }
+  if (act === 'delete' && !inTrash(ctx)) { closeCtx(); return deleteFile(f, ctx); }      // it can be put back, so no second tap
   if (act === 'delete') {
     if (!b.classList.contains('arm')) { b.classList.add('arm'); b.querySelector('span').textContent = t('Tap again to delete'); b.animate([{ transform: 'scale(1)' }, { transform: 'scale(.96)' }, { transform: 'scale(1)' }], { duration: 300, easing: 'cubic-bezier(.32,.72,0,1)' }); return; }
     closeCtx(); return deleteFile(f, ctx);
@@ -3541,6 +3590,7 @@ function wantsOut(e, b) {
 function outsidePanel(e) { const r = panelEl.getBoundingClientRect(); return e.clientX < r.left - 10 || e.clientX > r.right + 10 || e.clientY < r.top - 10 || e.clientY > r.bottom + 10; }
 // the file leaves the folder under your finger: the folder closes and you keep dragging it on the desktop
 function popOutOfFolder(f, ctx, e, oldEl) {
+  if (inTrash(ctx)) { delete f.trashed; delete f.from; setTimeout(syncTrash, 0); }
   const t = oldEl.querySelector('.tile').getBoundingClientRect(), offX = e.clientX - t.left + 8, offY = e.clientY - t.top;
   ctx.list.splice(ctx.list.indexOf(f), 1); ctx.views.delete(f.id); delete f._pos; oldEl.remove();
   root.push(f);
@@ -3578,9 +3628,51 @@ function fadeOut(v) {
   v.el.animate([{ opacity: 1, transform: v.el.style.transform }, { opacity: 0, transform: v.el.style.transform + ' scale(.4)' }],
     { duration: 320, easing: 'cubic-bezier(.5,0,.3,1)', fill: 'forwards' }).onfinish = () => v.el.remove();
 }
-function deleteFile(f, ctx) {
-  const v = ctx.views.get(f.id);
-  ctx.list.splice(ctx.list.indexOf(f), 1); ctx.views.delete(f.id); fadeOut(v);
+/* Trash: deleting moves a file here; it can be put back where it was, or deleted for good */
+const trash = { id: 'trash', kind: 'folder', name: 'Trash', children: [], isTrash: true };
+const TRASH_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><g class="lid"><path d="M5 7.5h14"/><path d="M9.5 7.5V5.8a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v1.7"/></g><path d="M6.8 7.5l.9 11a2 2 0 0 0 2 1.8h4.6a2 2 0 0 0 2-1.8l.9-11"/><path d="M10.2 11v5.6M13.8 11v5.6"/></svg>';
+const inTrash = ctx => !!(ctx && ctx.parent && ctx.parent.isTrash);
+const trashEl = $('#trashBin');
+function syncTrash(gulp) {
+  const n = trash.children.length;
+  trashEl.classList.toggle('full', n > 0);
+  trashEl.querySelector('.tile').innerHTML = TRASH_ICON + (n ? `<span class="fcount">${n}</span>` : '');
+  trashEl.querySelector('small').textContent = n ? (n === 1 ? t('1 item') : t('{n} items', { n })) : t('Empty');
+  trashEl.setAttribute('aria-label', `${t('Trash')}, ${n}`);
+  $('#fbTrash .n').textContent = n || '';
+  if (gulp && !reduceMotion) { trashEl.classList.remove('gulp'); void trashEl.offsetWidth; trashEl.classList.add('gulp'); }
+}
+function trashView() { return viewer.open && viewer.stack[0] === trash; }
+function refreshTrashView() { if (!trashView()) return; viewer.stack = [trash]; renderView(0); $('#pSub').innerHTML = subtitle(trash); }
+function openTrash(fromEl) {
+  if (trashView() && viewer.stack.length === 1) return bringToFront('panelPos');
+  openViewer(trash, fromEl);
+  if (fromEl && fromEl.id === 'fbTrash') fromEl.style.visibility = '';      // a bar button stays where it is
+}
+function restoreFile(f, ctx) {
+  const i = trash.children.indexOf(f); if (i < 0) return;
+  trash.children.splice(i, 1);
+  const v = ctx && ctx.views.get(f.id); if (v) { ctx.views.delete(f.id); fadeOut(v); if (ctx.layout) setTimeout(() => ctx.layout(), 200); }
+  const dest = f.from ? [...walk(root)].find(x => x.id === f.from && x.kind === 'folder') : null;
+  delete f.trashed; delete f.from; delete f._pos;
+  if (dest) { dest.children.push(f); refreshFolder(dest); }
+  else {
+    root.push(f); const spot = freeSpot(rootCtx, f.kind === 'folder' ? folderArea() : area()); makeItem(f, rootCtx, spot.x, spot.y, 'pop');
+    if (fullKey === 'files') fullGrid(); else if (rootCtx.layout) setTimeout(() => rootCtx.layout(), 60);
+  }
+  syncTrash(); afterTreeChange(); if (fullKey === 'files') syncFilesBar();
+  if (!v) refreshTrashView();
+  toast(`Put “${f.name}” back in ${dest ? dest.name : 'Files'}`);
+}
+function emptyTrash() {
+  const n = trash.children.length; if (!n) return;
+  trash.children.length = 0; syncTrash(); refreshTrashView();
+  toast(`Deleted ${n} item${n > 1 ? 's' : ''} for good`);
+}
+function deleteFile(f, ctx, opt = {}) {
+  const v = ctx.views.get(f.id), forever = inTrash(ctx);
+  ctx.list.splice(ctx.list.indexOf(f), 1); ctx.views.delete(f.id);
+  if (v && opt.fly) { flyInto(v, opt.fly.x, opt.fly.y); } else fadeOut(v);
   const gone = new Set(walk([f]));
   ghosts.filter(g => gone.has(g.f)).forEach(g => removeGhost(g, true));
   if (gone.has(current)) {
@@ -3589,8 +3681,22 @@ function deleteFile(f, ctx) {
     else { const n = mk.note('Untitled'); root.unshift(n); const spot = freeSpot(rootCtx, area()); makeItem(n, rootCtx, spot.x, spot.y, 'pop'); loadNote(n); }
   }
   if (ctx.layout) setTimeout(() => ctx.layout(), 200);
-  afterTreeChange(); toast(`Deleted “${f.name}”`);
+  if (forever) { syncTrash(); afterTreeChange(); return toast(`Deleted “${f.name}” for good`); }
+  f.trashed = Date.now(); f.from = ctx.parent ? ctx.parent.id : null; delete f._pos;
+  trash.children.unshift(f); syncTrash(true); afterTreeChange(); if (fullKey === 'files') { syncFilesBar(); fullGrid(); }
+  refreshTrashView();
+  if (!opt.quiet) toast(`Moved “${f.name}” to Trash`);
 }
+$('#fbTrash').addEventListener('click', e => openTrash(e.currentTarget));
+{ // the Trash on the home screen: tap opens it, press and hold (or right-click) shows Empty Trash
+  let holdT = 0, held = false; const trashCtx = { parent: null, list: [], views: new Map(), container: filesLayer, root: true };
+  trashEl.addEventListener('pointerdown', e => { held = false; clearTimeout(holdT); holdT = setTimeout(() => { held = true; openCtx(trash, trashCtx, trashEl); }, 480); });
+  for (const ty of ['pointerup', 'pointercancel', 'pointerleave']) trashEl.addEventListener(ty, () => clearTimeout(holdT));
+  trashEl.addEventListener('click', () => { if (held) { held = false; return; } openTrash(trashEl.querySelector('.tile')); });
+  trashEl.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openTrash(trashEl.querySelector('.tile')); } });
+  trashEl.addEventListener('contextmenu', e => { e.preventDefault(); openCtx(trash, trashCtx, trashEl); });
+}
+syncTrash();
 function cloneFile(f) {
   const c = JSON.parse(JSON.stringify(f, (k, v) => (k === '_pos' || k === 'undo' || k === 'redo') ? undefined : v));
   const reid = x => { x.id = nid(); if (x.kind === 'note') { x.undo = []; x.redo = []; } if (x.children) x.children.forEach(reid); };
@@ -3726,13 +3832,12 @@ function togglePick(f, el) {
 function syncSelBar() {
   const n = selSet.size; $('#selCount').textContent = n ? t('{n} selected', { n }) : t('Select files');
   $('#sbGroup').disabled = n < 2; $('#sbIcon').disabled = !n; $('#sbDel').disabled = !n;
-  const d = $('#sbDel'); d.classList.remove('arm'); d.querySelector('span').textContent = t('Delete');
+  const d = $('#sbDel'); d.classList.remove('arm'); d.querySelector('span').textContent = t('Move to Trash');
 }
 $('#sbIcon').addEventListener('click', () => openEmojiPop({ anchor: $('#sbIcon'), targets: root.filter(f => selSet.has(f)) }));
 $('#sbDel').addEventListener('click', () => {
   const d = $('#sbDel'), list = root.filter(f => selSet.has(f));
-  if (!d.classList.contains('arm')) { d.classList.add('arm'); d.querySelector('span').textContent = t('Delete {n}?', { n: list.length }); return; }
-  list.forEach(f => deleteFile(f, rootCtx)); endSelect(); toast(`Deleted ${list.length} file${list.length > 1 ? 's' : ''}`);
+  list.forEach(f => deleteFile(f, rootCtx, { quiet: true })); endSelect(); toast(`Moved ${list.length} file${list.length > 1 ? 's' : ''} to Trash`);
 });
 $('#sbGroup').addEventListener('click', () => {
   const list = root.filter(f => selSet.has(f)); if (list.length < 2) return;

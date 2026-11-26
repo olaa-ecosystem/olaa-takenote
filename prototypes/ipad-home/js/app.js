@@ -57,17 +57,37 @@ const I18N = {
   'Saved': ['Đã lưu', '保存済み', '저장됨', 'Enregistrée', '已保存'],
   'Closed': ['Đã đóng', '閉じています', '닫힘', 'Fermée', '已关闭'],
   'Open': ['Mở', '開く', '열기', 'Ouvrir', '打开'],
-  'Trash': ['Thùng rác', 'ゴミ箱', '휴지통', 'Corbeille', '废纸篓'],
-  'Move to Trash': ['Chuyển vào thùng rác', 'ゴミ箱に入れる', '휴지통으로 이동', 'Placer dans la corbeille', '移到废纸篓'],
-  'Move folder to Trash': ['Chuyển thư mục vào thùng rác', 'フォルダをゴミ箱に入れる', '폴더를 휴지통으로 이동', 'Placer le dossier dans la corbeille', '将文件夹移到废纸篓'],
-  'Put back': ['Khôi phục', '元に戻す', '되돌려 놓기', 'Remettre', '放回原处'],
-  'Delete now': ['Xoá vĩnh viễn', '今すぐ削除', '지금 삭제', 'Supprimer définitivement', '立即删除'],
-  'Empty Trash': ['Dọn thùng rác', 'ゴミ箱を空にする', '휴지통 비우기', 'Vider la corbeille', '清倒废纸篓'],
-  'Tap again to empty': ['Chạm lần nữa để dọn', 'もう一度タップで空にする', '한 번 더 누르면 비움', 'Touchez encore pour vider', '再点一次清倒'],
+  'Move to Delete': ['Chuyển vào mục Xoá', '「削除」へ移動', '삭제 항목으로 이동', 'Déplacer vers Supprimés', '移到“删除”'],
+  'Move folder to Delete': ['Chuyển thư mục vào mục Xoá', 'フォルダを「削除」へ移動', '폴더를 삭제 항목으로 이동', 'Déplacer le dossier vers Supprimés', '将文件夹移到“删除”'],
+  'Restore': ['Khôi phục', '復元', '복원', 'Restaurer', '恢复'],
+  'Delete forever': ['Xoá vĩnh viễn', '完全に削除', '영구 삭제', 'Supprimer définitivement', '永久删除'],
+  'Delete all': ['Xoá hết', 'すべて削除', '모두 삭제', 'Tout supprimer', '全部删除'],
+  'Tap again to delete all': ['Chạm lần nữa để xoá hết', 'もう一度タップですべて削除', '한 번 더 누르면 모두 삭제', 'Touchez encore pour tout supprimer', '再点一次全部删除'],
+  'Nothing deleted': ['Chưa có gì bị xoá', '削除した項目はありません', '삭제한 항목이 없어요', 'Rien de supprimé', '没有已删除的项目'],
+  'Deleted files wait here. Restore them, or delete them forever.': ['Tệp đã xoá nằm ở đây. Khôi phục, hoặc xoá vĩnh viễn.', '削除したファイルはここに残ります。復元するか、完全に削除できます。', '삭제한 파일은 여기 남아요. 복원하거나 영구 삭제할 수 있어요.', 'Les fichiers supprimés attendent ici. Restaurez-les ou supprimez-les définitivement.', '删除的文件会留在这里。可以恢复，或永久删除。'],
+  'Drag a file onto Delete in the top bar, or choose Move to Delete from its menu.': ['Kéo tệp vào nút Xoá trên thanh trên cùng, hoặc chọn Chuyển vào mục Xoá trong menu.', 'ファイルを上部バーの「削除」へドラッグするか、メニューから「削除」へ移動を選びます。', '파일을 상단 바의 삭제로 끌어오거나 메뉴에서 삭제 항목으로 이동을 고르세요.', 'Glissez un fichier sur Supprimer dans la barre du haut, ou choisissez Déplacer vers Supprimés.', '把文件拖到顶栏的“删除”，或在菜单中选择“移到删除”。'],
+  'Move “{name}” to Delete?': ['Chuyển “{name}” vào mục Xoá?', '「{name}」を「削除」へ移動しますか?', '“{name}”을(를) 삭제 항목으로 이동할까요?', 'Déplacer « {name} » vers Supprimés ?', '将“{name}”移到“删除”？'],
+  'Move {n} items to Delete?': ['Chuyển {n} mục vào mục Xoá?', '{n}項目を「削除」へ移動しますか?', '{n}개 항목을 삭제 항목으로 이동할까요?', 'Déplacer {n} éléments vers Supprimés ?', '将 {n} 项移到“删除”？'],
+  'You can restore it from Delete in the top bar.': ['Bạn có thể khôi phục từ mục Xoá trên thanh trên cùng.', '上部バーの「削除」から復元できます。', '상단 바의 삭제에서 복원할 수 있어요.', 'Vous pourrez le restaurer depuis Supprimer dans la barre du haut.', '可以在顶栏的“删除”中恢复。'],
+  'Delete “{name}” forever?': ['Xoá vĩnh viễn “{name}”?', '「{name}」を完全に削除しますか?', '“{name}”을(를) 영구 삭제할까요?', 'Supprimer « {name} » définitivement ?', '永久删除“{name}”？'],
+  'Delete {n} items forever?': ['Xoá vĩnh viễn {n} mục?', '{n}項目を完全に削除しますか?', '{n}개 항목을 영구 삭제할까요?', 'Supprimer {n} éléments définitivement ?', '永久删除 {n} 项？'],
+  'This can’t be undone.': ['Không thể hoàn tác.', '元に戻せません。', '되돌릴 수 없어요.', 'Action irréversible.', '此操作无法撤销。'],
+  'Move': ['Chuyển', '移動', '이동', 'Déplacer', '移动'],
+  'Cancel': ['Huỷ', 'キャンセル', '취소', 'Annuler', '取消'],
+  'Done': ['Xong', '完了', '완료', 'OK', '完成'],
+  'Select': ['Chọn', '選択', '선택', 'Sélectionner', '选择'],
+  'Select all': ['Chọn tất cả', 'すべて選択', '모두 선택', 'Tout sélectionner', '全选'],
+  'Deselect all': ['Bỏ chọn tất cả', 'すべて選択解除', '모두 선택 해제', 'Tout désélectionner', '取消全选'],
+  'Select items': ['Chọn mục', '項目を選択', '항목 선택', 'Choisissez des éléments', '选择项目'],
+  'Canvas': ['Khổ giấy', 'キャンバス', '캔버스', 'Format', '画布'],
+  'Fit window': ['Vừa cửa sổ', 'ウィンドウに合わせる', '창에 맞춤', 'Fenêtre', '适应窗口'],
+  'Whole window': ['Cả cửa sổ', 'ウィンドウ全体', '창 전체', 'Toute la fenêtre', '整个窗口'],
+  'Landscape': ['Ngang', '横', '가로', 'Paysage', '横向'],
+  'Story': ['Story', 'ストーリー', '스토리', 'Story', '快拍'],
+  'Feed post': ['Bài feed', 'フィード投稿', '피드 게시물', 'Publication', '帖子'],
+  'Export PNG': ['Xuất PNG', 'PNGを書き出す', 'PNG 내보내기', 'Exporter en PNG', '导出 PNG'],
+  'Export {w} × {h} PNG': ['Xuất PNG {w} × {h}', '{w} × {h} PNGを書き出す', '{w} × {h} PNG 내보내기', 'Exporter en PNG {w} × {h}', '导出 {w} × {h} PNG'],
   'Empty': ['Trống', '空', '비어 있음', 'Vide', '空'],
-  'Trash is empty': ['Thùng rác trống', 'ゴミ箱は空です', '휴지통이 비어 있어요', 'La corbeille est vide', '废纸篓是空的'],
-  'Deleted files wait here. Put one back, or empty the Trash to remove them for good.': ['Tệp đã xoá nằm ở đây. Khôi phục, hoặc dọn thùng rác để xoá hẳn.', '削除したファイルはここに残ります。元に戻すか、ゴミ箱を空にすると完全に削除されます。', '삭제한 파일은 여기 남아요. 되돌리거나 휴지통을 비우면 완전히 삭제돼요.', 'Les fichiers supprimés attendent ici. Remettez-les, ou videz la corbeille pour les effacer.', '删除的文件会留在这里。可以放回，或清倒废纸篓彻底删除。'],
-  'Drag a file onto Trash in the top bar, or choose Move to Trash from its menu.': ['Kéo tệp vào đây, hoặc chọn Chuyển vào thùng rác trong menu của tệp.', 'ファイルをここにドラッグするか、メニューから「ゴミ箱に入れる」を選びます。', '파일을 여기로 끌어오거나 메뉴에서 휴지통으로 이동을 고르세요.', 'Glissez un fichier ici, ou choisissez Placer dans la corbeille dans son menu.', '把文件拖到这里，或在菜单中选择“移到废纸篓”。'],
   'Save': ['Lưu', '保存', '저장', 'Enregistrer', '保存'],
   'Open this note': ['Mở ghi chú này', 'このノートを開く', '이 노트 열기', 'Ouvrir cette note', '打开这条笔记'],
   'Save this note': ['Lưu ghi chú này', 'このノートを保存', '이 노트 저장', 'Enregistrer cette note', '保存这条笔记'],
@@ -1186,6 +1206,11 @@ function applyZoom(soft) {
   if (!P || (Z === 1 && !zx && !zy)) paper.style.backgroundSize = paper.style.backgroundPosition = '';
   else { paper.style.backgroundSize = P[0] ? `${P[0] * Z}px ${P[1] * Z}px` : `100% ${P[1] * Z}px`; paper.style.backgroundPosition = `${((P[2] - zx) * Z).toFixed(1)}px ${((P[3] - zy) * Z).toFixed(1)}px`; }
   paper.style.setProperty('--zs', Z.toFixed(4)); paper.classList.toggle('zoomed', Z > 1.01); paper.classList.toggle('zoomout', Z < .99);
+  { let fe = paper.querySelector('.frame'); const F = current.frame;
+    if (F) { if (!fe) { fe = document.createElement('i'); fe.className = 'frame'; fe.innerHTML = '<b></b>'; paper.append(fe); }
+      fe.style.width = F.fw + 'px'; fe.style.height = F.fh + 'px'; fe.style.transform = `scale(${Z.toFixed(4)}) translate(${(F.x - zx).toFixed(2)}px,${(F.y - zy).toFixed(2)}px)`;
+      fe.querySelector('b').textContent = `${F.w} × ${F.h}`; fe.style.setProperty('--zi', (1 / Z).toFixed(4)); }
+    else if (fe) fe.remove(); }
   { let pe = paper.querySelector('.pageedge'); if (!pe) { pe = document.createElement('i'); pe.className = 'pageedge'; paper.prepend(pe); }
     if (Z < .99) { pe.style.width = PW + 'px'; pe.style.height = PH + 'px'; pe.style.transform = `scale(${Z.toFixed(4)}) translate(${(-zx).toFixed(2)}px,${(-zy).toFixed(2)}px)`; } }      // line and dot sizes scale with the zoom
   try { if (sel) updateSelUI(true); } catch (_) {}
@@ -1413,6 +1438,7 @@ function eraseRing(q) {
 }
 function startInk(e) {
   const r = paper.getBoundingClientRect();
+  if (current.frame && !inFrame(toLocal(e, r, r.width / PW))) return;      // outside the canvas frame
   ink = { id: e.pointerId, type: e.pointerType, r, k: r.width / PW, stroke: null, lastP: .5, lastT: e.timeStamp, pred: [], removed: false, before: current.strokes.slice(), anchor: null, hold: 0, smooth: 0 };
   try { sheetEl.setPointerCapture(e.pointerId); } catch (_) {}
   document.body.classList.add('inking'); cursorEl.classList.remove('on', 'ring'); closeToolPop();
@@ -1686,6 +1712,32 @@ function updateMeta() {
     + `<span class="st ${current.draft ? 'draft' : 'saved'}">${esc(current.draft ? t('Draft · not saved') : t('Saved'))}</span>`;
   syncNoteChip();
 }
+/* canvas size: the whole window, or a fixed frame you draw inside (sized for the screen it's going to) */
+const FRAMES = [{ id: 'fit', name: 'Fit window' }, { id: 'hd', name: 'Landscape', w: 1920, h: 1080 }, { id: 'story', name: 'Story', w: 1080, h: 1920 }, { id: 'feed', name: 'Feed post', w: 1000, h: 1350 }];
+function setFrame(id) {
+  const F = FRAMES.find(x => x.id === id); if (!F) return;
+  if (!F.w) { delete current.frame; }
+  else {      // fit the frame inside the page as it is now, under the title
+    const top = 78, m = 22, sc = Math.min((PW - m * 2) / F.w, (PH - top - m) / F.h), fw = F.w * sc, fh = F.h * sc;
+    current.frame = { id: F.id, w: F.w, h: F.h, x: (PW - fw) / 2, y: top + (PH - top - m - fh) / 2, fw, fh };
+  }
+  markEdited && markEdited(current); applyZoom(); toast(F.w ? `Canvas: ${F.w} × ${F.h}` : 'Canvas fits the window');
+}
+function inFrame(q) { const f = current.frame; return !f || (q.x >= f.x && q.x <= f.x + f.fw && q.y >= f.y && q.y <= f.y + f.fh); }
+function exportPng() {
+  const f = current.frame, k = f ? f.w / f.fw : 2, x0 = f ? f.x : 0, y0 = f ? f.y : 0, w = f ? f.w : Math.round(PW * 2), h = f ? f.h : Math.round(PH * 2);
+  const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d');
+  g.fillStyle = getComputedStyle(paper).backgroundColor || '#fbf8f1'; g.fillRect(0, 0, w, h);
+  g.setTransform(k, 0, 0, k, -x0 * k, -y0 * k); for (const s of current.strokes) drawStroke(g, s);
+  const name = (current.name || 'note').replace(/[\\/:*?"<>|]+/g, ' ') + (f ? ` ${f.w}x${f.h}` : '') + '.png';
+  if (dlNs) {      // inside claude.ai the viewer saves through the host (it asks first)
+    return c.toBlob(blob => dlNs.save({ filename: name, data: blob }).then(() => toast(`Exported ${w} × ${h} PNG`), err => { if (err && err.code !== 'declined') toast('This view can’t save files.'); }), 'image/png');
+  }
+  const a = document.createElement('a'); a.download = name; a.href = c.toDataURL('image/png');
+  document.body.append(a); a.click(); a.remove(); toast(`Exported ${w} × ${h} PNG`);
+}
+let dlNs = null;
+try { if (window.claude && window.claude.use) window.claude.use('downloads').then(n => { dlNs = n; }, () => {}); } catch (_) {}
 function setPaper(v) { current.paper = v; paper.className = 'paper pp-' + v; applyZoom(); }
 
 // Pencil inks, finger moves/pinches, mouse inks (middle button or Space to move)
@@ -1997,7 +2049,10 @@ function renderToolPop() {
       <div class="row2"><span>Any colour</span><input type="color" id="nativeColor" value="${customColor}" aria-label="Any colour"></div>
       <p class="tip">Your pick fills the last colour slot in the toolbar.</p>`;
   } else if (k === 'paper') {
-    h = `<h4>Page</h4><div class="papers">${[['dots', 'Dots'], ['lines', 'Lines'], ['grid', 'Grid'], ['blank', 'Blank']].map(([v, l]) => `<button data-p="${v}" aria-pressed="${current.paper === v}"><i class="pp-${v}"></i>${l}</button>`).join('')}</div><p class="tip">Applies to this note.</p>`;
+    const fid = current.frame ? current.frame.id : 'fit';
+    h = `<h4>Page</h4><div class="papers">${[['dots', 'Dots'], ['lines', 'Lines'], ['grid', 'Grid'], ['blank', 'Blank']].map(([v, l]) => `<button data-p="${v}" aria-pressed="${current.paper === v}"><i class="pp-${v}"></i>${l}</button>`).join('')}</div>
+      <h4 class="h4b">${esc(t('Canvas'))}</h4><div class="frames">${FRAMES.map(F => `<button data-fr="${F.id}" aria-pressed="${fid === F.id}"><i style="aspect-ratio:${F.w ? F.w + ' / ' + F.h : '4 / 3'}"${F.w ? '' : ' class="fit"'}></i><span>${esc(t(F.name))}</span><small>${F.w ? F.w + ' × ' + F.h : esc(t('Whole window'))}</small></button>`).join('')}</div>
+      <button class="ghost" id="exportPng">${esc(current.frame ? t('Export {w} × {h} PNG', { w: current.frame.w, h: current.frame.h }) : t('Export PNG'))}</button><p class="tip">Applies to this note.</p>`;
   } else {
     const T = TOOLS[k], sz = sizeFor(k);
     h = `<h4>${T.label}${T.sizes ? `<small id="szTxt">${sz.toFixed(1)} pt</small>` : ''}</h4>`;
@@ -2056,6 +2111,7 @@ function wirePop() {
     $('#importFont').addEventListener('click', () => fontInput.click());
   }
   if (k === 'paper') toolPop.querySelectorAll('.papers button').forEach(b => b.addEventListener('click', () => { setPaper(b.dataset.p); renderToolPop(); }));
+  if (k === 'paper') { toolPop.querySelectorAll('.frames button').forEach(b => b.addEventListener('click', () => { setFrame(b.dataset.fr); renderToolPop(); })); $('#exportPng').addEventListener('click', exportPng); }
 }
 function setCustom(c, keepOpen) { customColor = c; renderSwatches(); pickColor(c); if (!keepOpen) closeToolPop(); }
 function drawPreview() {
@@ -2151,6 +2207,26 @@ function repaintThumbs(f) { document.querySelectorAll(`canvas[data-note="${f.id}
 function updateCount() { const n = root.length; $('#fileCount').textContent = t('Files'); $('#qFiles').title = `Open all files (${n})`; }
 
 const rootCtx = { parent: null, list: root, container: filesLayer, views: new Map(), bounds: () => ({ minX: -6, maxX: vw() - 74, minY: 0, maxY: vh() - 96 }), root: true };
+/* ask once before a file goes to Delete */
+let confirmDone = null;
+function askConfirm(title, sub, okLabel, onOk) {
+  const box = $('#confirmBox'), c = $('#confirmCatch');
+  $('#cfT').textContent = title; $('#cfS').textContent = sub; $('#cfOk').textContent = okLabel; $('#cfNo').textContent = t('Cancel');
+  confirmDone = ok => { box.hidden = true; c.hidden = true; confirmDone = null; if (ok) onOk(); };
+  box.hidden = false; c.hidden = false; setTimeout(() => $('#cfOk').focus(), 30);
+  if (!reduceMotion) box.animate([{ opacity: 0, scale: '.9' }, { opacity: 1, scale: '1' }], { duration: SPR_OPEN.d, easing: SPR_OPEN.e });
+}
+$('#pDone').addEventListener('click', () => closeViewer());
+$('#pDone').addEventListener('pointerdown', e => e.stopPropagation());
+$('#cfOk').addEventListener('click', () => confirmDone && confirmDone(true));
+$('#cfNo').addEventListener('click', () => confirmDone && confirmDone(false));
+$('#confirmCatch').addEventListener('pointerdown', e => { e.preventDefault(); confirmDone && confirmDone(false); });
+addEventListener('keydown', e => { if (!confirmDone) return; if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); confirmDone(false); } }, true);
+function confirmToDelete(list, go) {
+  const one = list.length === 1;
+  askConfirm(one ? t('Move “{name}” to Delete?', { name: list[0].name }) : t('Move {n} items to Delete?', { n: list.length }),
+    t('You can restore it from Delete in the top bar.'), t('Move'), go);
+}
 function overTrash(e) {
   if (fullKey === 'split' || !trashEl.offsetParent) return trashEl.classList.remove('hot');
   const r = trashEl.getBoundingClientRect(), pad = 18;
@@ -2169,11 +2245,12 @@ function makeItem(f, ctx, x, y, extraClass = '') {
   let popped = false;
   draggable(b, el, {
     scale: ctx.root ? null : () => viewer.body.s,
-    accept: e => { if (el.classList.contains('inrail')) return false; if (e.target.closest('.rn')) return false; if (ctx.root && filesState.piled) { togglePanel('files', 'collapse'); return false; } return true; },
+    accept: e => { if (el.classList.contains('inrail')) return false; if (e.target.closest('.rn, .rbadge')) return false; if (ctx.pick && trashPick) return true; if (ctx.root && filesState.piled) { togglePanel('files', 'collapse'); return false; } return true; },
     down: e => { pinTo(el, e); document.body.classList.add('file-drag'); if (ctx.root) liftItem(el); },
     up: () => { document.body.classList.remove('file-drag'); setTimeout(() => { trashEl.classList.remove('hot'); document.body.classList.remove('trash-hot'); }, 0); },
     tap: (e, t) => {
       if (selecting && ctx.root) return togglePick(f, el);
+      if (ctx.pick && ctx.pick(f, el)) return;
       const open = () => {
         if (ctx.root && fullKey === 'files') { if (f.kind !== 'note') return openViewer(f, el.querySelector('.tile')); exitFull(); return setTimeout(() => loadNote(f), 420); }      // folders and files open right here, over Files
         if (ctx.root && f === current && W.canvas.min) return restore('canvas'); ctx.root ? openViewer(f, el.querySelector('.tile')) : pushView(f);
@@ -2192,7 +2269,7 @@ function makeItem(f, ctx, x, y, extraClass = '') {
     holdCancel: () => closeCtx(),
     end: () => {
       if (popped) return false;
-      if (ctx.root && trashEl.classList.contains('hot')) { trashEl.classList.remove('hot'); document.body.classList.remove('trash-hot'); clearHover(); const c = centerOf(trashEl); deleteFile(f, ctx, { fly: { x: c.x - 40, y: c.y - 32 } }); return false; }
+      if (ctx.root && trashEl.classList.contains('hot')) { trashEl.classList.remove('hot'); document.body.classList.remove('trash-hot'); clearHover(); confirmToDelete([f], () => { const c = centerOf(trashEl); deleteFile(f, ctx, { fly: { x: c.x - 40, y: c.y - 32 } }); }); return; }
       if (dropOn(f, ctx)) return false;
       if (ctx.grid || (ctx.root && fullKey === 'files')) {        // inside a folder: drop back into a tidy slot (reorders)
         const to = ctx.slotAt(ctx.views.get(f.id).b.x, ctx.views.get(f.id).b.y);
@@ -2533,8 +2610,22 @@ document.querySelectorAll('.lights[data-panel]').forEach(l => {
 let fullKey = null; const saved = {};
 const filesState = { piled: false, min: false };
 let W; // window registry, filled at boot
+let dockWakeT = 0;
+function wakeDock() {
+  if (!document.body.classList.contains('vfull')) return;
+  document.body.classList.add('dock-wake'); clearTimeout(dockWakeT); dockWakeT = setTimeout(sleepDock, 2600);
+}
+function sleepDock() {
+  if (popKind || $('#dock').matches(':hover') || document.body.classList.contains('inking')) { dockWakeT = setTimeout(sleepDock, 1400); return; }
+  document.body.classList.remove('dock-wake');
+}
+function nearDock(e, pad) { const r = $('#dock .win').getBoundingClientRect(); return e.clientX > r.left - pad && e.clientX < r.right + pad && e.clientY > r.top - pad && e.clientY < r.bottom + pad; }
+addEventListener('pointermove', e => { if (document.body.classList.contains('vfull') && e.pointerType === 'mouse' && nearDock(e, 70)) wakeDock(); }, true);
+addEventListener('pointerdown', e => { if (document.body.classList.contains('vfull') && (nearDock(e, 60) || e.target.closest('#dock, #toolPop'))) wakeDock(); }, true);
 function syncCollapseFull() {
-  $('#panel').classList.toggle('isfull', !!(viewer.open && viewer.full));      // full screen: no resize corner
+  const vf = !!(viewer.open && viewer.full);
+  $('#panel').classList.toggle('isfull', vf);      // full screen: no resize corner
+  document.body.classList.toggle('vfull', vf); if (!vf) document.body.classList.remove('dock-wake');
 }
 function syncLights() {
   setTimeout(syncCollapseFull, 0);
@@ -2825,7 +2916,7 @@ function openViewer(f, tileEl, opt = {}) {
   if (snapped('sheet') && snap.slots.sheet.length === 1 && !opt.at) setTimeout(() => { if (viewer.open && !snapped('viewer')) { snap.saved.viewer = winSize('viewer'); snap.slots.viewer = mirror(snap.slots.sheet); applySnap(false); } }, 60);
 }
 function closeViewer(v) {
-  if (!viewer.open) return; setTimeout(syncCollapseFull, 0); delete snap.slots.viewer; delete snap.saved.viewer; viewer.open = false; viewer.full = false; viewer.mode = 'normal'; markOpened(null); setTimeout(syncRail, 0);
+  if (!viewer.open) return; setTimeout(syncCollapseFull, 0); trashPick = null; delete snap.slots.viewer; delete snap.saved.viewer; viewer.open = false; viewer.full = false; viewer.mode = 'normal'; markOpened(null); setTimeout(syncRail, 0);
   const tile = viewer.origin, fr = panelEl.getBoundingClientRect();
   active.delete(viewer.body);
   let anim;
@@ -2864,7 +2955,7 @@ function setViewerMode(mode) {
 function pushView(f) { viewer.stack.push(f); renderView(1); }
 function popView() { if (viewer.stack.length > 1) { viewer.stack.pop(); renderView(-1); } }
 function subtitle(f) {
-  if (f.isTrash) return `${f.children.length} item${f.children.length === 1 ? '' : 's'} · put back or delete for good`;
+  if (f.isTrash) return `${f.children.length} item${f.children.length === 1 ? '' : 's'} · restore or delete forever`;
   if (f.kind === 'folder') return `${f.children.length} item${f.children.length === 1 ? '' : 's'} · hold one file over another to group them`;
   if (f.kind === 'note') return `Handwritten note · ${esc(f.date)}${f.mood != null ? ' · ' + emo(f.mood, 14) + ' ' + MOODS[f.mood].n : ''}`;
   if (f.kind === 'image') return f.file ? `Image · ${esc(f.file)}` : 'Image';
@@ -2873,7 +2964,8 @@ function subtitle(f) {
 }
 function renderView(dir) {
   const f = viewer.stack[viewer.stack.length - 1];
-  pTitle.value = f.name; $('#pSub').innerHTML = subtitle(f);
+  pTitle.value = f.isTrash ? t('Delete') : f.name; $('#pSub').innerHTML = subtitle(f);
+  panelEl.classList.toggle('trashmode', viewer.stack[0] === trash); $('#pDone').hidden = viewer.stack[0] !== trash;
   $('#pBack').hidden = viewer.stack.length < 2;
   const old = pBody.querySelector('.view:not(.leaving)');
   const view = document.createElement('div'); view.className = 'view'; pBody.append(view);
@@ -2887,15 +2979,35 @@ function renderView(dir) {
 function buildFolder(view, f) {
   view.classList.add('scroll');
   if (f.isTrash) {
-    const bar = document.createElement('div'); bar.className = 'trashbar';
-    bar.innerHTML = `<small>${esc(t('Deleted files wait here. Put one back, or empty the Trash to remove them for good.'))}</small><button type="button"${f.children.length ? '' : ' disabled'}>${esc(t('Empty Trash'))}</button>`;
-    const eb = bar.querySelector('button');
-    eb.addEventListener('pointerdown', e => e.stopPropagation());
-    eb.addEventListener('click', () => { if (!eb.classList.contains('arm')) { eb.classList.add('arm'); eb.textContent = t('Tap again to empty'); return; } emptyTrash(); });
-    view.append(bar);
+    const bar = document.createElement('div'); bar.className = 'trashbar'; view.append(bar);
+    const n = f.children.length, pk = trashPick;
+    if (!pk) bar.innerHTML = `<small>${esc(t('Deleted files wait here. Restore them, or delete them forever.'))}</small>
+      <button type="button" data-tb="select"${n ? '' : ' disabled'}>${ico('select')}<span>${esc(t('Select'))}</span></button>
+      <button type="button" class="dz" data-tb="all"${n ? '' : ' disabled'}>${esc(t('Delete all'))}</button>`;
+    else { const k = pk.size; bar.classList.add('picking');
+      bar.innerHTML = `<button type="button" data-tb="pickall">${esc(k === n && n ? t('Deselect all') : t('Select all'))}</button><b class="cnt">${esc(k ? t('{n} selected', { n: k }) : t('Select items'))}</b>
+      <button type="button" class="ok" data-tb="restore"${k ? '' : ' disabled'}>${ico('restore')}<span>${esc(t('Restore'))}</span></button>
+      <button type="button" class="dz" data-tb="forever"${k ? '' : ' disabled'}>${esc(t('Delete'))}</button>
+      <button type="button" data-tb="cancel">${esc(t('Cancel'))}</button>`; }
+    bar.addEventListener('pointerdown', e => e.stopPropagation());
+    bar.addEventListener('click', e => {
+      const b = e.target.closest('[data-tb]'); if (!b || b.disabled) return; const a = b.dataset.tb;
+      if (a === 'select') { trashPick = new Set(); return refreshTrashView(); }
+      if (a === 'cancel') { trashPick = null; return refreshTrashView(); }
+      if (a === 'pickall') { trashPick = trashPick.size === f.children.length ? new Set() : new Set(f.children); return refreshTrashView(); }
+      if (a === 'restore') { const list = f.children.filter(c => trashPick.has(c)); trashPick = null; list.forEach(c => restoreFile(c, null, { quiet: true })); refreshTrashView(); return toast(`Restored ${list.length} item${list.length > 1 ? 's' : ''}`); }
+      if (a === 'forever' || a === 'all') {
+        const list = a === 'all' ? f.children.slice() : f.children.filter(c => trashPick.has(c)), m = list.length;
+        return askConfirm(m === 1 ? t('Delete “{name}” forever?', { name: list[0].name }) : t('Delete {n} items forever?', { n: m }), t('This can’t be undone.'), t('Delete'), () => {
+          list.forEach(c => trash.children.splice(trash.children.indexOf(c), 1)); trashPick = null; syncTrash(); refreshTrashView();
+          toast(`Deleted ${m} item${m > 1 ? 's' : ''} forever`);
+        });
+      }
+    });
+    view.classList.toggle('tsel', !!pk);
   }
   const space = document.createElement('div'); space.className = 'space grid'; view.append(space);
-  if (!f.children.length) { space.innerHTML = f.isTrash ? `<div class="empty"><b>${esc(t('Trash is empty'))}</b><small>${esc(t('Drag a file onto Trash in the top bar, or choose Move to Trash from its menu.'))}</small></div>` : '<div class="empty"><b>This folder is empty</b><small>Drag a file onto it to add one.</small></div>'; space.style.height = f.isTrash ? 'calc(100% - 70px)' : '100%'; return; }
+  if (!f.children.length) { space.innerHTML = f.isTrash ? `<div class="empty"><b>${esc(t('Nothing deleted'))}</b><small>${esc(t('Drag a file onto Delete in the top bar, or choose Move to Delete from its menu.'))}</small></div>` : '<div class="empty"><b>This folder is empty</b><small>Drag a file onto it to add one.</small></div>'; space.style.height = f.isTrash ? 'calc(100% - 70px)' : '100%'; return; }
   const ROW = 112, ctx = { parent: f, list: f.children, container: space, views: new Map(), grid: true };
   const geo = () => { const w = space.clientWidth || 560, cols = Math.max(2, Math.floor(w / 104)); return { cols, colW: w / cols }; };
   const slot = i => { const { cols, colW } = geo(); return { x: (i % cols) * colW + (colW - 80) / 2, y: 8 + Math.floor(i / cols) * ROW }; };
@@ -2904,8 +3016,14 @@ function buildFolder(view, f) {
   ctx.slotAt = (x, y) => { const { cols, colW } = geo(); const col = clamp(Math.round((x - (colW - 80) / 2) / colW), 0, cols - 1), row = Math.max(0, Math.round((y - 8) / ROW)); return clamp(row * cols + col, 0, f.children.length - 1); };
   ctx.bounds = () => ({ minX: -24, maxX: space.clientWidth - 56, minY: -16, maxY: space.clientHeight - 70 });
   fit();
+  if (f.isTrash) ctx.pick = (c, el) => { if (!trashPick) return false; trashPick.has(c) ? trashPick.delete(c) : trashPick.add(c); refreshTrashView(); return true; };
   f.children.forEach((c, i) => {
     const q = slot(i); const { el } = makeItem(c, ctx, q.x, q.y);
+    if (f.isTrash) {
+      if (trashPick && trashPick.has(c)) el.classList.add('picked');
+      if (!trashPick) { const rb = document.createElement('button'); rb.className = 'rbadge'; rb.type = 'button'; rb.title = t('Restore'); rb.setAttribute('aria-label', `${t('Restore')} ${c.name}`); rb.innerHTML = ico('restore');
+        rb.addEventListener('pointerdown', e => e.stopPropagation()); rb.addEventListener('click', e => { e.stopPropagation(); restoreFile(c, ctx); }); el.querySelector('.lift').append(rb); }
+    }
     if (!reduceMotion) el.querySelector('.lift').animate([{ transform: 'scale(.92)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: SPR_OPEN.d, easing: SPR_OPEN.e, delay: 40 + i * 30, fill: 'backwards' });
   });
 }
@@ -2918,7 +3036,7 @@ function buildDetail(view, f) {
     const e = extent(f.strokes), h = parseFloat(pBody.style.height) - 20 - 60 - 14, w = Math.min(parseFloat(panelEl.style.width) - 40, h * e.w / e.h);
     c.style.width = w + 'px'; c.style.height = w * e.h / e.w + 'px'; paintStrokes(c, f.strokes, w, w * e.h / e.w);
     const isCur = f === current && !W.canvas.min;
-    foot.innerHTML = `<small>${f.strokes.length ? f.strokes.length + (f.strokes.length === 1 ? ' stroke' : ' strokes') : 'Empty page'}</small><button class="cta">${f.trashed ? esc(t('Put back')) : 'Open'}</button>`;
+    foot.innerHTML = `<small>${f.strokes.length ? f.strokes.length + (f.strokes.length === 1 ? ' stroke' : ' strokes') : 'Empty page'}</small><button class="cta">${f.trashed ? esc(t('Restore')) : 'Open'}</button>`;
     foot.querySelector('.cta').addEventListener('click', () => { if (f.trashed) { popView(); return setTimeout(() => restoreFile(f), 120); } closeViewer(); setTimeout(() => loadNote(f), 140); });
   } else if (f.kind === 'image') {
     stage.innerHTML = `<img src="${f.src}" alt="${esc(f.name)}" draggable="false">`;
@@ -3440,7 +3558,7 @@ const MI = {
   save: '<path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4"/><rect x="8" y="13" width="8" height="5" rx="1"/>',
   smile: '<circle cx="12" cy="12" r="8.5"/><path d="M8.5 14a4 4 0 0 0 7 0"/><path d="M9 9.5h.01M15 9.5h.01"/>',
   select: '<circle cx="12" cy="12" r="8.5"/><path d="M8 12.3l2.7 2.7L16 9.5"/>',
-  back: '<path d="M15 6l-6 6 6 6"/>', chev: '<path d="M9 6l6 6-6 6"/>', check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  back: '<path d="M15 6l-6 6 6 6"/>', restore: '<path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4.5 4.8v3.9h3.9"/>', chev: '<path d="M9 6l6 6-6 6"/>', check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
 };
 const ico = (k, cls = '') => `<svg class="${cls}" viewBox="0 0 24 24">${MI[k]}</svg>`;
 const KIND = { note: 'Handwritten note', folder: 'Folder', image: 'Image', text: 'Text file', doc: 'Document' };
@@ -3449,23 +3567,23 @@ const ctxMenu = $('#ctxMenu'), ctxCatch = $('#ctxCatch');
 ctxCatch.addEventListener('pointerdown', e => { e.preventDefault(); closeCtx(); });
 function ctxItems(f, ctx) {
   const folder = f.kind === 'folder', note = f.kind === 'note';
-  if (f.isTrash) return [[['open', 'Open', 'move']], [['empty', 'Empty Trash', 'trash', 'danger']]];
-  if (inTrash(ctx)) return [[['restore', 'Put back', 'back'], ['info', 'Get info', 'info', 'sub']], [['delete', 'Delete now', 'trash', 'danger']]];
+  if (f.isTrash) return [[['open', 'Open', 'move']], [['empty', 'Delete all', 'trash', 'danger']]];
+  if (inTrash(ctx)) return [[['restore', 'Restore', 'restore'], ['info', 'Get info', 'info', 'sub']], [['delete', 'Delete forever', 'trash', 'danger']]];
   if (folder) return [
     [['rename', 'Rename', 'rename'], ['newnote', 'New note inside', 'newnote'], ['import', 'Import into folder', 'import']],
     [['icon', 'Change icon', 'smile'], ['sort', 'Sort items', 'sort', 'sub'], ['ungroup', 'Ungroup', 'ungroup'], ['move', 'Move to…', 'move', 'sub'], ['fav', f.fav ? 'Remove from Favourites' : 'Add to Favourites', 'fav']],
     [['home', 'Add to Home Screen', 'home'], ['share', 'Share folder…', 'share'], ['info', 'Get info', 'info', 'sub']],
-    [['delete', 'Move folder to Trash', 'trash', 'danger']],
+    [['delete', 'Move folder to Delete', 'trash', 'danger']],
   ];
   return [
     [...(note ? [['newnote', 'New note', 'newnote'], ['save', 'Save…', 'save', 'sub']] : []), ['rename', 'Rename', 'rename'], ['dup', 'Duplicate', 'dup']],
     [['move', 'Move to…', 'move', 'sub'], ['icon', 'Change icon', 'smile'], ['fav', f.fav ? 'Remove from Favourites' : 'Add to Favourites', 'fav']],
     [['home', 'Add to Home Screen', 'home'], ['share', `Share ${note ? 'note' : 'file'}…`, 'share'], ['info', 'Get info', 'info', 'sub']],
-    [['delete', 'Move to Trash', 'trash', 'danger']],
+    [['delete', 'Move to Delete', 'trash', 'danger']],
   ];
 }
 function kindIcon(f) { return f.kind === 'folder' ? MI.move.split('<path d="M10')[0] : f.kind === 'note' ? MI.canvas : f.kind === 'image' ? '<rect x="4" y="5" width="16" height="14" rx="2.5"/><path d="M4 16l4.5-4.5 4 4 2.5-2.5 5 5"/>' : MI.newnote.split('<path d="M12')[0]; }
-function menuHead(f) { if (f.isTrash) return `<button class="mhead" data-act="head" aria-label="${esc(t('Trash'))}"><span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${MI.trash}</svg></span><div><b>${esc(t('Trash'))}</b><small>${trash.children.length}</small></div>${ico('chev', 'go')}</button>`; return `<button class="mhead" data-act="head" title="Open" aria-label="Open ${esc(f.name)}"><span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${kindIcon(f)}</svg></span><div><b>${esc(f.name)}</b><small>${esc(t(KIND[f.kind]))}</small></div>${ico('chev', 'go')}</button>`; }
+function menuHead(f) { if (f.isTrash) return `<button class="mhead" data-act="head" aria-label="${esc(t('Delete'))}"><span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${MI.trash}</svg></span><div><b>${esc(t('Delete'))}</b><small>${trash.children.length}</small></div>${ico('chev', 'go')}</button>`; return `<button class="mhead" data-act="head" title="Open" aria-label="Open ${esc(f.name)}"><span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${kindIcon(f)}</svg></span><div><b>${esc(f.name)}</b><small>${esc(t(KIND[f.kind]))}</small></div>${ico('chev', 'go')}</button>`; }
 function renderMenu(groups, head) {
   ctxMenu.innerHTML = head + groups.map(g => g.map(([act, label, icon, flag]) =>
     `<button class="mi${flag === 'danger' ? ' danger' : ''}" role="menuitem" data-act="${act}">${ico(icon)}<span>${esc(t(label))}</span>${flag === 'sub' ? ico('chev', 'chev') : ''}</button>`).join('')).join('<div class="msep"></div>');
@@ -3550,11 +3668,11 @@ ctxMenu.addEventListener('click', e => {
   const { f, ctx, el } = ctxState, act = b.dataset.act;
   if (act === 'restore') { closeCtx(); return restoreFile(f, ctx); }
   if (act === 'empty') {
-    if (!b.classList.contains('arm')) { b.classList.add('arm'); b.querySelector('span').textContent = t('Tap again to empty'); return; }
+    if (!b.classList.contains('arm')) { b.classList.add('arm'); b.querySelector('span').textContent = t('Tap again to delete all'); return; }
     closeCtx(); return emptyTrash();
   }
   if (act === 'open' && f.isTrash) { closeCtx(); return openTrash(trashEl); }
-  if (act === 'delete' && !inTrash(ctx)) { closeCtx(); return deleteFile(f, ctx); }      // it can be put back, so no second tap
+  if (act === 'delete' && !inTrash(ctx)) { closeCtx(); return confirmToDelete([f], () => deleteFile(f, ctx)); }
   if (act === 'delete') {
     if (!b.classList.contains('arm')) { b.classList.add('arm'); b.querySelector('span').textContent = t('Tap again to delete'); b.animate([{ transform: 'scale(1)' }, { transform: 'scale(.96)' }, { transform: 'scale(1)' }], { duration: 300, easing: 'cubic-bezier(.32,.72,0,1)' }); return; }
     closeCtx(); return deleteFile(f, ctx);
@@ -3633,23 +3751,24 @@ function fadeOut(v) {
     { duration: 320, easing: 'cubic-bezier(.5,0,.3,1)', fill: 'forwards' }).onfinish = () => v.el.remove();
 }
 /* Trash: deleting moves a file here; it can be put back where it was, or deleted for good */
-const trash = { id: 'trash', kind: 'folder', name: 'Trash', children: [], isTrash: true };
+const trash = { id: 'trash', kind: 'folder', name: 'Delete', children: [], isTrash: true };
 const TRASH_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><g class="lid"><path d="M5 7.5h14"/><path d="M9.5 7.5V5.8a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v1.7"/></g><path d="M6.8 7.5l.9 11a2 2 0 0 0 2 1.8h4.6a2 2 0 0 0 2-1.8l.9-11"/><path d="M10.2 11v5.6M13.8 11v5.6"/></svg>';
 const inTrash = ctx => !!(ctx && ctx.parent && ctx.parent.isTrash);
+let trashPick = null;      // the Delete window's selection, or null when not selecting
 const trashEl = $('#qTrash');
 function syncTrash(gulp) {
   const n = trash.children.length, rt = $('#railTrash');
-  for (const el of [trashEl, rt]) { el.classList.toggle('full', n > 0); el.querySelector('.n').textContent = n || ''; el.setAttribute('aria-label', n ? `${t('Trash')}, ${n}` : t('Trash')); }
+  for (const el of [trashEl, rt]) { el.classList.toggle('full', n > 0); el.querySelector('.n').textContent = n || ''; el.setAttribute('aria-label', n ? `${t('Delete')}, ${n}` : t('Delete')); }
   if (gulp && !reduceMotion) { trashEl.classList.remove('gulp'); void trashEl.offsetWidth; trashEl.classList.add('gulp'); }
 }
 function trashView() { return viewer.open && viewer.stack[0] === trash; }
-function refreshTrashView() { if (!trashView()) return; viewer.stack = [trash]; renderView(0); $('#pSub').innerHTML = subtitle(trash); }
+function refreshTrashView() { if (!trashView()) { trashPick = null; return; } if (trashPick) for (const c of [...trashPick]) if (!trash.children.includes(c)) trashPick.delete(c); viewer.stack = [trash]; renderView(0); $('#pSub').innerHTML = subtitle(trash); }
 function openTrash(fromEl) {
   if (trashView() && viewer.stack.length === 1) return bringToFront('panelPos');
   openViewer(trash, fromEl);
   if (fromEl) fromEl.style.visibility = '';      // a button stays where it is
 }
-function restoreFile(f, ctx) {
+function restoreFile(f, ctx, opt = {}) {
   const i = trash.children.indexOf(f); if (i < 0) return;
   trash.children.splice(i, 1);
   const v = ctx && ctx.views.get(f.id); if (v) { ctx.views.delete(f.id); fadeOut(v); if (ctx.layout) setTimeout(() => ctx.layout(), 200); }
@@ -3662,12 +3781,12 @@ function restoreFile(f, ctx) {
   }
   syncTrash(); afterTreeChange(); if (fullKey === 'files') syncFilesBar();
   if (!v) refreshTrashView();
-  toast(`Put “${f.name}” back in ${dest ? dest.name : 'Files'}`);
+  if (!opt.quiet) toast(`Restored “${f.name}” to ${dest ? dest.name : 'Files'}`);
 }
 function emptyTrash() {
   const n = trash.children.length; if (!n) return;
   trash.children.length = 0; syncTrash(); refreshTrashView();
-  toast(`Deleted ${n} item${n > 1 ? 's' : ''} for good`);
+  toast(`Deleted ${n} item${n > 1 ? 's' : ''} forever`);
 }
 function deleteFile(f, ctx, opt = {}) {
   const v = ctx.views.get(f.id), forever = inTrash(ctx);
@@ -3681,11 +3800,11 @@ function deleteFile(f, ctx, opt = {}) {
     else { const n = mk.note('Untitled'); root.unshift(n); const spot = freeSpot(rootCtx, area()); makeItem(n, rootCtx, spot.x, spot.y, 'pop'); loadNote(n); }
   }
   if (ctx.layout) setTimeout(() => ctx.layout(), 200);
-  if (forever) { syncTrash(); afterTreeChange(); return toast(`Deleted “${f.name}” for good`); }
+  if (forever) { syncTrash(); afterTreeChange(); return toast(`Deleted “${f.name}” forever`); }
   f.trashed = Date.now(); f.from = ctx.parent ? ctx.parent.id : null; delete f._pos;
   trash.children.unshift(f); syncTrash(true); afterTreeChange(); if (fullKey === 'files') { syncFilesBar(); fullGrid(); }
   refreshTrashView();
-  if (!opt.quiet) toast(`Moved “${f.name}” to Trash`);
+  if (!opt.quiet) toast(`Moved “${f.name}” to Delete`);
 }
 trashEl.addEventListener('click', () => openTrash(trashEl));
 $('#railTrash').addEventListener('click', e => openTrash(e.currentTarget));
@@ -3825,12 +3944,13 @@ function togglePick(f, el) {
 function syncSelBar() {
   const n = selSet.size; $('#selCount').textContent = n ? t('{n} selected', { n }) : t('Select files');
   $('#sbGroup').disabled = n < 2; $('#sbIcon').disabled = !n; $('#sbDel').disabled = !n;
-  const d = $('#sbDel'); d.classList.remove('arm'); d.querySelector('span').textContent = t('Move to Trash');
+  const d = $('#sbDel'); d.classList.remove('arm'); d.querySelector('span').textContent = t('Move to Delete');
 }
 $('#sbIcon').addEventListener('click', () => openEmojiPop({ anchor: $('#sbIcon'), targets: root.filter(f => selSet.has(f)) }));
 $('#sbDel').addEventListener('click', () => {
   const d = $('#sbDel'), list = root.filter(f => selSet.has(f));
-  list.forEach(f => deleteFile(f, rootCtx, { quiet: true })); endSelect(); toast(`Moved ${list.length} file${list.length > 1 ? 's' : ''} to Trash`);
+  if (!list.length) return;
+  confirmToDelete(list, () => { list.forEach(f => deleteFile(f, rootCtx, { quiet: true })); endSelect(); toast(`Moved ${list.length} file${list.length > 1 ? 's' : ''} to Delete`); });
 });
 $('#sbGroup').addEventListener('click', () => {
   const list = root.filter(f => selSet.has(f)); if (list.length < 2) return;

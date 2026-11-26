@@ -57,6 +57,34 @@ const I18N = {
   'Saved': ['Đã lưu', '保存済み', '저장됨', 'Enregistrée', '已保存'],
   'Closed': ['Đã đóng', '閉じています', '닫힘', 'Fermée', '已关闭'],
   'Open': ['Mở', '開く', '열기', 'Ouvrir', '打开'],
+  'Skip': ['Bỏ qua', 'スキップ', '건너뛰기', 'Passer', '跳过'],
+  'Next': ['Tiếp', '次へ', '다음', 'Suivant', '下一步'],
+  'Back': ['Quay lại', '戻る', '이전', 'Retour', '返回'],
+  'Show button tips': ['Xem hướng dẫn nút', 'ボタンのヒントを表示', '버튼 도움말 보기', 'Voir l’aide des boutons', '查看按钮提示'],
+  'Starts a blank page. Apple Pencil draws, one finger scrolls, two fingers zoom (25% to 400%).': ['Mở một trang trắng. Apple Pencil để viết, một ngón để cuộn, hai ngón để phóng to thu nhỏ (25% đến 400%).', '白紙のページを開きます。Apple Pencilで書き、1本指でスクロール、2本指でズーム(25%〜400%)。', '빈 페이지를 엽니다. Apple Pencil로 쓰고, 한 손가락으로 스크롤, 두 손가락으로 확대·축소(25%~400%).', 'Ouvre une page vierge. Apple Pencil écrit, un doigt fait défiler, deux doigts zooment (25 % à 400 %).', '新建空白页。Apple Pencil 书写，单指滚动，双指缩放（25% 到 400%）。'],
+  'Brings in photos, PDFs and text files from your iPad.': ['Đưa ảnh, PDF và tệp văn bản từ iPad vào.', 'iPadから写真、PDF、テキストを取り込みます。', 'iPad의 사진, PDF, 텍스트 파일을 가져옵니다.', 'Importe photos, PDF et fichiers texte depuis l’iPad.', '从 iPad 导入照片、PDF 和文本文件。'],
+  'Puts two to four notes or files side by side.': ['Đặt hai đến bốn ghi chú hoặc tệp cạnh nhau.', '2〜4つのノートやファイルを並べて表示します。', '노트나 파일 2~4개를 나란히 놓습니다.', 'Affiche deux à quatre notes ou fichiers côte à côte.', '并排显示两到四个笔记或文件。'],
+  'Shows every file at once, sorted by date, name, type, size or favourites.': ['Hiện tất cả tệp, sắp xếp theo ngày, tên, loại, dung lượng hoặc yêu thích.', 'すべてのファイルを日付・名前・種類・サイズ・お気に入りで並べて表示します。', '모든 파일을 날짜, 이름, 종류, 크기, 즐겨찾기 순으로 보여줍니다.', 'Montre tous les fichiers, triés par date, nom, type, taille ou favoris.', '显示全部文件，可按日期、名称、类型、大小或收藏排序。'],
+  'Deleted files wait here. Restore them, or delete them forever. Drag a file onto this button to delete it.': ['Tệp đã xoá nằm ở đây. Khôi phục hoặc xoá vĩnh viễn. Kéo tệp vào nút này để xoá.', '削除したファイルはここに残ります。復元するか完全に削除できます。このボタンにドラッグして削除。', '삭제한 파일은 여기 남아요. 복원하거나 영구 삭제하세요. 파일을 이 버튼으로 끌어 삭제할 수 있어요.', 'Les fichiers supprimés attendent ici. Restaurez-les ou supprimez-les définitivement. Glissez un fichier ici pour le supprimer.', '删除的文件留在这里，可恢复或永久删除。把文件拖到此按钮即可删除。'],
+  'How’s today': ['Hôm nay thế nào', '今日の気分', '오늘 기분', 'Votre journée', '今天怎么样'],
+  'Pick an emoji for today. Tap the date to see your calendar.': ['Chọn emoji cho hôm nay. Chạm vào ngày để xem lịch.', '今日の絵文字を選びます。日付をタップでカレンダー。', '오늘의 이모지를 고르세요. 날짜를 누르면 달력이 열려요.', 'Choisissez un emoji pour aujourd’hui. Touchez la date pour le calendrier.', '为今天选个表情。点日期查看日历。'],
+  'Olaa apps': ['Ứng dụng Olaa', 'Olaaアプリ', 'Olaa 앱', 'Apps Olaa', 'Olaa 应用'],
+  'Opens Olaa Language and Olaa Habits.': ['Mở Olaa Language và Olaa Habits.', 'Olaa LanguageとOlaa Habitsを開きます。', 'Olaa Language와 Olaa Habits를 엽니다.', 'Ouvre Olaa Language et Olaa Habits.', '打开 Olaa Language 和 Olaa Habits。'],
+  'Switches the interface language.': ['Đổi ngôn ngữ giao diện.', '表示言語を切り替えます。', '화면 언어를 바꿉니다.', 'Change la langue de l’interface.', '切换界面语言。'],
+  'Light or dark': ['Sáng hoặc tối', 'ライト/ダーク', '라이트 또는 다크', 'Clair ou sombre', '浅色或深色'],
+  'Switches between light and dark.': ['Chuyển giữa giao diện sáng và tối.', 'ライトとダークを切り替えます。', '라이트와 다크를 전환합니다.', 'Passe du clair au sombre.', '在浅色和深色之间切换。'],
+  'Colours': ['Màu', '色', '색상', 'Couleurs', '颜色'],
+  'Tap a colour to write with it. The last dot opens the full palette and your recent colours.': ['Chạm một màu để viết. Chấm cuối mở bảng màu đầy đủ và màu gần đây.', '色をタップして書きます。最後の丸で全色と最近の色を開きます。', '색을 눌러 쓰세요. 마지막 점은 전체 팔레트와 최근 색을 엽니다.', 'Touchez une couleur pour écrire. Le dernier point ouvre la palette et vos couleurs récentes.', '点颜色即可书写。最后一个圆点打开完整调色板和最近颜色。'],
+  'Tools': ['Công cụ', 'ツール', '도구', 'Outils', '工具'],
+  'Pen, pencil, highlighter, eraser, text and lasso. Tap a tool again for its size and style.': ['Bút mực, bút chì, bút dạ, tẩy, chữ và lasso. Chạm lần nữa để chọn cỡ và kiểu.', 'ペン、鉛筆、マーカー、消しゴム、テキスト、なげなわ。もう一度タップで太さとスタイル。', '펜, 연필, 형광펜, 지우개, 텍스트, 올가미. 한 번 더 누르면 굵기와 스타일.', 'Stylo, crayon, surligneur, gomme, texte et lasso. Touchez à nouveau pour la taille et le style.', '钢笔、铅笔、荧光笔、橡皮、文字和套索。再点一次调整粗细和样式。'],
+  'Page': ['Trang', 'ページ', '페이지', 'Page', '页面'],
+  'Paper style, and the canvas: fit the window or a fixed frame like 1920 × 1080.': ['Kiểu giấy và khổ: vừa cửa sổ hoặc khung cố định như 1920 × 1080.', '紙の種類とキャンバス:ウィンドウに合わせるか、1920 × 1080などの固定枠。', '종이 스타일과 캔버스: 창에 맞춤 또는 1920 × 1080 같은 고정 프레임.', 'Style de papier et format : la fenêtre entière ou un cadre fixe comme 1920 × 1080.', '纸张样式和画布：适应窗口，或固定画框如 1920 × 1080。'],
+  'The toolbar moves': ['Thanh công cụ di chuyển được', 'ツールバーは動かせます', '도구 막대를 옮길 수 있어요', 'La barre se déplace', '工具栏可以移动'],
+  'Drag it to any edge or corner. Drop it at the middle of the left or right edge to fold it into a circle.': ['Kéo tới cạnh hoặc góc bất kỳ. Thả ở giữa cạnh trái hoặc phải để thu thành hình tròn.', '端や角へドラッグ。左右の端の中央で離すと丸く畳めます。', '아무 가장자리나 모서리로 끌어 놓으세요. 왼쪽이나 오른쪽 가장자리 가운데에 놓으면 원으로 접혀요.', 'Glissez-la vers un bord ou un coin. Au milieu du bord gauche ou droit, elle se replie en cercle.', '拖到任意边或角。放在左右边缘中间会收成圆形。'],
+  'Window buttons': ['Nút cửa sổ', 'ウィンドウのボタン', '창 버튼', 'Boutons de fenêtre', '窗口按钮'],
+  'Red closes, yellow sets the window to 75%, green goes full screen.': ['Đỏ để đóng, vàng đưa cửa sổ về 75%, xanh để toàn màn hình.', '赤で閉じる、黄で75%、緑でフルスクリーン。', '빨강은 닫기, 노랑은 75% 창, 초록은 전체 화면.', 'Rouge ferme, jaune passe à 75 %, vert en plein écran.', '红色关闭，黄色设为 75%，绿色全屏。'],
+  'Files on the desk': ['Tệp trên màn hình', 'デスクのファイル', '데스크의 파일', 'Fichiers sur le bureau', '桌面上的文件'],
+  'Tap to open, press and hold for the menu, hold one file over another to make a folder.': ['Chạm để mở, giữ để mở menu, giữ một tệp lên tệp khác để tạo thư mục.', 'タップで開く、長押しでメニュー、重ねて待つとフォルダに。', '눌러서 열고, 길게 눌러 메뉴, 파일을 다른 파일 위에 올려 두면 폴더가 돼요.', 'Touchez pour ouvrir, maintenez pour le menu, posez un fichier sur un autre pour créer un dossier.', '点按打开，长按出菜单，把一个文件停在另一个上方即可建文件夹。'],
   'Move to Delete': ['Chuyển vào mục Xoá', '「削除」へ移動', '삭제 항목으로 이동', 'Déplacer vers Supprimés', '移到“删除”'],
   'Move folder to Delete': ['Chuyển thư mục vào mục Xoá', 'フォルダを「削除」へ移動', '폴더를 삭제 항목으로 이동', 'Déplacer le dossier vers Supprimés', '将文件夹移到“删除”'],
   'Restore': ['Khôi phục', '復元', '복원', 'Restaurer', '恢复'],
@@ -2222,6 +2250,55 @@ $('#cfOk').addEventListener('click', () => confirmDone && confirmDone(true));
 $('#cfNo').addEventListener('click', () => confirmDone && confirmDone(false));
 $('#confirmCatch').addEventListener('pointerdown', e => { e.preventDefault(); confirmDone && confirmDone(false); });
 addEventListener('keydown', e => { if (!confirmDone) return; if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); confirmDone(false); } }, true);
+/* first visit: a short tour of the buttons, one at a time (replay it from the menu on empty space) */
+const TOUR = [
+  ['#qNew', 'New note', 'Starts a blank page. Apple Pencil draws, one finger scrolls, two fingers zoom (25% to 400%).'],
+  ['#qImport', 'Import', 'Brings in photos, PDFs and text files from your iPad.'],
+  ['#qSplit', 'Split', 'Puts two to four notes or files side by side.'],
+  ['#qFiles', 'Files', 'Shows every file at once, sorted by date, name, type, size or favourites.'],
+  ['#qTrash', 'Delete', 'Deleted files wait here. Restore them, or delete them forever. Drag a file onto this button to delete it.'],
+  ['#moodBtn', 'How’s today', 'Pick an emoji for today. Tap the date to see your calendar.'],
+  ['#topbar .apps', 'Olaa apps', 'Opens Olaa Language and Olaa Habits.'],
+  ['#langBtn', 'Language', 'Switches the interface language.'],
+  ['#themeTg', 'Light or dark', 'Switches between light and dark.'],
+  ['#swatches', 'Colours', 'Tap a colour to write with it. The last dot opens the full palette and your recent colours.'],
+  ['#toolBtns', 'Tools', 'Pen, pencil, highlighter, eraser, text and lasso. Tap a tool again for its size and style.'],
+  ['#pageBtn', 'Page', 'Paper style, and the canvas: fit the window or a fixed frame like 1920 × 1080.'],
+  ['#dock .win', 'The toolbar moves', 'Drag it to any edge or corner. Drop it at the middle of the left or right edge to fold it into a circle.'],
+  ['#sheet .lights', 'Window buttons', 'Red closes, yellow sets the window to 75%, green goes full screen.'],
+  ['#files > .item', 'Files on the desk', 'Tap to open, press and hold for the menu, hold one file over another to make a folder.'],
+];
+let tour = null;
+function tourSteps() { return TOUR.filter(([q]) => { const el = $(q); return el && el.getClientRects().length && getComputedStyle(el).visibility !== 'hidden'; }); }
+function startTour() {
+  closePop && closePop(); closeToolPop && closeToolPop(); if (ctxState) closeCtx(true);
+  const steps = tourSteps(); if (!steps.length) return;
+  tour = { steps, i: 0 }; $('#tourRing').hidden = false; $('#tourTip').hidden = false;
+  showTourStep(true);
+}
+function showTourStep(first) {
+  const [q, title, body] = tour.steps[tour.i], el = $(q), r = el.getBoundingClientRect(), ring = $('#tourRing'), tip = $('#tourTip');
+  const pad = 6, rr = parseFloat(getComputedStyle(el).borderTopLeftRadius) || 12;
+  Object.assign(ring.style, { left: r.left - pad + 'px', top: r.top - pad + 'px', width: r.width + pad * 2 + 'px', height: r.height + pad * 2 + 'px', borderRadius: Math.min(40, rr + pad) + 'px' });
+  $('#tourN').textContent = `${tour.i + 1} / ${tour.steps.length}`; $('#tourT').textContent = t(title); $('#tourP').textContent = t(body);
+  $('#tourBack').hidden = tour.i === 0; $('#tourNext').textContent = tour.i === tour.steps.length - 1 ? t('Done') : t('Next'); $('#tourSkip').textContent = t('Skip');
+  const tw = tip.offsetWidth, th = tip.offsetHeight, below = r.bottom + 14 + th < vh() - 8;
+  const x = clamp(r.left + r.width / 2 - tw / 2, 12, vw() - tw - 12), y = below ? r.bottom + 14 : Math.max(12, r.top - 14 - th);
+  tip.style.left = x + 'px'; tip.style.top = y + 'px';
+  if (first && !reduceMotion) tip.animate([{ opacity: 0, scale: '.92' }, { opacity: 1, scale: '1' }], { duration: SPR_OPEN.d, easing: SPR_OPEN.e });
+  $('#tourNext').focus({ preventScroll: true });
+}
+function endTour() {
+  if (!tour) return; tour = null; $('#tourRing').hidden = true; $('#tourTip').hidden = true;
+  try { localStorage.setItem('olaa-tour', '1'); } catch (_) {}
+}
+$('#tourNext').addEventListener('click', () => { if (tour.i >= tour.steps.length - 1) return endTour(); tour.i++; showTourStep(); });
+$('#tourBack').addEventListener('click', () => { if (tour.i > 0) { tour.i--; showTourStep(); } });
+$('#tourSkip').addEventListener('click', endTour);
+addEventListener('keydown', e => { if (!tour) return; if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); endTour(); } else if (e.key === 'ArrowRight') $('#tourNext').click(); else if (e.key === 'ArrowLeft') $('#tourBack').click(); }, true);
+addEventListener('resize', () => { if (tour) showTourStep(); });
+{ let seen = false; try { seen = localStorage.getItem('olaa-tour') === '1' || /[?&]notour\b/.test(location.search); } catch (_) {}
+  if (!seen && !navigator.webdriver) setTimeout(() => { if (!tour && !fullKey) startTour(); }, 1600); }
 function confirmToDelete(list, go) {
   const one = list.length === 1;
   askConfirm(one ? t('Move “{name}” to Delete?', { name: list[0].name }) : t('Move {n} items to Delete?', { n: list.length }),
@@ -3903,7 +3980,7 @@ function openBgMenu(x, y) {
   closeCtx(true); closePop(); closeToolPop();
   Object.assign(bgAnchor.style, { left: x + 'px', top: y + 'px' });
   ctxState = { f: null, ctx: rootCtx, el: bgAnchor, bg: true };
-  const rows = [['select', 'Select files', 'select'], ['icons', 'Change file icons', 'smile'], ['newfolder', 'New folder', 'move'], ['tidy', 'Tidy up', 'sort']];
+  const rows = [['select', 'Select files', 'select'], ['icons', 'Change file icons', 'smile'], ['newfolder', 'New folder', 'move'], ['tidy', 'Tidy up', 'sort'], ['tour', 'Show button tips', 'info']];
   ctxMenu.innerHTML = `<div class="mhead"><span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 7.5A2.5 2.5 0 0 1 6 5h3.6l2 2H18a2.5 2.5 0 0 1 2.5 2.5v7A2.5 2.5 0 0 1 18 19H6a2.5 2.5 0 0 1-2.5-2.5z"/></svg></span><div><b>Files</b><small>${root.length} on this screen</small></div></div>`
     + rows.slice(0, 2).map(([a, l, i]) => `<button class="mi" data-bg="${a}">${ico(i)}<span>${esc(t(l))}</span></button>`).join('') + '<div class="msep"></div>'
     + rows.slice(2).map(([a, l, i]) => `<button class="mi" data-bg="${a}">${ico(i)}<span>${esc(t(l))}</span></button>`).join('')
@@ -3911,6 +3988,7 @@ function openBgMenu(x, y) {
   ctxMenu.onclick = e => {
     const b = e.target.closest('[data-bg]'); if (!b) return; const a = b.dataset.bg; closeCtx();
     if (a === 'select') startSelect();
+    if (a === 'tour') return setTimeout(startTour, 200);
     if (a === 'icons') { startSelect(); toast('Tap the files to change, then tap Change icon'); }
     if (a === 'newfolder') {
       const fo = mk.folder('New folder', []); root.push(fo);

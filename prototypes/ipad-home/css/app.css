@@ -180,6 +180,10 @@ body[data-full="canvas"] #files *, body[data-full="today"] #files * { pointer-ev
 .moods[hidden] { display: none !important; }
 .qb { display: inline-flex; align-items: center; gap: 5.4px; height: 32.4px; padding: 0 10.8px 0 8.1px; border-radius: 899.1px; font-size: 11.2px; font-weight: 600; flex: none;
   background: var(--glass); box-shadow: inset 0 1px .5px var(--rim); transition: transform .45s cubic-bezier(.3,1.7,.5,1), background .25s; }
+/* icon-only top-bar buttons: the name shows on hover and in the first-run tour */
+.qb.ico { width: 32.4px; padding: 0; justify-content: center; position: relative; }
+.qb.ico > span { display: none; }
+.qb.ico > .n { position: absolute; top: -3px; right: -4px; min-width: 15px !important; height: 15px !important; line-height: 15px !important; padding: 0 4px !important; font-size: 9px !important; }
 .qb svg { width: 15.3px; height: 15.3px; }
 .qb:hover { background: var(--glass-hi); } .qb:active { transform: scale(.92); }
 #emojiPop { position: fixed; z-index: 63; left: 0; top: 0; width: 360px; max-width: calc(100vw - 20px); border-radius: 26px; padding: 14px 12px 12px; display: grid; gap: 6px; }
@@ -701,6 +705,20 @@ body.trash-hot .item.dragging .lift { scale: .62; opacity: .8; transition: scale
 .trashbar button.arm { color: #fff; background: var(--danger, #d8463a); }
 .trashbar button:disabled { opacity: .4; }
 .item .tile .gone { position: absolute; left: 50%; bottom: -1px; transform: translateX(-50%); font-size: 8.5px; font-weight: 600; color: var(--ink-2); white-space: nowrap; }
+#tourRing { position: fixed; z-index: 90; pointer-events: none; border-radius: 16px; box-shadow: 0 0 0 2px var(--accent), 0 0 0 7px color-mix(in srgb, var(--accent) 22%, transparent), 0 0 0 9999px color-mix(in srgb, var(--ink) 16%, transparent);
+  transition: left .45s cubic-bezier(.3,1.2,.4,1), top .45s cubic-bezier(.3,1.2,.4,1), width .45s cubic-bezier(.3,1.2,.4,1), height .45s cubic-bezier(.3,1.2,.4,1); }
+#tourTip { position: fixed; z-index: 91; width: min(290px, calc(100vw - 24px)); display: grid; gap: 4px; padding: 14px 16px 12px; border-radius: 22px;
+  transition: left .45s cubic-bezier(.3,1.2,.4,1), top .45s cubic-bezier(.3,1.2,.4,1); }
+#tourTip small { font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
+#tourTip b { font-size: 15px; font-weight: 650; letter-spacing: -.01em; }
+#tourTip p { margin: 0; font-size: 12.5px; line-height: 1.45; color: var(--ink-2); }
+#tourTip .tact { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+#tourTip .tact span { flex: 1; }
+#tourTip button { height: 32px; padding: 0 13px; border-radius: 99px; font: 600 12px var(--font); color: var(--ink-2); }
+#tourTip button:hover { background: var(--glass-hi); }
+#tourTip button.go { color: #fff; background: var(--accent); }
+#tourTip button:active { transform: scale(.94); }
+#tourTip button[hidden] { display: none; }
 #confirmCatch { position: fixed; inset: 0; z-index: 88; background: color-mix(in srgb, var(--bg) 30%, transparent); }
 #confirmBox { position: fixed; z-index: 89; left: 50%; top: 50%; translate: -50% -50%; width: min(320px, calc(100vw - 32px)); display: grid; gap: 6px; padding: 18px 18px 14px; border-radius: 26px; text-align: center; }
 #confirmBox b { font-size: 15px; font-weight: 650; letter-spacing: -.01em; overflow-wrap: anywhere; }

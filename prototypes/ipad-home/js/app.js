@@ -248,12 +248,12 @@ function springEase(k, d, fallback) {
     if (Math.abs(x - 1) < .0015 && Math.abs(v) < .02) break;
   }
   pts.push(1);
-  return { e: hasLinear ? `linear(${pts.join(',')})` : fallback, d: reduceMotion ? 1 : Math.round(t * 1000) };
+  return { e: hasLinear ? `linear(${pts.join(',')})` : fallback, d: reduceMotion ? 1 : Math.round(t * 1000 * .85) };
 }
-const SPR = springEase(170, 17, 'cubic-bezier(.3,1.5,.5,1)');
-const SPR_FAST = springEase(320, 26, 'cubic-bezier(.3,1.3,.5,1)');
-const SPR_SOFT = springEase(150, 21, 'cubic-bezier(.2,1.1,.3,1)');
-const SPR_OPEN = springEase(210, 23, 'cubic-bezier(.2,.95,.3,1)');   // file opening: barely overshoots
+const SPR = springEase(170, 17.8, 'cubic-bezier(0.3,1.425,0.5,1)');
+const SPR_FAST = springEase(320, 26, 'cubic-bezier(0.3,1.255,0.5,1)');
+const SPR_SOFT = springEase(150, 21.6, 'cubic-bezier(0.2,1.085,0.3,1)');
+const SPR_OPEN = springEase(210, 23.6, 'cubic-bezier(0.2,0.95,0.3,1)');   // file opening: barely overshoots
 document.documentElement.style.setProperty('--spr-e', SPR_SOFT.e);
 document.documentElement.style.setProperty('--spr-d', SPR_SOFT.d + 'ms');
 
@@ -307,7 +307,7 @@ function resolveCollisions() {
         if (body.mode === 'rest') body.mode = 'free';
         if (!body.bumped) {
           body.bumped = true; const l = body.el.querySelector('.lift');
-          if (l && !reduceMotion) l.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.04, .97)' }, { transform: 'scale(1)' }], { duration: 360, easing: 'cubic-bezier(.3,1.6,.5,1)' });
+          if (l && !reduceMotion) l.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.04, .97)' }, { transform: 'scale(1)' }], { duration: 306, easing: 'cubic-bezier(0.3,1.51,0.5,1)' });
           setTimeout(() => body.bumped = false, 380);
         }
         wake(body);
@@ -375,7 +375,7 @@ class Body {
       else busy = true;
     }
     if (this.tiltK) {
-      const target = this.mode === 'rest' ? 0 : clamp(this.vx * .006, -7, 7) * this.tiltK;
+      const target = this.mode === 'rest' ? 0 : clamp(this.vx * .0051, -6, 6) * this.tiltK;
       this.tilt += (target - this.tilt) * Math.min(1, dt * 11);
       if (Math.abs(this.tilt) > .02 || Math.abs(target) > .02) busy = true; else this.tilt = 0;
     }
@@ -460,7 +460,7 @@ function morph(inner, mutate, opts = {}) {
   inner.animate([
     { transform: `translate(${(a.left - b.left) / ps}px,${(a.top - b.top) / ps}px) scale(${a.width / b.width},${a.height / b.height})` },
     { transform: 'none' }], { duration: (opts.spr || SPR_OPEN).d, easing: (opts.spr || SPR_OPEN).e });
-  for (const c of inner.children) if (!c.classList.contains('lights')) c.animate([{ opacity: 0 }, { opacity: 0, offset: .2 }, { opacity: 1 }], { duration: 360, easing: 'cubic-bezier(.2,.8,.2,1)' });
+  for (const c of inner.children) if (!c.classList.contains('lights')) c.animate([{ opacity: 0 }, { opacity: 0, offset: .2 }, { opacity: 1 }], { duration: 306, easing: 'cubic-bezier(0.2,0.8,0.2,1)' });
 }
 
 /* ---------- day mood (Apple emoji images) ---------- */
@@ -736,7 +736,7 @@ function toggleMoodRow(open) {
   }, { spr: SPR_OPEN });
   if (open) {
     if (current.mood != null && moodsEl.querySelector(`[data-i="${current.mood}"]`)) { slidePill(moodPill, moodsEl.querySelector(`[data-i="${current.mood}"]`), true); moodPill.classList.add('on'); } else moodPill.classList.remove('on');
-    moodsEl.querySelectorAll('.mood').forEach((b, i) => b.animate([{ opacity: 0, transform: 'scale(.6)' }, { opacity: 1, transform: 'none' }], { duration: SPR.d, easing: SPR.e, delay: i * 22, fill: 'backwards' }));
+    moodsEl.querySelectorAll('.mood').forEach((b, i) => b.animate([{ opacity: 0, transform: 'scale(.66)' }, { opacity: 1, transform: 'none' }], { duration: SPR.d, easing: SPR.e, delay: i * 22, fill: 'backwards' }));
   }
 }
 moodBtn.addEventListener('click', () => emojiOpen ? closeEmojiPop() : openEmojiPop());
@@ -778,7 +778,7 @@ function fillCategory(sec) {
   if (sec.dataset.done || !allEmoji) return; sec.dataset.done = '1';
   const rows = allEmoji.cats.find(c => c[0] === sec.dataset.g)[1];
   sec.querySelector('.egrid').innerHTML = rows.map(([u, n]) => `<button data-u="${u}" title="${esc(n)}" aria-label="${esc(n)}">${emoImg(u, 28, 'emo', '', ' loading="lazy" decoding="async"')}</button>`).join('');
-  sec.querySelector('.egrid').animate([{ opacity: 0 }, { opacity: 1 }], { duration: 260 });
+  sec.querySelector('.egrid').animate([{ opacity: 0 }, { opacity: 1 }], { duration: 221 });
 }
 let io = null;
 function buildPicker() {
@@ -842,12 +842,12 @@ function openEmojiPop(opts = {}) {
   const below = r.bottom + 12 + h < vh() - 8 || r.top < vh() / 2;
   emojiPop.style.left = clamp(r.left + r.width / 2 - w / 2, 10, vw() - w - 10) + 'px'; emojiPop.style.top = clamp(below ? r.bottom + 12 : r.top - h - 12, 8, vh() - h - 8) + 'px';
   emojiPop.style.transformOrigin = `${r.left + r.width / 2 - parseFloat(emojiPop.style.left)}px 0px`;
-  emojiPop.animate([{ opacity: 0, transform: 'scale(.9) translateY(-6px)' }, { opacity: 1, transform: 'none' }], { duration: SPR_OPEN.d, easing: SPR_OPEN.e });
+  emojiPop.animate([{ opacity: 0, transform: 'scale(.915) translateY(-6px)' }, { opacity: 1, transform: 'none' }], { duration: SPR_OPEN.d, easing: SPR_OPEN.e });
   setTimeout(loadAllEmoji, 400);
 }
 function closeEmojiPop() {
   if (!emojiOpen) return; emojiOpen = false; pickFor = null;
-  emojiPop.animate([{ opacity: 1 }, { opacity: 0, transform: 'scale(.95)' }], { duration: 160 }).onfinish = () => { if (!emojiOpen) emojiPop.hidden = true; };
+  emojiPop.animate([{ opacity: 1 }, { opacity: 0, transform: 'scale(.958)' }], { duration: 136 }).onfinish = () => { if (!emojiOpen) emojiPop.hidden = true; };
 }
 document.addEventListener('pointerdown', e => {
   if (emojiOpen && !e.target.closest('#emojiPop, #moodBtn')) closeEmojiPop();
@@ -867,7 +867,7 @@ function setMood(i, user) {
     if (target && !moodsEl.hidden) { slidePill(moodPill, target, !moodPill.classList.contains('on')); moodPill.classList.add('on'); }
     applyPalette(MOODS[i].c);
     if (user && !reduceMotion) ripple(target && !moodsEl.hidden ? target : moodBtn, MOODS[i].c[0]);
-    if (user) moodBtn.animate([{ transform: 'scale(.6) rotate(-12deg)' }, { transform: 'none' }], { duration: SPR.d, easing: SPR.e });
+    if (user) moodBtn.animate([{ transform: 'scale(.66) rotate(-12deg)' }, { transform: 'none' }], { duration: SPR.d, easing: SPR.e });
   }
   updateMeta(); renderToday(); if (popApp) renderPop(popApp);
 }
@@ -877,7 +877,7 @@ function ripple(el, color) {
   d.style.background = `radial-gradient(closest-side, ${color}, transparent)`;
   document.body.append(d);
   const scale = Math.hypot(vw(), vh()) / 14;
-  d.animate([{ transform: 'scale(.2)', opacity: .9 }, { transform: `scale(${scale})`, opacity: 0 }], { duration: 1400, easing: 'cubic-bezier(.2,.7,.2,1)' }).onfinish = () => d.remove();
+  d.animate([{ transform: 'scale(.32)', opacity: .9 }, { transform: `scale(${scale})`, opacity: 0 }], { duration: 1190, easing: 'cubic-bezier(0.2,0.7,0.2,1)' }).onfinish = () => d.remove();
 }
 const fmt = new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
 const todayStr = fmt.format(new Date());
@@ -899,11 +899,11 @@ function openPop(key, btn) {
   popApp = key; renderPop(key); appPop.hidden = false;
   const r = btn.getBoundingClientRect(), w = appPop.offsetWidth;
   appPop.style.left = clamp(r.left + r.width / 2 - w / 2, 12, vw() - w - 12) + 'px'; appPop.style.top = r.bottom + 14 + 'px';
-  appPop.animate([{ opacity: 0, transform: 'translateY(-10px) scale(.9)' }, { opacity: 1, transform: 'none' }], { duration: SPR.d, easing: SPR.e });
+  appPop.animate([{ opacity: 0, transform: 'translateY(-10px) scale(.915)' }, { opacity: 1, transform: 'none' }], { duration: SPR.d, easing: SPR.e });
 }
 function closePop() {
   if (!popApp) return; popApp = null;
-  appPop.animate([{ opacity: 1 }, { opacity: 0, transform: 'translateY(-6px) scale(.96)' }], { duration: 180 }).onfinish = () => { if (!popApp) appPop.hidden = true; };
+  appPop.animate([{ opacity: 1 }, { opacity: 0, transform: 'translateY(-6px) scale(.966)' }], { duration: 153 }).onfinish = () => { if (!popApp) appPop.hidden = true; };
 }
 document.querySelectorAll('#topbar .app').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); openPop(b.dataset.app, b); }));
 document.addEventListener('pointerdown', e => { if (popApp && !e.target.closest('#appPop, #topbar .app')) closePop(); });
@@ -963,18 +963,18 @@ function renderDay() {
     <section class="card habits"><h3><span class="app app-habit sm"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.2" stroke-opacity=".38"/><path d="M12 4.8a7.2 7.2 0 1 1-6.85 4.97"/></svg></span>Habits<small>${done.size} of ${HABITS.length} done${ago > 0 && !touched.has(selKey) ? ' · sample' : ''}</small>${ringSvg(done.size / HABITS.length)}</h3>
       <div class="hlist">${HABITS.map(([id, n, e, from]) => `<button class="hab${done.has(id) ? ' on' : ''}" data-h="${id}" aria-pressed="${done.has(id)}"><span class="ck"><svg viewBox="0 0 24 24"><path d="M6 12.5l4 4 8-9"/></svg></span>${emoU(e, 20)}<span class="hn">${esc(n)}</span>${from === 'lang' ? '<span class="from"><span class="app app-lang xs"><span class="gl">Aa</span></span>Language</span>' : ''}</button>`).join('')}</div>
       <p class="note-s">Streak: ${streak()} day${streak() === 1 ? '' : 's'} with at least half done.</p></section>
-    <section class="card"><h3>Notes<small>${notes.length || 'none'}</small></h3>${notes.length ? `<div class="chips">${notes.map(f => `<button class="chip" data-id="${f.id}">${f.mood != null ? emo(f.mood, 16) : ''}${esc(f.name)}<small>${f.strokes.length} stroke${f.strokes.length === 1 ? '' : 's'}</small></button>`).join('')}</div>` : '<p class="note-s">No notes this day.</p>'}</section>
+    <section class="card"><h3>Notes<small>${notes.length || 'none'}</small></h3>${notes.length ? `<div class="chips">${notes.map(f => `<button class="chip" data-id="${f.id}">${f.mood != null ? emo(f.mood, 16) : ''}${esc(f.name)}</button>`).join('')}</div>` : '<p class="note-s">No notes this day.</p>'}</section>
     <section class="card"><h3><span class="app app-lang sm"><span class="gl">Aa</span></span>Olaa Language</h3><p class="tip">${m != null ? esc(APPS.lang.sug[MOODS[m].t]) : 'Pick a feeling for a suggestion.'}</p></section>`;
 }
 function renderToday() { renderCal(); renderDay(); }
-$('#calGrid').addEventListener('click', e => { const b = e.target.closest('.cd'); if (!b || b.disabled) return; selKey = b.dataset.k; renderToday(); $('#dayView').animate([{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 260, easing: 'ease-out' }); });
-function slideCal(dir) { $('#calGrid').animate([{ opacity: 0, transform: `translateX(${dir * 22}px)` }, { opacity: 1, transform: 'none' }], { duration: 340, easing: 'cubic-bezier(.32,.72,0,1)' }); }
+$('#calGrid').addEventListener('click', e => { const b = e.target.closest('.cd'); if (!b || b.disabled) return; selKey = b.dataset.k; renderToday(); $('#dayView').animate([{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 221, easing: 'ease-out' }); });
+function slideCal(dir) { $('#calGrid').animate([{ opacity: 0, transform: `translateX(${dir * 22}px)` }, { opacity: 1, transform: 'none' }], { duration: 289, easing: 'cubic-bezier(0.32,0.72,0,1)' }); }
 $('#calPrev').addEventListener('click', () => { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() - 1, 1); renderCal(); slideCal(-1); });
 $('#calNext').addEventListener('click', () => { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 1); renderCal(); slideCal(1); });
 $('#dayView').addEventListener('click', e => {
   const h = e.target.closest('.hab');
   if (h) { const set = habitsFor(selKey), id = h.dataset.h; set.has(id) ? set.delete(id) : set.add(id); touched.add(selKey); saveHabits(); renderToday();
-    const nb = $(`#dayView .hab[data-h="${id}"] .ck`); if (nb) nb.animate([{ transform: 'scale(.6)' }, { transform: 'scale(1.15)' }, { transform: 'none' }], { duration: 380, easing: 'cubic-bezier(.3,1.6,.5,1)' }); return; }
+    const nb = $(`#dayView .hab[data-h="${id}"] .ck`); if (nb) nb.animate([{ transform: 'scale(.66)' }, { transform: 'scale(1.127)' }, { transform: 'none' }], { duration: 323, easing: 'cubic-bezier(0.3,1.51,0.5,1)' }); return; }
   if (e.target.closest('.dvmood')) return openEmojiPop();
   const c = e.target.closest('.chip'); if (c) { const f = [...walk(root)].find(x => x.id === c.dataset.id); exitFull(); setTimeout(() => loadNote(f), 220); }
 });
@@ -1277,13 +1277,13 @@ function applyZoom(soft) {
 }
 function zoomSettled() { clearTimeout(zSettleT); zSettleT = setTimeout(() => { sizeCanvases(true); try { if (sel) updateSelUI(); } catch (_) {} }, 120); }
 // move the view to (z1, x1, y1) with a short ease-out
-function animateView(z1, x1, y1, instant) {
+function animateView(z1, x1, y1, instant, r1) {
   cancelAnimationFrame(zAnim); cancelAnimationFrame(zglide);
-  const z0 = Z, x0 = zx, y0 = zy;
-  if (instant || reduceMotion) { Z = z1; zx = x1; zy = y1; zAnim = 0; applyZoom(); zoomHud(); return zoomSettled(); }
-  const t0 = performance.now(), d = 300;
-  const step = now => { const k = Math.min(1, (now - t0) / d), e = 1 - Math.pow(1 - k, 3);
-    Z = z0 + (z1 - z0) * e; zx = x0 + (x1 - x0) * e; zy = y0 + (y1 - y0) * e; applyZoom(true); zoomHud();
+  const z0 = Z, x0 = zx, y0 = zy, R0 = ROT, dR = r1 == null ? 0 : Math.atan2(Math.sin(r1 - ROT), Math.cos(r1 - ROT));      // the short way round
+  if (instant || reduceMotion) { Z = z1; zx = x1; zy = y1; if (r1 != null) ROT = r1; zAnim = 0; applyZoom(); zoomHud(); return zoomSettled(); }
+  const t0 = performance.now(), d = r1 != null && Math.abs(dR) > .001 ? 340 : 280;
+  const step = now => { const k = Math.min(1, (now - t0) / d), e = 1 - Math.pow(1 - k, 3);      // ease-out cubic: quick to respond, soft to land
+    Z = z0 + (z1 - z0) * e; zx = x0 + (x1 - x0) * e; zy = y0 + (y1 - y0) * e; if (r1 != null) { ROT = R0 + dR * e; if (k >= 1) ROT = r1; } applyZoom(true); zoomHud();
     if (k < 1) zAnim = requestAnimationFrame(step); else { zAnim = 0; applyZoom(); zoomSettled(); } };
   zAnim = requestAnimationFrame(step);
 }
@@ -1364,8 +1364,16 @@ function pinchStep() {
 let zpinch_c = null;
 function endPinch(e) {
   if (pinchRaf) { cancelAnimationFrame(pinchRaf); pinchRaf = 0; if (zpinch) pinchStep(); }
-  if (zpinch && zpinch.big) { const q90 = Math.PI / 2, n = Math.round(ROT / q90); if (Math.abs(ROT - n * q90) < .07) { const c = zpinch.c, r = paper.getBoundingClientRect(), k = r.width / PW, keep = c && toLocal({ clientX: c.x, clientY: c.y }, r, k); ROT = n * q90; if (keep) { const u = unrot((c.x - r.left) / k, (c.y - r.top) / k); zx = keep.x - u.x / Z; zy = keep.y - u.y / Z; } }
-    ROT = Math.atan2(Math.sin(ROT), Math.cos(ROT)); if (Math.abs(ROT) < 1e-4) ROT = 0; }      // within 4° of square, it settles square
+  if (zpinch && zpinch.big) {      // within 4° of square, it glides square, turning about the point between the fingers
+    ROT = Math.atan2(Math.sin(ROT), Math.cos(ROT)); const q90 = Math.PI / 2, n = Math.round(ROT / q90);
+    if (Math.abs(ROT - n * q90) < .07 && Math.abs(ROT - n * q90) > 1e-4) {
+      const c = zpinch.c || { x: zpinch.r.left + zpinch.r.width / 2, y: zpinch.r.top + zpinch.r.height / 2 }, r = paper.getBoundingClientRect(), k = r.width / PW, keep = toLocal({ clientX: c.x, clientY: c.y }, r, k);
+      const R1 = n * q90, saveR = ROT; ROT = R1; const u = unrot((c.x - r.left) / k, (c.y - r.top) / k); ROT = saveR;
+      const zz = clamp(Z, ZMIN, ZMAX); zpinch = null; $('#sheet .ink').classList.remove('zooming');
+      return animateView(zz, keep.x - u.x / zz, keep.y - u.y / zz, false, Math.abs(R1) < 1e-4 ? 0 : R1);
+    }
+    if (Math.abs(ROT) < 1e-4) ROT = 0;
+  }
   zpinch_c = zpinch.c; zpinch = null; $('#sheet .ink').classList.remove('zooming');
   const c = zpinch_c || null; zpinch_c = null;
   settleView(c && c.x, c && c.y);      // eases back inside the limits around the same point; close to 100% snaps to it
@@ -1374,7 +1382,7 @@ let lastTap = { t: 0, x: 0, y: 0 }, tapDown = null;
 function glide(vx, vy, k) {        // px per ms on screen; slows to a stop like a scroll view
   if (reduceMotion || Math.hypot(vx, vy) < .25) return;
   let last = performance.now();
-  const step = now => { const dt = Math.min(32, now - last); last = now; { const d = urv(vx * dt / k / Z, vy * dt / k / Z); zx -= d.x; zy -= d.y; } const f = Math.pow(.994, dt); vx *= f; vy *= f; applyZoom();
+  const step = now => { const dt = Math.min(32, now - last); last = now; { const d = urv(vx * dt / k / Z, vy * dt / k / Z); zx -= d.x; zy -= d.y; } const f = Math.pow(isBig() ? .9955 : .994, dt); vx *= f; vy *= f; applyZoom(true); zoomSettled();
     if (Math.hypot(vx, vy) > .02) zglide = requestAnimationFrame(step); };
   zglide = requestAnimationFrame(step);
 }
@@ -1697,7 +1705,7 @@ function openTextEditor(at, s0) {
   place(); ta.addEventListener('input', place);
   ta.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Escape') { e.preventDefault(); commitText(); } });
   ta.addEventListener('blur', () => { if (textEd && textEd.ta === ta) commitText(); });
-  if (!reduceMotion) ta.animate([{ opacity: 0, transform: 'scale(.96)' }, { opacity: 1, transform: 'none' }], { duration: 200, easing: 'cubic-bezier(.2,.9,.3,1)' });
+  if (!reduceMotion) ta.animate([{ opacity: 0, transform: 'scale(.966)' }, { opacity: 1, transform: 'none' }], { duration: 170, easing: 'cubic-bezier(0.2,0.9,0.3,1)' });
   ta.focus({ preventScroll: true });
 }
 function commitText() {
@@ -1766,7 +1774,7 @@ const shifted = (s, dx, dy) => ({ ...s, bb: null, pts: s.pts.map(p => ({ x: p.x 
 function commitSelMove() { const { dx, dy } = sel; sel.dx = sel.dy = 0; replaceSel(s => shifted(s, dx, dy)); redrawBase(); updateSelUI(); noteChanged(); }
 function undo() { clearSel(); if (!current.undo.length) return pulse($('#undo')); current.redo.push(current.strokes.slice()); current.strokes = current.undo.pop(); markEdited(current); redrawBase(); noteChanged(); }
 function redo() { clearSel(); if (!current.redo.length) return pulse($('#redo')); current.undo.push(current.strokes.slice()); current.strokes = current.redo.pop(); markEdited(current); redrawBase(); noteChanged(); }
-function pulse(el) { el.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-3px)' }, { transform: 'translateX(3px)' }, { transform: 'translateX(0)' }], { duration: 260 }); }
+function pulse(el) { el.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-3px)' }, { transform: 'translateX(3px)' }, { transform: 'translateX(0)' }], { duration: 221 }); }
 let thumbTimer = 0;
 const HINTS = ['Start with one line.', 'Small notes count too.', 'Write it down. Let it settle.', 'Your page, your pace.', 'One thought is enough to begin.'];
 function setHintLine() { if (current.hintI == null) current.hintI = Math.floor(Math.random() * HINTS.length); $('#hintLine').textContent = t(HINTS[current.hintI]); }
@@ -1779,7 +1787,7 @@ function noteChanged() {
 function updateMeta() {
   const n = current.strokes.length, m = current.mood;
   const sp = '<i class="sp"></i>', date = current.date === todayEN ? fmtL().format(new Date()) : current.date;
-  $('#noteMeta').innerHTML = `<span class="md">${esc(date)}</span>${m != null ? sp + emo(m, 15) : ''}${n ? sp + esc(n === 1 ? t('1 stroke') : t('{n} strokes', { n })) : ''}`
+  $('#noteMeta').innerHTML = `<span class="md">${esc(date)}</span>${m != null ? sp + emo(m, 15) : ''}`
     + `<span class="st ${current.draft ? 'draft' : 'saved'}">${esc(current.draft ? t('Draft · not saved') : t('Saved'))}</span>`;
   syncNoteChip();
 }
@@ -2001,7 +2009,7 @@ toolPop.addEventListener('click', e => {
   const rb2 = e.target.closest('[data-rby]'); if (rb2) {
     if (rb2.dataset.rby === recentBy) return; recentBy = rb2.dataset.rby;
     const l0 = toolPop.querySelector('.rlist2'); toolPop.innerHTML = recentHTML(); placeToolPop();
-    const l1 = toolPop.querySelector('.rlist2'); if (l1 && !reduceMotion) l1.animate([{ opacity: 0, transform: `translateX(${recentBy === 'added' ? 18 : -18}px)` }, { opacity: 1, transform: 'none' }], { duration: 280, easing: 'cubic-bezier(.2,.9,.3,1)' });
+    const l1 = toolPop.querySelector('.rlist2'); if (l1 && !reduceMotion) l1.animate([{ opacity: 0, transform: `translateX(${recentBy === 'added' ? 18 : -18}px)` }, { opacity: 1, transform: 'none' }], { duration: 238, easing: 'cubic-bezier(0.2,0.9,0.3,1)' });
     return;
   }
   const rr = e.target.closest('.rrow'); if (rr && peekJustEnded) return;
@@ -2030,10 +2038,10 @@ const bubble = document.createElement('div'); bubble.id = 'sizeBubble'; bubble.c
 function showBubble(btn, t) {
   const v = sizeFor(t), [lo, hi] = SIZE_RANGE[t], d = 6 + (v - lo) / (hi - lo) * 30, c = TOOLS[t].color ? inkColor(TOOLS[t].color) : 'var(--ink-3)';
   bubble.innerHTML = `<i style="width:${d.toFixed(1)}px;height:${d.toFixed(1)}px;background:${t === 'eraser' ? 'transparent' : c};${t === 'eraser' ? 'border:1.5px dashed var(--ink-2)' : ''}${t === 'hl' ? ';opacity:.45;border-radius:4px' : ''}"></i><b>${v.toFixed(1)} pt</b>`;
-  if (bubble.hidden) { bubble.hidden = false; bubble.animate([{ opacity: 0, transform: 'translateY(6px) scale(.9)' }, { opacity: 1, transform: 'none' }], { duration: 260, easing: 'cubic-bezier(.32,.72,0,1)' }); }
+  if (bubble.hidden) { bubble.hidden = false; bubble.animate([{ opacity: 0, transform: 'translateY(6px) scale(.915)' }, { opacity: 1, transform: 'none' }], { duration: 221, easing: 'cubic-bezier(0.32,0.72,0,1)' }); }
   const r = btn.getBoundingClientRect(); bubble.style.left = (r.left + r.width / 2 - bubble.offsetWidth / 2) + 'px'; bubble.style.top = (r.top - bubble.offsetHeight - 12) + 'px';
 }
-function hideBubble() { if (bubble.hidden) return; bubble.animate([{ opacity: 1 }, { opacity: 0, transform: 'translateY(4px) scale(.94)' }], { duration: 180 }).onfinish = () => { bubble.hidden = true; }; }
+function hideBubble() { if (bubble.hidden) return; bubble.animate([{ opacity: 1 }, { opacity: 0, transform: 'translateY(4px) scale(.949)' }], { duration: 153 }).onfinish = () => { bubble.hidden = true; }; }
 // press a pen and slide up (thicker) or down (thinner); a plain tap still selects it or opens its options
 document.querySelectorAll('.tb[data-tool]').forEach(b => b.addEventListener('pointerdown', e => {
   const t = b.dataset.tool, T = TOOLS[t]; if (!T.sizes) return;
@@ -2104,7 +2112,7 @@ let popKind = null, popAnchor = null;
 function openToolPop(kind, anchor) {
   popKind = kind; popAnchor = anchor; toolPop.hidden = false; renderToolPop();
   toolPop.getAnimations().forEach(a => a.cancel());
-  toolPop.animate([{ opacity: 0, transform: 'translateY(8px) scale(.95)' }, { opacity: 1, transform: 'none' }], { duration: SPR_OPEN.d, easing: SPR_OPEN.e });
+  toolPop.animate([{ opacity: 0, transform: 'translateY(8px) scale(.958)' }, { opacity: 1, transform: 'none' }], { duration: SPR_OPEN.d, easing: SPR_OPEN.e });
 }
 function placeToolPop() {
   const r = popAnchor.getBoundingClientRect(), w = toolPop.offsetWidth, h = toolPop.offsetHeight;
@@ -2120,7 +2128,7 @@ function placeToolPop() {
 }
 function closeToolPop() {
   if (!popKind) return; popKind = null;
-  toolPop.animate([{ opacity: 1 }, { opacity: 0, transform: 'translateY(6px) scale(.97)' }], { duration: 160 }).onfinish = () => { if (!popKind) toolPop.hidden = true; };
+  toolPop.animate([{ opacity: 1 }, { opacity: 0, transform: 'translateY(6px) scale(.974)' }], { duration: 136 }).onfinish = () => { if (!popKind) toolPop.hidden = true; };
 }
 document.addEventListener('pointerdown', e => { if (popKind && !e.target.closest('#toolPop, #dock, #langBtn, #qSplit, .pchg')) closeToolPop(); });
 const segH = (key, opts, val) => `<div class="seg" data-k="${key}">${opts.map(([v, l]) => `<button data-v="${v}" aria-pressed="${v === val}">${l}</button>`).join('')}</div>`;
@@ -2170,7 +2178,7 @@ function renderToolPop() {
   }
   toolPop.innerHTML = h;
   wirePop(); drawPreview(); placeToolPop();
-  const h1 = toolPop.offsetHeight; if (h0 && Math.abs(h1 - h0) > 2 && !reduceMotion) toolPop.animate([{ height: h0 + 'px', transform: `translateY(${y0 - toolPop.offsetTop}px)` }, { height: h1 + 'px', transform: 'none' }], { duration: 360, easing: 'cubic-bezier(.32,.72,0,1)' });
+  const h1 = toolPop.offsetHeight; if (h0 && Math.abs(h1 - h0) > 2 && !reduceMotion) toolPop.animate([{ height: h0 + 'px', transform: `translateY(${y0 - toolPop.offsetTop}px)` }, { height: h1 + 'px', transform: 'none' }], { duration: 306, easing: 'cubic-bezier(0.32,0.72,0,1)' });
 }
 function wirePop() {
   const k = popKind, T = TOOLS[k];
@@ -2262,10 +2270,10 @@ themeTg.addEventListener('click', () => {
   const r = themeTg.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
   if (reduceMotion) return apply();
   document.body.classList.add('theming'); apply(); setTimeout(() => document.body.classList.remove('theming'), 650);
-  themeTg.querySelector('.knob').animate([{ transform: 'rotate(-90deg) scale(.6)' }, { transform: 'none' }], { duration: SPR.d, easing: SPR.e });
+  themeTg.querySelector('.knob').animate([{ transform: 'rotate(-90deg) scale(.66)' }, { transform: 'none' }], { duration: SPR.d, easing: SPR.e });
   const d = document.createElement('div'); d.className = 'ripple'; d.style.left = cx + 'px'; d.style.top = cy + 'px';
   d.style.background = `radial-gradient(closest-side, ${getComputedStyle(document.documentElement).getPropertyValue('--bg')}, transparent)`; document.body.append(d);
-  d.animate([{ transform: 'scale(.3)', opacity: .9 }, { transform: `scale(${Math.hypot(vw(), vh()) / 14})`, opacity: 0 }], { duration: 900, easing: 'cubic-bezier(.32,.72,0,1)' }).onfinish = () => d.remove();
+  d.animate([{ transform: 'scale(.405)', opacity: .9 }, { transform: `scale(${Math.hypot(vw(), vh()) / 14})`, opacity: 0 }], { duration: 765, easing: 'cubic-bezier(0.32,0.72,0,1)' }).onfinish = () => d.remove();
 });
 
 /* ---------- floating files ---------- */
@@ -2452,7 +2460,7 @@ function startRailDrag(el, ev) {
   g.classList.add('raildrag'); g.style.left = r.left + 'px'; g.style.top = r.top + 'px'; g.style.width = r.width + 'px'; g.style.height = r.height + 'px';
   const badge = document.createElement('b'); badge.className = 'rd-open'; badge.textContent = t('Open'); g.append(badge);
   document.body.append(g); el.classList.add('dragging-out'); document.body.classList.add('rail-dragging');
-  if (!reduceMotion) g.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.1)' }], { duration: 180, easing: 'ease-out', fill: 'forwards' });
+  if (!reduceMotion) g.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.085)' }], { duration: 153, easing: 'ease-out', fill: 'forwards' });
   const d = { g, el, r, ox: ev.clientX - r.left, oy: ev.clientY - r.top, over: false };
   moveRailDrag(d, ev); return d;
 }
@@ -2466,11 +2474,11 @@ function endRailDrag(d, f, ev) {
   if (ev && ev.type === 'pointerup' && d.over) {
     if (f.kind === 'note') { if (f === current && W.canvas.min) restore('canvas'); else loadNote(f); }
     else openViewer(f, d.g);
-    d.g.animate([{ opacity: 1 }, { opacity: 0, transform: 'scale(.9)' }], { duration: 260, delay: 120, fill: 'forwards' }).onfinish = () => d.g.remove();
+    d.g.animate([{ opacity: 1 }, { opacity: 0, transform: 'scale(.915)' }], { duration: 221, delay: 120, fill: 'forwards' }).onfinish = () => d.g.remove();
     return;
   }
   // not far enough: it flies back into the column
-  d.g.animate([{ translate: d.g.style.translate, transform: 'scale(1.1)' }, { translate: '0px 0px', transform: 'scale(1)' }], { duration: SPR.d, easing: SPR.e, fill: 'forwards' }).onfinish = () => d.g.remove();
+  d.g.animate([{ translate: d.g.style.translate, transform: 'scale(1.085)' }, { translate: '0px 0px', transform: 'scale(1)' }], { duration: SPR.d, easing: SPR.e, fill: 'forwards' }).onfinish = () => d.g.remove();
 }
 
 /* iPhone-style grouping: hold a file over another to make a folder, or over a folder to file it */
@@ -2498,8 +2506,8 @@ function dropOn(f, ctx) {
 }
 function flyInto(v, tx, ty) {
   active.delete(v.b);
-  v.el.animate([{ transform: v.el.style.transform, opacity: 1 }, { transform: `translate3d(${tx}px,${ty}px,0) scale(.3)`, opacity: 0 }],
-    { duration: 380, easing: 'cubic-bezier(.5,0,.3,1)', fill: 'forwards' }).onfinish = () => v.el.remove();
+  v.el.animate([{ transform: v.el.style.transform, opacity: 1 }, { transform: `translate3d(${tx}px,${ty}px,0) scale(.405)`, opacity: 0 }],
+    { duration: 323, easing: 'cubic-bezier(0.5,0,0.3,1)', fill: 'forwards' }).onfinish = () => v.el.remove();
 }
 function absorb(f, target, ctx) {
   const me = ctx.views.get(f.id), tv = ctx.views.get(target.id);
@@ -2674,7 +2682,7 @@ function ghostViewer() {
 function removeGhost(g, quick) {
   const i = ghosts.indexOf(g); if (i < 0) return; ghosts.splice(i, 1); active.delete(g.b);
   if (quick || reduceMotion) g.el.remove();
-  else g.el.animate([{ opacity: 1 }, { opacity: 0, scale: '.94' }], { duration: 200, easing: 'ease-in' }).onfinish = () => g.el.remove();
+  else g.el.animate([{ opacity: 1 }, { opacity: 0, scale: '.94' }], { duration: 170, easing: 'ease-in' }).onfinish = () => g.el.remove();
   stackGhosts();
 }
 function focusGhost(g) {
@@ -2821,7 +2829,7 @@ function syncFilesBar() {
 }
 $('#fbSort').addEventListener('click', e => { const b = e.target.closest('button'); if (b) sortRoot(b.dataset.s); });
 
-function nudge(el) { el.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.015)' }, { transform: 'scale(1)' }], { duration: 300, easing: 'ease-out' }); }
+function nudge(el) { el.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.013)' }, { transform: 'scale(1)' }], { duration: 255, easing: 'ease-out' }); }
 function leaveFull() { sheetEl.classList.remove('fullbleed'); fullKey = null; delete document.body.dataset.full; $('#exitFull').hidden = true; $('#filesBar').hidden = true; syncLights(); }
 function windowed(k) {
   if (k !== 'canvas') { if (fullKey === k) exitFull(); else if (k === 'files') { toggleFilesPile(); syncLights(); } else nudge(W[k].inner); return; }
@@ -2847,7 +2855,7 @@ function enterFull(k) {
   if (fullKey) exitFull(true);
   if (railOn) exitRail();
   fullKey = k; document.body.dataset.full = k; closePop();
-  const xb = $('#exitFull'); xb.hidden = false; xb.animate([{ opacity: 0, transform: 'scale(.6)' }, { opacity: 1, transform: 'none' }], { duration: SPR.d, easing: SPR.e });
+  const xb = $('#exitFull'); xb.hidden = false; xb.animate([{ opacity: 0, transform: 'scale(.66)' }, { opacity: 1, transform: 'none' }], { duration: SPR.d, easing: SPR.e });
   const w = W[k];
   if (k === 'today' && w.shrunk) { w.shrunk = false; w.outer.classList.remove('shrunk'); w.body.ts = null; w.body.s = 1; w.body.render(); }
   if (k === 'today') { selKey = todayKey; calMonth = new Date(TODAY.getFullYear(), TODAY.getMonth(), 1); }
@@ -2925,17 +2933,17 @@ function minimize(k) {
     const c = pk.querySelector('.tile').getBoundingClientRect();
     genie(w, c).onfinish = () => {
       w.outer.hidden = true; document.body.classList.add('canvas-closed');
-      pk.querySelector('.tile').animate([{ transform: 'scale(.7)' }, { transform: 'none' }], { duration: SPR.d, easing: SPR.e });
+      pk.querySelector('.tile').animate([{ transform: 'scale(.745)' }, { transform: 'none' }], { duration: SPR.d, easing: SPR.e });
     };
     toast(`“${current.name}” closed. It waits in the toolbar; tap it for options.`);
     return;
   }
   const chip = addChip(k); chip.style.opacity = 0;
   const c = chip.getBoundingClientRect();
-  const done = () => { chip.style.opacity = ''; chip.animate([{ transform: 'scale(.4)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: SPR.d, easing: SPR.e }); };
+  const done = () => { chip.style.opacity = ''; chip.animate([{ transform: 'scale(.49)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: SPR.d, easing: SPR.e }); };
   if (k === 'files') {
     const bodies = allFileBodies();
-    bodies.forEach((b, i) => { const r = b.el.getBoundingClientRect(); b.el.querySelector('.lift').animate([{ transform: 'none', opacity: 1 }, { transform: `translate(${c.left - r.left}px,${c.top - r.top}px) scale(.2)`, opacity: 0 }], { duration: 420, delay: i * 18, easing: 'cubic-bezier(.5,0,.3,1)', fill: 'forwards' }); });
+    bodies.forEach((b, i) => { const r = b.el.getBoundingClientRect(); b.el.querySelector('.lift').animate([{ transform: 'none', opacity: 1 }, { transform: `translate(${c.left - r.left}px,${c.top - r.top}px) scale(.32)`, opacity: 0 }], { duration: 357, delay: i * 18, easing: 'cubic-bezier(0.5,0,0.3,1)', fill: 'forwards' }); });
     genie(w, c).onfinish = () => { w.outer.hidden = true; filesLayer.hidden = true; done(); };
     return;
   }
@@ -2946,7 +2954,7 @@ function genie(w, c) {
   return w.inner.animate([{ transform: 'none', opacity: 1 },
     { opacity: 1, offset: .55 },
     { transform: `translate(${(c.left - a.left) / ps}px,${(c.top - a.top) / ps}px) scale(${c.width / a.width},${c.height / a.height})`, opacity: 0 }],
-    { duration: 520, easing: 'cubic-bezier(.32,.72,0,1)' });
+    { duration: 442, easing: 'cubic-bezier(0.32,0.72,0,1)' });
 }
 function showParked() { syncNoteChip(); return $('#noteChip'); }
 function noteAnchor() {
@@ -2958,13 +2966,13 @@ function noteClosed() { try { return W.canvas.min || document.body.classList.con
 function reopenNote() { if (W.canvas.min) restore('canvas'); else loadNote(current); }
 function saveCurrent() { if (ctxState) closeCtx(true); openCtx(current, ctxFor(current), $('#noteChip')); showSave(current, ctxFor(current)); }
 // the name opens the note when it's closed, otherwise its menu
-$('#ncMain').addEventListener('click', e => { if (e.target.closest('.rn')) return; if (ctxState) return closeCtx(); if (noteClosed()) return reopenNote(); openCtx(current, ctxFor(current), $('#noteChip')); });
+$('#ncMain').addEventListener('click', e => { if (e.target.closest('.rn')) return; if (performance.now() - chipClosedAt < 600) { chipClosedAt = 0; return; } if (ctxState) return closeCtx(); if (noteClosed()) return reopenNote(); openCtx(current, ctxFor(current), $('#noteChip')); });
 { let wasClosed = null; new MutationObserver(() => { const c = document.body.classList.contains('canvas-closed'); if (c !== wasClosed) { wasClosed = c; syncNoteChip(); } }).observe(document.body, { attributes: true, attributeFilter: ['class'] }); }
 function restore(k) {
   const w = W[k]; if (!w.min) return; w.min = false;
   if (k === 'canvas') {
     const c = noteAnchor(); w.outer.hidden = false; w.body.settle(); bringToFront('sheet'); setTimeout(() => document.body.classList.remove('canvas-closed'), 60);
-    const pk = $('#parked'); if (!pk.hidden) pk.animate([{ opacity: 1 }, { opacity: 0, transform: 'scale(.8)' }], { duration: 220 }).onfinish = () => { pk.hidden = true; };
+    const pk = $('#parked'); if (!pk.hidden) pk.animate([{ opacity: 1 }, { opacity: 0, transform: 'scale(.83)' }], { duration: 187 }).onfinish = () => { pk.hidden = true; };
     const a = w.inner.getBoundingClientRect(), ps = w.body.s || 1;
     w.inner.animate([{ transform: `translate(${(c.left - a.left) / ps}px,${(c.top - a.top) / ps}px) scale(${c.width / a.width},${c.height / a.height})`, opacity: 0 },
       { transform: 'none', opacity: 1 }], { duration: SPR_OPEN.d, easing: SPR_OPEN.e });
@@ -2973,12 +2981,12 @@ function restore(k) {
   const chip = tray.querySelector(`[data-k="${k}"]`), c = chip.getBoundingClientRect();
   w.outer.hidden = false;
   if (k === 'files') { filesLayer.hidden = false; allFileBodies().forEach((b, i) => { const l = b.el.querySelector('.lift'); l.getAnimations().forEach(x => x.cancel()); const r = b.el.getBoundingClientRect();
-    l.animate([{ transform: `translate(${c.left - r.left}px,${c.top - r.top}px) scale(.2)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: SPR.d, delay: i * 22, easing: SPR.e, fill: 'backwards' }); }); }
+    l.animate([{ transform: `translate(${c.left - r.left}px,${c.top - r.top}px) scale(.32)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: SPR.d, delay: i * 22, easing: SPR.e, fill: 'backwards' }); }); }
   w.body.settle();
   const a = w.inner.getBoundingClientRect(), ps = w.body.s || 1;
   w.inner.animate([{ transform: `translate(${(c.left - a.left) / ps}px,${(c.top - a.top) / ps}px) scale(${c.width / a.width},${c.height / a.height})`, opacity: 0 },
     { transform: 'none', opacity: 1 }], { duration: SPR_SOFT.d, easing: SPR_SOFT.e });
-  chip.animate([{ opacity: 1 }, { opacity: 0, transform: 'scale(.6)' }], { duration: 200 }).onfinish = () => { chip.remove(); tray.hidden = !tray.children.length; };
+  chip.animate([{ opacity: 1 }, { opacity: 0, transform: 'scale(.66)' }], { duration: 170 }).onfinish = () => { chip.remove(); tray.hidden = !tray.children.length; };
   if (k === 'tools' || k === 'today') setTimeout(() => { syncDock(true); if (current.mood != null) slidePill(moodPill, moodsEl.querySelector(`[data-i="${current.mood}"]`), true); }, 30);
 }
 
@@ -3040,7 +3048,7 @@ function openViewer(f, tileEl, opt = {}) {
     if (opt.at) viewer.body.place(opt.at.x, opt.at.y);
     else if (snapped('viewer')) applySnap(true);
     else if (kept) { const c = cascadeFrom(viewer.body.x, viewer.body.y, panelEl.offsetWidth, panelEl.offsetHeight); viewer.body.springTo(c.x, c.y, null, 220, 26); }
-    if ((kept || opt.at) && !reduceMotion) panelEl.animate([{ opacity: .6, transform: 'scale(.96)' }, { opacity: 1, transform: 'none' }], { duration: SPR_OPEN.d, easing: SPR_OPEN.e });
+    if ((kept || opt.at) && !reduceMotion) panelEl.animate([{ opacity: .6, transform: 'scale(.966)' }, { opacity: 1, transform: 'none' }], { duration: SPR_OPEN.d, easing: SPR_OPEN.e });
     return;
   }
   closePop();
@@ -3068,15 +3076,15 @@ function closeViewer(v) {
   const tile = viewer.origin, fr = panelEl.getBoundingClientRect();
   active.delete(viewer.body);
   let anim;
-  if (v) anim = panelPos.animate([{ transform: panelPos.style.transform, opacity: 1 }, { transform: `translate3d(${viewer.body.x + v.x * .25}px,${viewer.body.y + v.y * .25}px,0) scale(.9)`, opacity: 0 }], { duration: 320, easing: 'cubic-bezier(.2,.6,.3,1)' });
+  if (v) anim = panelPos.animate([{ transform: panelPos.style.transform, opacity: 1 }, { transform: `translate3d(${viewer.body.x + v.x * .25}px,${viewer.body.y + v.y * .25}px,0) scale(.915)`, opacity: 0 }], { duration: 272, easing: 'cubic-bezier(0.2,0.6,0.3,1)' });
   else if (tile && tile.isConnected) {
     const or = tile.getBoundingClientRect();
     anim = panelEl.animate([{ transform: 'none', opacity: 1, borderRadius: '32px' },
       { transform: `translate(${or.left - fr.left}px,${or.top - fr.top}px) scale(${or.width / fr.width},${or.height / fr.height})`, opacity: .4, borderRadius: '70px' }],
-      { duration: 460, easing: 'cubic-bezier(.32,.72,0,1)' });
-    $('#pHead').animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, fill: 'forwards' });
-    pBody.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, fill: 'forwards' });
-  } else anim = panelEl.animate([{ opacity: 1 }, { opacity: 0, transform: 'scale(.94)' }], { duration: 240 });
+      { duration: 391, easing: 'cubic-bezier(0.32,0.72,0,1)' });
+    $('#pHead').animate([{ opacity: 1 }, { opacity: 0 }], { duration: 136, fill: 'forwards' });
+    pBody.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 136, fill: 'forwards' });
+  } else anim = panelEl.animate([{ opacity: 1 }, { opacity: 0, transform: 'scale(.949)' }], { duration: 204 });
   anim.onfinish = () => {
     panelPos.hidden = true; pBody.innerHTML = ''; $('#pHead').getAnimations().forEach(a => a.cancel()); pBody.getAnimations().forEach(a => a.cancel());
     if (tile) { tile.style.visibility = ''; const it = tile.closest('.item'); if (it) { it.classList.remove('pop'); void it.offsetWidth; it.classList.add('pop'); } }
@@ -3121,7 +3129,7 @@ function renderView(dir) {
   if (!old) return;
   if (!dir) { old.remove(); return; }
   old.classList.add('leaving');
-  old.animate([{ transform: 'none', opacity: 1 }, { transform: `translateX(${-dir * 60}px) scale(.96)`, opacity: 0 }], { duration: 300, easing: 'cubic-bezier(.4,0,.2,1)' }).onfinish = () => old.remove();
+  old.animate([{ transform: 'none', opacity: 1 }, { transform: `translateX(${-dir * 60}px) scale(.966)`, opacity: 0 }], { duration: 255, easing: 'cubic-bezier(0.4,0,0.2,1)' }).onfinish = () => old.remove();
   view.animate([{ transform: `translateX(${dir * 36}px)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: SPR_OPEN.d, easing: SPR_OPEN.e });
 }
 function buildFolder(view, f) {
@@ -3172,7 +3180,7 @@ function buildFolder(view, f) {
       if (!trashPick) { const rb = document.createElement('button'); rb.className = 'rbadge'; rb.type = 'button'; rb.title = t('Restore'); rb.setAttribute('aria-label', `${t('Restore')} ${c.name}`); rb.innerHTML = ico('restore');
         rb.addEventListener('pointerdown', e => e.stopPropagation()); rb.addEventListener('click', e => { e.stopPropagation(); restoreFile(c, ctx); }); el.querySelector('.lift').append(rb); }
     }
-    if (!reduceMotion) el.querySelector('.lift').animate([{ transform: 'scale(.92)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: SPR_OPEN.d, easing: SPR_OPEN.e, delay: 40 + i * 30, fill: 'backwards' });
+    if (!reduceMotion) el.querySelector('.lift').animate([{ transform: 'scale(.932)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: SPR_OPEN.d, easing: SPR_OPEN.e, delay: 40 + i * 30, fill: 'backwards' });
   });
 }
 function buildDetail(view, f) {
@@ -3184,7 +3192,7 @@ function buildDetail(view, f) {
     const e = extent(f.strokes), h = parseFloat(pBody.style.height) - 20 - 60 - 14, w = Math.min(parseFloat(panelEl.style.width) - 40, h * e.w / e.h);
     c.style.width = w + 'px'; c.style.height = w * e.h / e.w + 'px'; paintStrokes(c, f.strokes, w, w * e.h / e.w);
     const isCur = f === current && !W.canvas.min;
-    foot.innerHTML = `<small>${f.strokes.length ? f.strokes.length + (f.strokes.length === 1 ? ' stroke' : ' strokes') : 'Empty page'}</small><button class="cta">${f.trashed ? esc(t('Restore')) : 'Open'}</button>`;
+    foot.innerHTML = `<small>${f.strokes.length ? esc(f.date || '') : 'Empty page'}</small><button class="cta">${f.trashed ? esc(t('Restore')) : 'Open'}</button>`;
     foot.querySelector('.cta').addEventListener('click', () => { if (f.trashed) { popView(); return setTimeout(() => restoreFile(f), 120); } closeViewer(); setTimeout(() => loadNote(f), 140); });
   } else if (f.kind === 'image') {
     stage.innerHTML = `<img src="${f.src}" alt="${esc(f.name)}" draggable="false">`;
@@ -3225,7 +3233,7 @@ function loadNote(f, opt = {}) {
   const inkEl = $('#sheet .ink');
   const swap = () => {
     clearSel(); const wasFmt = isFmt(); if (!wasFmt && f.frame && f.frame.pw) freeSize = { w: PW, h: PH }; current = f; Z = 1; zx = zy = 0; ROT = 0;  if (wasFmt || (f.frame && f.frame.pw)) showFormat(f); else sheetEl.classList.toggle('bigpaper', isBig()); titleIn.value = f.name; setPaper(f.paper || 'grid'); redrawBase(); setMood(f.mood, false); noteChanged(); setCurrentMarker();
-    inkEl.animate([{ opacity: 0, transform: 'scale(1.02)' }, { opacity: 1, transform: 'none' }], { duration: SPR_SOFT.d, easing: SPR_SOFT.e });
+    inkEl.animate([{ opacity: 0, transform: 'scale(1.017)' }, { opacity: 1, transform: 'none' }], { duration: SPR_SOFT.d, easing: SPR_SOFT.e });
   };
   if (kept || opt.at) {       // a new window: the old note stays behind as its own window, this one comes forward
     if (opt.at) {
@@ -3234,11 +3242,11 @@ function loadNote(f, opt = {}) {
       sizeCanvases(true);
     } else if (!snapped('sheet')) { const c = cascadeFrom(sheet.x, sheet.y, PW * sheet.s, PH * sheet.s); sheet.springTo(c.x, c.y, null, 220, 26); }
     swap();
-    if (!reduceMotion) $('#sheetWin').animate([{ opacity: .6, transform: 'scale(.97)' }, { opacity: 1, transform: 'none' }], { duration: SPR_OPEN.d, easing: SPR_OPEN.e });
+    if (!reduceMotion) $('#sheetWin').animate([{ opacity: .6, transform: 'scale(.974)' }, { opacity: 1, transform: 'none' }], { duration: SPR_OPEN.d, easing: SPR_OPEN.e });
     return;
   }
   if (reduceMotion) return swap();
-  inkEl.animate([{ opacity: 1 }, { opacity: 0, transform: 'scale(.98)' }], { duration: 200, easing: 'ease-in' }).onfinish = swap;
+  inkEl.animate([{ opacity: 1 }, { opacity: 0, transform: 'scale(.983)' }], { duration: 170, easing: 'ease-in' }).onfinish = swap;
 }
 function newNote() {
   if (fullKey === 'files') exitFull(true); else if (fullKey === 'today') exitFull();
@@ -3294,10 +3302,10 @@ const toastEl = $('#toast'); let toastAnim;
 function toast(msg) {
   toastEl.textContent = msg; toastAnim && toastAnim.cancel();
   toastAnim = toastEl.animate([
-    { opacity: 0, transform: 'translate(-50%, 16px) scale(.9)' },
+    { opacity: 0, transform: 'translate(-50%, 16px) scale(.915)' },
     { opacity: 1, transform: 'translate(-50%, 0) scale(1)', offset: .12 },
     { opacity: 1, transform: 'translate(-50%, 0) scale(1)', offset: .85 },
-    { opacity: 0, transform: 'translate(-50%, 8px) scale(.96)' }], { duration: 2800, easing: 'ease-out' });
+    { opacity: 0, transform: 'translate(-50%, 8px) scale(.966)' }], { duration: 2380, easing: 'ease-out' });
 }
 
 /* ---------- theme ---------- */
@@ -3356,7 +3364,7 @@ function closeEverything() {
 function stamp(x, y) {      // a small soft ring where you tapped, so you can see the tap closed things
   if (reduceMotion) return;
   const d = document.createElement('div'); d.className = 'stamp'; d.style.left = x + 'px'; d.style.top = y + 'px'; document.body.append(d);
-  d.animate([{ transform: 'translate(-50%,-50%) scale(.4)', opacity: .9 }, { transform: 'translate(-50%,-50%) scale(1.5)', opacity: 0 }], { duration: 480, easing: 'cubic-bezier(.2,.7,.2,1)' }).onfinish = () => d.remove();
+  d.animate([{ transform: 'translate(-50%,-50%) scale(.49)', opacity: .9 }, { transform: 'translate(-50%,-50%) scale(1.425)', opacity: 0 }], { duration: 408, easing: 'cubic-bezier(0.2,0.7,0.2,1)' }).onfinish = () => d.remove();
 }
 
 /* zoom: pinch and double-tap on the page; Cmd +/-/0 and Ctrl-scroll or a trackpad pinch on a computer */
@@ -3469,7 +3477,7 @@ function openSplit(n) {
   split = { n, live, panes: files.map(f => { const el = document.createElement('div'); splitLayer.append(el); return { f, el, r: null }; }) };
   const from = $('#sheetWin').getBoundingClientRect();
   splitLayer.hidden = false; layoutSplit();
-  if (reduceMotion) split.panes.forEach((p, i) => p.el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 260, delay: i * 50, fill: 'backwards' }));      // Reduce Motion: fade in
+  if (reduceMotion) split.panes.forEach((p, i) => p.el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 221, delay: i * 50, fill: 'backwards' }));      // Reduce Motion: fade in
   else {
     // panes that were already there morph to their new place and size; new ones unfold from the Split button, one after another
     const b = $('#qSplit').getBoundingClientRect();
@@ -3477,12 +3485,12 @@ function openSplit(n) {
       const r = p.el.getBoundingClientRect(), o = before && before.get(p.f);
       if (o && o.width) {
         p.el.animate([{ transformOrigin: '0 0', transform: `translate(${o.left - r.left}px,${o.top - r.top}px) scale(${o.width / r.width},${o.height / r.height})` }, { transformOrigin: '0 0', transform: 'none' }],
-          { duration: 520, easing: 'cubic-bezier(.2,.9,.25,1.02)' });
+          { duration: 442, easing: 'cubic-bezier(0.2,0.9,0.25,1.017)' });
         return;
       }
       const dx = b.left + b.width / 2 - (r.left + r.width / 2), dy = b.top + b.height / 2 - (r.top + r.height / 2);
-      p.el.animate([{ opacity: 0, transform: `translate(${dx}px,${dy}px) scale(.12)` }, { opacity: 1, offset: .35 }, { opacity: 1, transform: 'none' }],
-        { duration: 600, delay: i * 80, easing: 'cubic-bezier(.2,.9,.25,1.05)', fill: 'backwards' });
+      p.el.animate([{ opacity: 0, transform: `translate(${dx}px,${dy}px) scale(.252)` }, { opacity: 1, offset: .35 }, { opacity: 1, transform: 'none' }],
+        { duration: 510, delay: i * 80, easing: 'cubic-bezier(0.2,0.9,0.25,1.0425)', fill: 'backwards' });
     });
     flipSheet(from);
   }
@@ -3491,16 +3499,16 @@ function openSplit(n) {
 function flipSheet(from) {
   const sw = $('#sheetWin'), to = sw.getBoundingClientRect(); if (!to.width || !from.width) return;
   sw.animate([{ transformOrigin: '0 0', transform: `translate(${(from.left - to.left) / (sheet.s || 1)}px,${(from.top - to.top) / (sheet.s || 1)}px) scale(${from.width / to.width},${from.height / to.height})` },
-    { transformOrigin: '0 0', transform: 'none' }], { duration: 520, easing: 'cubic-bezier(.2,.9,.25,1.02)' });
+    { transformOrigin: '0 0', transform: 'none' }], { duration: 442, easing: 'cubic-bezier(0.2,0.9,0.25,1.017)' });
 }
 function closeSplit() {
   if (!split) return;
   const b = $('#qSplit').getBoundingClientRect(), from = $('#sheetWin').getBoundingClientRect();
   split.panes.forEach((p, i) => {      // the panes fold back into the Split button
-    if (reduceMotion) { p.el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, fill: 'forwards' }).onfinish = () => p.el.remove(); return; }
+    if (reduceMotion) { p.el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 170, fill: 'forwards' }).onfinish = () => p.el.remove(); return; }
     const r = p.el.getBoundingClientRect(), dx = b.left + b.width / 2 - (r.left + r.width / 2), dy = b.top + b.height / 2 - (r.top + r.height / 2);
     p.el.style.pointerEvents = 'none';
-    p.el.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: `translate(${dx}px,${dy}px) scale(.12)` }], { duration: 380, delay: i * 40, easing: 'cubic-bezier(.4,0,.6,1)', fill: 'forwards' }).onfinish = () => p.el.remove();
+    p.el.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: `translate(${dx}px,${dy}px) scale(.252)` }], { duration: 323, delay: i * 40, easing: 'cubic-bezier(0.4,0,0.6,1)', fill: 'forwards' }).onfinish = () => p.el.remove();
   });
   split = null; setTimeout(() => { if (!split) splitLayer.hidden = true; }, 560);
   const sv = saved.split; cancelAnimationFrame(sizeAnim); setSize(sv.w, sv.h); sizeCanvases(true);
@@ -3637,7 +3645,7 @@ function startPeek(f, row, ev) {
   const r = row.getBoundingClientRect(), pop = toolPop.getBoundingClientRect();
   toolPop.classList.add('peeking');
   const d = { card, f, row, pop, sx: ev.clientX, sy: ev.clientY, state: '' };
-  if (!reduceMotion) card.animate([{ opacity: 0, transform: `translate(${r.left + 20 - ev.clientX}px,${r.top - ev.clientY}px) scale(.3)` }, { opacity: 1 }], { duration: 260, easing: 'cubic-bezier(.2,.9,.3,1)', composite: 'add' });
+  if (!reduceMotion) card.animate([{ opacity: 0, transform: `translate(${r.left + 20 - ev.clientX}px,${r.top - ev.clientY}px) scale(.405)` }, { opacity: 1 }], { duration: 221, easing: 'cubic-bezier(0.2,0.9,0.3,1)', composite: 'add' });
   movePeek(d, ev); return d;
 }
 function peekState(x, y, pop) {
@@ -3658,12 +3666,12 @@ function endPeek(d, ev) {
   toolPop.classList.remove('peeking'); peekArmed = false;
   if (ev.type === 'pointerup' && d.state === 'open') {
     closeToolPop(); openAnywhere(d.f);
-    d.card.animate([{ opacity: 1 }, { opacity: 0, transform: d.card.style.transform + ' scale(1.08)' }], { duration: 260, fill: 'forwards' }).onfinish = () => d.card.remove();
+    d.card.animate([{ opacity: 1 }, { opacity: 0, transform: d.card.style.transform + ' scale(1.068)' }], { duration: 221, fill: 'forwards' }).onfinish = () => d.card.remove();
     return;
   }
   const r = d.row.getBoundingClientRect();      // only a preview: back into its row
-  d.card.animate([{ transform: d.card.style.transform, opacity: 1 }, { transform: `translate(${r.left}px,${r.top - 60}px) scale(.3)`, opacity: 0 }],
-    { duration: reduceMotion ? 120 : 380, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'forwards' }).onfinish = () => d.card.remove();
+  d.card.animate([{ transform: d.card.style.transform, opacity: 1 }, { transform: `translate(${r.left}px,${r.top - 60}px) scale(.405)`, opacity: 0 }],
+    { duration: reduceMotion ? 120 : 380, easing: 'cubic-bezier(0.4,0,0.2,1)', fill: 'forwards' }).onfinish = () => d.card.remove();
 }
 toolPop.addEventListener('pointerdown', e => {
   const row = e.target.closest('.rrow'); if (!row || popKind !== 'recent') return;
@@ -3712,7 +3720,13 @@ const ico = (k, cls = '') => `<svg class="${cls}" viewBox="0 0 24 24">${MI[k]}</
 const KIND = { note: 'Handwritten note', folder: 'Folder', image: 'Image', text: 'Text file', doc: 'Document' };
 let ctxState = null;
 const ctxMenu = $('#ctxMenu'), ctxCatch = $('#ctxCatch');
-ctxCatch.addEventListener('pointerdown', e => { e.preventDefault(); closeCtx(); });
+let chipClosedAt = 0;
+ctxCatch.addEventListener('pointerdown', e => {
+  e.preventDefault();
+  const c = $('#noteChip').getBoundingClientRect();      // a tap on the note chip while its menu is open just closes it
+  if (ctxState && ctxState.el && ctxState.el.id === 'noteChip' && e.clientX >= c.left && e.clientX <= c.right && e.clientY >= c.top && e.clientY <= c.bottom) chipClosedAt = performance.now();
+  closeCtx();
+});
 function ctxItems(f, ctx) {
   const folder = f.kind === 'folder', note = f.kind === 'note';
   if (f.isTrash) return [[['open', 'Open', 'move']], [['empty', 'Delete all', 'trash', 'danger']]];
@@ -3742,7 +3756,7 @@ function openCtx(f, ctx, el) {
   el.classList.add('ctx'); ctx.container.classList.add('ctx-mode'); if (ctx === rootCtx) bringToFront('files');
   renderMenu(ctxItems(f, ctx), menuHead(f));
   ctxCatch.hidden = false; ctxMenu.hidden = false; placeCtx();
-  ctxMenu.animate([{ opacity: 0, transform: 'scale(.86)' }, { opacity: 1, transform: 'none' }], { duration: SPR_OPEN.d, easing: SPR_OPEN.e });
+  ctxMenu.animate([{ opacity: 0, transform: 'scale(.881)' }, { opacity: 1, transform: 'none' }], { duration: SPR_OPEN.d, easing: SPR_OPEN.e });
 }
 function placeCtx() {
   const r = (ctxState.el.querySelector('.tile') || ctxState.el).getBoundingClientRect(), w = ctxMenu.offsetWidth, h = ctxMenu.offsetHeight;
@@ -3753,25 +3767,25 @@ function closeCtx(quick) {
   if (!ctxState) return; const { el, ctx } = ctxState; ctxState = null; ctxMenu.onclick = null;
   el.classList.remove('ctx'); ctx.container.classList.remove('ctx-mode'); ctxCatch.hidden = true;
   if (quick) { ctxMenu.hidden = true; return; }
-  ctxMenu.animate([{ opacity: 1 }, { opacity: 0, transform: 'scale(.94)' }], { duration: 150 }).onfinish = () => { if (!ctxState) ctxMenu.hidden = true; };
+  ctxMenu.animate([{ opacity: 1 }, { opacity: 0, transform: 'scale(.949)' }], { duration: 128 }).onfinish = () => { if (!ctxState) ctxMenu.hidden = true; };
 }
 // every page change in the menu slides and the menu resizes smoothly
 function swapMenu(build, dir) {
   const r0 = ctxMenu.getBoundingClientRect();
   build(); placeCtx();
   const r1 = ctxMenu.getBoundingClientRect();
-  if (reduceMotion) return ctxMenu.animate([{ opacity: .4 }, { opacity: 1 }], { duration: 220, easing: 'ease-out' });      // Reduce Motion: a cross-fade
+  if (reduceMotion) return ctxMenu.animate([{ opacity: .4 }, { opacity: 1 }], { duration: 187, easing: 'ease-out' });      // Reduce Motion: a cross-fade
   ctxMenu.style.overflow = 'hidden';
   ctxMenu.animate([{ height: r0.height + 'px', transform: `translate(${r0.left - r1.left}px,${r0.top - r1.top}px)` }, { height: r1.height + 'px', transform: 'none' }],
-    { duration: 440, easing: 'cubic-bezier(.32,.72,0,1)' }).onfinish = () => { ctxMenu.style.overflow = ''; };
+    { duration: 374, easing: 'cubic-bezier(0.32,0.72,0,1)' }).onfinish = () => { ctxMenu.style.overflow = ''; };
   // the new page pushes in from the side, row after row, like an iOS menu
-  [...ctxMenu.children].forEach((c, i) => c.animate([{ opacity: 0, transform: `translateX(${dir * 56}px) scale(.98)` }, { opacity: 1, transform: 'none' }],
-    { duration: 420, delay: Math.min(i, 12) * 26, easing: 'cubic-bezier(.2,.9,.3,1)', fill: 'backwards' }));
+  [...ctxMenu.children].forEach((c, i) => c.animate([{ opacity: 0, transform: `translateX(${dir * 56}px) scale(.983)` }, { opacity: 1, transform: 'none' }],
+    { duration: 357, delay: Math.min(i, 12) * 26, easing: 'cubic-bezier(0.2,0.9,0.3,1)', fill: 'backwards' }));
 }
 function backToMenu() { ctxMenu.onclick = null; swapMenu(() => renderMenu(ctxItems(ctxState.f, ctxState.ctx), menuHead(ctxState.f)), -1); }
 function subMenu(title, rows, onPick) {
   const tapped = ctxMenu.querySelector('.mi:focus, .mi:hover');
-  if (tapped && !reduceMotion) tapped.animate([{ transform: 'scale(1)' }, { transform: 'scale(.96)' }, { transform: 'scale(1)' }], { duration: 180 });
+  if (tapped && !reduceMotion) tapped.animate([{ transform: 'scale(1)' }, { transform: 'scale(.966)' }, { transform: 'scale(1)' }], { duration: 153 });
   swapMenu(() => {
     ctxMenu.innerHTML = `<button class="mi" data-act="back">${ico('back')}<span><b>${esc(title)}</b></span></button><div class="msep"></div>` +
       rows.map(([v, label, icon, on]) => `<button class="mi" data-v="${v}">${ico(icon)}<span>${esc(label)}</span>${on ? ico('check', 'chev') : ''}</button>`).join('');
@@ -3822,7 +3836,7 @@ ctxMenu.addEventListener('click', e => {
   if (act === 'open' && f.isTrash) { closeCtx(); return openTrash(trashEl); }
   if (act === 'delete' && !inTrash(ctx)) { closeCtx(); return confirmToDelete([f], () => deleteFile(f, ctx)); }
   if (act === 'delete') {
-    if (!b.classList.contains('arm')) { b.classList.add('arm'); b.querySelector('span').textContent = t('Tap again to delete'); b.animate([{ transform: 'scale(1)' }, { transform: 'scale(.96)' }, { transform: 'scale(1)' }], { duration: 300, easing: 'cubic-bezier(.32,.72,0,1)' }); return; }
+    if (!b.classList.contains('arm')) { b.classList.add('arm'); b.querySelector('span').textContent = t('Tap again to delete'); b.animate([{ transform: 'scale(1)' }, { transform: 'scale(.966)' }, { transform: 'scale(1)' }], { duration: 255, easing: 'cubic-bezier(0.32,0.72,0,1)' }); return; }
     closeCtx(); return deleteFile(f, ctx);
   }
   if (act === 'move') return subMenu('Move to', moveTargets(f, ctx).map(t => [t ? t.id : 'root', t ? t.name : 'Files (top level)', 'move']), v => { closeCtx(); moveTo(f, ctx, v === 'root' ? null : [...walk(root)].find(x => x.id === v)); });
@@ -3870,7 +3884,7 @@ function popOutOfFolder(f, ctx, e, oldEl) {
   ctx.list.splice(ctx.list.indexOf(f), 1); ctx.views.delete(f.id); delete f._pos; oldEl.remove();
   root.push(f);
   const { b } = makeItem(f, rootCtx, e.clientX - offX, e.clientY - offY);
-  liftItem(b.el); b.grab(); b.el.querySelector('.lift').style.transform = 'scale(1.09)';
+  liftItem(b.el); b.grab(); b.el.querySelector('.lift').style.transform = 'scale(1.077)';
   const pid = e.pointerId;
   const mv = ev => { if (ev.pointerId !== pid) return; b.dragTo(ev.clientX - offX, ev.clientY - offY, ev.timeStamp); hoverCheck(f, rootCtx); };
   const up = ev => {
@@ -3900,8 +3914,8 @@ function refreshTile(f) {
 }
 function fadeOut(v) {
   if (!v) return; active.delete(v.b);
-  v.el.animate([{ opacity: 1, transform: v.el.style.transform }, { opacity: 0, transform: v.el.style.transform + ' scale(.4)' }],
-    { duration: 320, easing: 'cubic-bezier(.5,0,.3,1)', fill: 'forwards' }).onfinish = () => v.el.remove();
+  v.el.animate([{ opacity: 1, transform: v.el.style.transform }, { opacity: 0, transform: v.el.style.transform + ' scale(.49)' }],
+    { duration: 272, easing: 'cubic-bezier(0.5,0,0.3,1)', fill: 'forwards' }).onfinish = () => v.el.remove();
 }
 /* Trash: deleting moves a file here; it can be put back where it was, or deleted for good */
 const trash = { id: 'trash', kind: 'folder', name: 'Delete', children: [], isTrash: true };
@@ -4097,7 +4111,7 @@ function openBgMenu(x, y) {
     if (a === 'tidy') { if (fullKey === 'files') return fullGrid(true); fileTargets().forEach((t, i) => setTimeout(() => t.b.springTo(t.x, t.y, null, 200, 24), i * 18)); }
   };
   ctxCatch.hidden = false; ctxMenu.hidden = false; placeCtx();
-  ctxMenu.animate([{ opacity: 0, transform: 'scale(.86)' }, { opacity: 1, transform: 'none' }], { duration: SPR_OPEN.d, easing: SPR_OPEN.e });
+  ctxMenu.animate([{ opacity: 0, transform: 'scale(.881)' }, { opacity: 1, transform: 'none' }], { duration: SPR_OPEN.d, easing: SPR_OPEN.e });
 }
 // tapping anywhere that isn't a file (or the bar for the selection) finishes selecting; the same for a lasso selection
 document.addEventListener('pointerdown', e => {
@@ -4112,11 +4126,11 @@ function startSelect() {
 function endSelect() {
   if (!selecting) return; selecting = false; selSet.clear(); document.body.classList.remove('selecting');
   document.querySelectorAll('.item.picked').forEach(x => x.classList.remove('picked'));
-  const sb = $('#selBar'); sb.animate([{ opacity: 1 }, { opacity: 0, transform: 'translate(-50%, 12px)' }], { duration: 200 }).onfinish = () => { if (!selecting) sb.hidden = true; };
+  const sb = $('#selBar'); sb.animate([{ opacity: 1 }, { opacity: 0, transform: 'translate(-50%, 12px)' }], { duration: 170 }).onfinish = () => { if (!selecting) sb.hidden = true; };
 }
 function togglePick(f, el) {
   selSet.has(f) ? selSet.delete(f) : selSet.add(f); el.classList.toggle('picked', selSet.has(f));
-  el.querySelector('.tile').animate([{ transform: 'scale(.9)' }, { transform: 'scale(1.04)' }, { transform: 'none' }], { duration: 300, easing: 'cubic-bezier(.32,.72,0,1)' }); syncSelBar();
+  el.querySelector('.tile').animate([{ transform: 'scale(.915)' }, { transform: 'scale(1.034)' }, { transform: 'none' }], { duration: 255, easing: 'cubic-bezier(0.32,0.72,0,1)' }); syncSelBar();
 }
 function syncSelBar() {
   const n = selSet.size; $('#selCount').textContent = n ? t('{n} selected', { n }) : t('Select files');
@@ -4160,7 +4174,7 @@ function enterRail() {
   const first = views.map(v => v.el.getBoundingClientRect());
   views.forEach(v => { active.delete(v.b); v.el.classList.add('inrail'); list.append(v.el); }); railDivider();
   if (viewer.origin) viewer.origin.style.visibility = '';
-  rail.animate([{ opacity: 0, transform: 'translateX(-24px) scale(.96)' }, { opacity: 1, transform: 'none' }], { duration: 420, easing: 'cubic-bezier(.32,.72,0,1)' });
+  rail.animate([{ opacity: 0, transform: 'translateX(-24px) scale(.966)' }, { opacity: 1, transform: 'none' }], { duration: 357, easing: 'cubic-bezier(0.32,0.72,0,1)' });
   views.forEach((v, i) => { const r = v.el.getBoundingClientRect(), a = first[i];
     v.el.animate([{ translate: `${a.left - r.left}px ${a.top - r.top}px` }, { translate: '0px 0px' }], { duration: SPR_OPEN.d + i * 18, easing: SPR_OPEN.e }); });
 }
@@ -4169,7 +4183,7 @@ function exitRail() {
   const rail = $('#rail'), views = root.map(f => rootCtx.views.get(f.id)).filter(Boolean);
   const first = views.map(v => v.el.getBoundingClientRect());
   views.forEach((v, i) => { v.el.classList.remove('inrail'); filesLayer.append(v.el); v.b.place(first[i].left, first[i].top); });
-  rail.animate([{ opacity: 1 }, { opacity: 0, transform: 'translateX(-24px) scale(.96)' }], { duration: 300, easing: 'cubic-bezier(.32,.72,0,1)' }).onfinish = () => { if (!railOn) rail.hidden = true; };
+  rail.animate([{ opacity: 1 }, { opacity: 0, transform: 'translateX(-24px) scale(.966)' }], { duration: 255, easing: 'cubic-bezier(0.32,0.72,0,1)' }).onfinish = () => { if (!railOn) rail.hidden = true; };
   if (viewer.open && viewer.origin) viewer.origin.style.visibility = 'hidden';
   views.forEach((v, i) => { const q = saved.free && saved.free.get(v.f.id); if (q) setTimeout(() => v.b.springTo(q.x, q.y, null, 190, 26), i * 14); else settleNew(v.b); });
 }
@@ -4308,7 +4322,7 @@ function boot() {
   });
   sheet.springTo(home.x, home.y, home.s, 140, 18);
   renderQuick(); syncMoodBtn(); applyPalette(MOODS[1].c); setCurrentMarker(); noteChanged(); updateCount(); renderToday(); syncLights(); centerTop(false);
-  paper.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 700, easing: 'ease-out' });
+  paper.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 595, easing: 'ease-out' });
 
   let rt = 0;
   addEventListener('resize', () => {

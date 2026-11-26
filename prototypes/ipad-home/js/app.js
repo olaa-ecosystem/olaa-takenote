@@ -86,7 +86,7 @@ const I18N = {
   'Files on the desk': ['Tệp trên màn hình', 'デスクのファイル', '데스크의 파일', 'Fichiers sur le bureau', '桌面上的文件'],
   'Tap to open, press and hold for the menu, hold one file over another to make a folder.': ['Chạm để mở, giữ để mở menu, giữ một tệp lên tệp khác để tạo thư mục.', 'タップで開く、長押しでメニュー、重ねて待つとフォルダに。', '눌러서 열고, 길게 눌러 메뉴, 파일을 다른 파일 위에 올려 두면 폴더가 돼요.', 'Touchez pour ouvrir, maintenez pour le menu, posez un fichier sur un autre pour créer un dossier.', '点按打开，长按出菜单，把一个文件停在另一个上方即可建文件夹。'],
   'Oversized': ['Khổ lớn', '特大', '특대', 'Très grand', '超大'],
-  'Rotates': ['Xoay được', '回転可', '회전 가능', 'Pivote', '可旋转'],
+  'No edges': ['Không giới hạn', '端なし', '끝없음', 'Sans bords', '无边界'],
   'Move to Delete': ['Chuyển vào mục Xoá', '「削除」へ移動', '삭제 항목으로 이동', 'Déplacer vers Supprimés', '移到“删除”'],
   'Move folder to Delete': ['Chuyển thư mục vào mục Xoá', 'フォルダを「削除」へ移動', '폴더를 삭제 항목으로 이동', 'Déplacer le dossier vers Supprimés', '将文件夹移到“删除”'],
   'Restore': ['Khôi phục', '復元', '복원', 'Restaurer', '恢复'],
@@ -1082,10 +1082,10 @@ function drawLaser(ctx, pts, color, alpha) {
   ctx.strokeStyle = inkColor(color); ctx.shadowColor = inkColor(color); ctx.shadowBlur = 14; ctx.lineWidth = 5; tracePath(ctx, pts); ctx.stroke();
   ctx.shadowBlur = 0; ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 1.6; ctx.stroke(); ctx.restore();
 }
-function extent(strokes) { let w = SW, h = SH; for (const s of strokes) { const b = bbox(s); w = Math.max(w, b[2] + 24); h = Math.max(h, b[3] + 24); } return { w, h }; }
+function extent(strokes) { let x = 0, y = 0, x1 = SW, y1 = SH; for (const s of strokes) { const b = bbox(s); x = Math.min(x, b[0] - 24); y = Math.min(y, b[1] - 24); x1 = Math.max(x1, b[2] + 24); y1 = Math.max(y1, b[3] + 24); } return { x, y, w: x1 - x, h: y1 - y }; }
 function paintStrokes(canvas, strokes, cssW, cssH) {
   const k = 2; canvas.width = Math.round(cssW * k); canvas.height = Math.round(cssH * k);
-  const e = extent(strokes), ctx = canvas.getContext('2d'); const sc = Math.min(cssW / e.w, cssH / e.h) * k; ctx.setTransform(sc, 0, 0, sc, 0, 0);
+  const e = extent(strokes), ctx = canvas.getContext('2d'); const sc = Math.min(cssW / e.w, cssH / e.h) * k; ctx.setTransform(sc, 0, 0, sc, -e.x * sc, -e.y * sc);
   for (const s of strokes) drawStroke(ctx, s);
 }
 
@@ -1156,7 +1156,7 @@ function photo(seed, pal, w = 360, h = 270) {
 
 let uid = 0; const nid = () => 'f' + (++uid);
 const mk = {
-  note: (name, strokes = [], date = todayStr, mood = null, paper = 'grid') => ({ id: nid(), kind: 'note', name, strokes, date, mood, paper, undo: [], redo: [] }),
+  note: (name, strokes = [], date = todayStr, mood = null, paper = 'grid') => ({ id: nid(), kind: 'note', name, strokes, date, mood, paper, frame: { id: 'big', big: true }, undo: [], redo: [] }),
   folder: (name, children) => ({ id: nid(), kind: 'folder', name, children }),
   image: (name, src) => ({ id: nid(), kind: 'image', name, src }),
   text: (name, body) => ({ id: nid(), kind: 'text', name, body }),
@@ -1212,10 +1212,15 @@ let canvasK = 0;
    CSS (cheap, so the oversized page stays smooth); when it settles, everything is drawn again, sharp. */
 let RV = null, MX = 0, MY = 0, lastRender = 0;
 function viewM(z, x, y, r, pw, ph) { let m = new DOMMatrix(); if (r) m = m.translate(pw / 2, ph / 2).rotate(r * 180 / Math.PI).translate(-pw / 2, -ph / 2); return m.scale(z).translate(-x, -y); }
+function viewBox() {      // the page area the ink canvases cover, as [x0, y0, x1, y1], when it matters (oversized)
+  if (!isBig() || !RV) return null; const span = Math.hypot(PW + 2 * MX, PH + 2 * MY) / Z / 2 + 40, cx = zx + PW / 2 / Z, cy = zy + PH / 2 / Z;
+  return [cx - span, cy - span, cx + span, cy + span];
+}
+const boxHit = (b, v) => b[2] >= v[0] && b[0] <= v[2] && b[3] >= v[1] && b[1] <= v[3];
 function clr(x) { x.save(); x.setTransform(1, 0, 0, 1, 0, 0); x.clearRect(0, 0, x.canvas.width, x.canvas.height); x.restore(); }
 function renderInk() {
   const r = paper.getBoundingClientRect(), kw = r.width / PW || 1;
-  MX = Math.round(PW * .3); MY = Math.round(PH * .3);
+  const mg = isBig() ? .45 : .3; MX = Math.round(PW * mg); MY = Math.round(PH * mg);
   const w = PW + 2 * MX, h = PH + 2 * MY;
   const k = Math.max(.5, Math.min(4, (devicePixelRatio || 1) * kw, Math.sqrt(14e6 / (w * h))));
   const cw = Math.round(w * k), ch = Math.round(h * k);
@@ -1231,10 +1236,10 @@ function renderInk() {
   redrawBase(); clr(lctx); if (ink) ink.inc = null; scheduleLive();
 }
 function sizeCanvases() { if (ink && ink.stroke) return zoomSettled(); renderInk(); }      // never mid-stroke: the live layer would lose its tip
-const ZMIN = .25, ZMAX = 4, ZSTEPS = [.25, .5, .75, 1, 1.25, 1.5, 2, 2.5, 3, 4], PAPER_PAT = { grid: [24, 24, 0, 0], dots: [22, 22, 11, 11], lines: [0, 32, 0, 70] };
+let ZMIN = .25; const ZMAX = 4, ZSTEPS = [.25, .5, .75, 1, 1.25, 1.5, 2, 2.5, 3, 4], PAPER_PAT = { grid: [24, 24, 0, 0], dots: [22, 22, 11, 11], lines: [0, 32, 0, 70] };
 // where the visible corner may sit: on the page when zoomed in; the page stays centred when zoomed out (down to 25%)
 function panRange(z) {
-  if (isBig()) { const f = current.frame, vw_ = PW / z, vh_ = PH / z; return { x0: -vw_ * .6, x1: f.bw - vw_ * .4, y0: -vh_ * .6, y1: f.bh - vh_ * .4 }; }      // the page can move until 40% of the window still shows it
+  if (isBig()) return { x0: -1e7, x1: 1e7, y0: -1e7, y1: 1e7 };      // oversized: the canvas has no edge
   if (z >= 1) return { x0: 0, x1: PW - PW / z, y0: 0, y1: PH - PH / z };
   const cx = (PW - PW / z) / 2, cy = (PH - PH / z) / 2; return { x0: cx, x1: cx, y0: cy, y1: cy };
 }
@@ -1242,6 +1247,7 @@ const rub = (v, lo, hi) => v < lo ? lo - (lo - v) * .35 : v > hi ? hi + (v - hi)
 function clampPan(soft) { const R = panRange(Z), f = soft ? rub : clamp; zx = f(zx, R.x0, R.x1); zy = f(zy, R.y0, R.y1); }
 function overscrolled() { const R = panRange(Z); return Z < ZMIN - 1e-3 || Z > ZMAX + 1e-3 || zx < R.x0 - .5 || zx > R.x1 + .5 || zy < R.y0 - .5 || zy > R.y1 + .5; }
 function applyZoom(soft) {
+  ZMIN = isBig() ? .1 : .25;
   if (!soft) clampPan(); if (zpinch || zpan || zAnim) zoomHud();
   const inkEl = $('#sheet .ink'); inkEl.style.transformOrigin = '0 0';
   const rotT = ROT ? `translate(${(PW / 2).toFixed(1)}px,${(PH / 2).toFixed(1)}px) rotate(${ROT.toFixed(4)}rad) translate(${(-PW / 2).toFixed(1)}px,${(-PH / 2).toFixed(1)}px) ` : '';
@@ -1250,10 +1256,16 @@ function applyZoom(soft) {
     const d = viewM(Z, zx, zy, ROT, PW, PH).multiply(viewM(RV.Z, RV.zx, RV.zy, RV.ROT, RV.PW, RV.PH).inverse()), same = d.isIdentity || (Math.abs(d.a - 1) < 1e-5 && Math.abs(d.b) < 1e-5 && Math.abs(d.c) < 1e-5 && Math.abs(d.d - 1) < 1e-5 && Math.abs(d.e) < .01 && Math.abs(d.f) < .01);
     inkEl.style.transform = same ? '' : `matrix(${d.a},${d.b},${d.c},${d.d},${d.e},${d.f})`;
     if (!same) { const sc = Math.sqrt(Math.abs(d.a * d.d - d.b * d.c));
-      if ((sc > 1.5 || sc < .66 || Math.abs(d.e) > MX * .7 || Math.abs(d.f) > MY * .7) && performance.now() - lastRender > 90 && !(ink && ink.stroke)) renderInk(); else zoomSettled(); }
+      if (!zpinch && (sc > 1.5 || sc < .66 || Math.abs(d.e) > MX * .7 || Math.abs(d.f) > MY * .7) && performance.now() - lastRender > 140 && !(ink && ink.stroke)) renderInk(); else zoomSettled(); }      // never mid-pinch: the fingers get every frame
   }
   { const big = isBig(); paper.classList.toggle('bigmode', big); let bp = paper.querySelector('.bigpage');
-    if (big) { if (!bp) { bp = document.createElement('i'); paper.prepend(bp); } bp.className = 'bigpage pp-' + (current.paper || 'grid'); bp.style.width = current.frame.bw + 'px'; bp.style.height = current.frame.bh + 'px'; bp.style.transform = viewT; bp.style.setProperty('--lw', (1 / Z).toFixed(3)); bp.style.setProperty('--zs', (1 / Z).toFixed(3)); }
+    if (big) { if (!bp) { bp = document.createElement('i'); paper.prepend(bp); } bp.className = 'bigpage pp-' + (current.paper || 'grid');
+      const P = PAPER_PAT[current.paper || 'grid'] || [24, 24], gm = Z < .3 ? 4 : Z < .6 ? 2 : 1;      // zoomed far out, the pattern steps up so it stays calm
+      const per = Math.max(P[0] || 0, P[1] || 0, 1) * gm, span = Math.hypot(PW, PH) / Z, cx = zx + PW / 2 / Z, cy = zy + PH / 2 / Z, step = per;
+      bp.style.backgroundSize = P[0] ? `${P[0] * gm}px ${P[1] * gm}px` : `100% ${P[1] * gm}px`; bp.style.backgroundPosition = current.paper === 'dots' ? `${P[2] * gm}px ${P[3] * gm}px` : '0 0';
+      const bx = Math.floor((cx - span / 2 - step) / step) * step, by = Math.floor((cy - span / 2 - step) / step) * step, sz = Math.ceil((span + 3 * step) / step) * step;
+      bp.style.width = sz + 'px'; bp.style.height = sz + 'px'; bp.style.transform = viewT + ` translate(${bx}px,${by}px)`;
+      bp.style.setProperty('--lw', (1 / Z).toFixed(3)); bp.style.setProperty('--zs', (1 / Z).toFixed(3)); }
     else if (bp) bp.remove(); }
   const P = PAPER_PAT[current.paper || 'grid'];          // the paper pattern zooms with the ink
   if (!P || (Z === 1 && !zx && !zy)) paper.style.backgroundSize = paper.style.backgroundPosition = '';
@@ -1335,11 +1347,15 @@ function startPinch(a, e) {      // a: the finger already down {id, x, y}; e: th
   const [p, q] = [...pts.values()], r = paper.getBoundingClientRect(), k = r.width / PW, c = { x: (p.x + q.x) / 2, y: (p.y + q.y) / 2 };
   zpinch = { pts, d0: Math.max(20, Math.hypot(p.x - q.x, p.y - q.y)), Z0: Z, r, k, anchor: toLocal({ clientX: c.x, clientY: c.y }, r, k), big: isBig(), R0: ROT, a0: Math.atan2(q.y - p.y, q.x - p.x) };
 }
+let pinchRaf = 0;
 function movePinch(e) {
   zpinch.pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
-  const [p, q] = [...zpinch.pts.values()], d = Math.hypot(p.x - q.x, p.y - q.y), { anchor } = zpinch, r = paper.getBoundingClientRect(), k = r.width / PW;
+  if (!pinchRaf) pinchRaf = requestAnimationFrame(() => { pinchRaf = 0; if (zpinch) pinchStep(); });
+}
+function pinchStep() {
+  const [p, q] = [...zpinch.pts.values()], d = Math.hypot(p.x - q.x, p.y - q.y), { anchor } = zpinch, r = zpinch.r, k = zpinch.k;
   let z = zpinch.Z0 * d / zpinch.d0;
-  z = z < ZMIN ? Math.max(.18, ZMIN - (ZMIN - z) * .35) : z > ZMAX ? ZMAX + (z - ZMAX) * .3 : z;          // a little give past the limits
+  z = z < ZMIN ? Math.max(ZMIN * .7, ZMIN - (ZMIN - z) * .35) : z > ZMAX ? ZMAX + (z - ZMAX) * .3 : z;          // a little give past the limits
   const c = { x: (p.x + q.x) / 2, y: (p.y + q.y) / 2 }; zpinch.c = c;
   // the page point that was between the fingers stays between them
   if (zpinch.big) { let a = Math.atan2(q.y - p.y, q.x - p.x) - zpinch.a0; a = Math.atan2(Math.sin(a), Math.cos(a)); ROT = zpinch.R0 + a; }
@@ -1347,6 +1363,7 @@ function movePinch(e) {
 }
 let zpinch_c = null;
 function endPinch(e) {
+  if (pinchRaf) { cancelAnimationFrame(pinchRaf); pinchRaf = 0; if (zpinch) pinchStep(); }
   if (zpinch && zpinch.big) { const q90 = Math.PI / 2, n = Math.round(ROT / q90); if (Math.abs(ROT - n * q90) < .07) { const c = zpinch.c, r = paper.getBoundingClientRect(), k = r.width / PW, keep = c && toLocal({ clientX: c.x, clientY: c.y }, r, k); ROT = n * q90; if (keep) { const u = unrot((c.x - r.left) / k, (c.y - r.top) / k); zx = keep.x - u.x / Z; zy = keep.y - u.y / Z; } }
     ROT = Math.atan2(Math.sin(ROT), Math.cos(ROT)); if (Math.abs(ROT) < 1e-4) ROT = 0; }      // within 4° of square, it settles square
   zpinch_c = zpinch.c; zpinch = null; $('#sheet .ink').classList.remove('zooming');
@@ -1362,7 +1379,7 @@ function glide(vx, vy, k) {        // px per ms on screen; slows to a stop like 
   zglide = requestAnimationFrame(step);
 }
 function ensureCanvas(w, h) { if (!RV) return; if (Math.abs(w - RV.PW) > MX * .6 || Math.abs(h - RV.PH) > MY * .6) renderInk(); else zoomSettled(); }
-function redrawBase() { clr(bctx); const ex = sel ? new Set(sel.strokes) : null; for (const s of current.strokes) if (!ex || !ex.has(s)) drawStroke(bctx, s); }
+function redrawBase() { clr(bctx); const ex = sel ? new Set(sel.strokes) : null, vis = viewBox(); for (const s of current.strokes) if ((!ex || !ex.has(s)) && (!vis || boxHit(bbox(s), vis))) drawStroke(bctx, s); }
 function setSize(w, h) {
   PW = w; PH = h; ensureCanvas(w, h);
   sheetEl.style.setProperty('--pw', w.toFixed(1) + 'px'); sheetEl.style.setProperty('--ph', h.toFixed(1) + 'px');
@@ -1787,7 +1804,7 @@ function setFrame(id) {
   const F = FRAMES.find(x => x.id === id); if (!F) return;
   if (!isFmt()) freeSize = { w: PW, h: PH };
   ROT = 0;
-  if (F.big) current.frame = { id: 'big', big: true, bw: Math.round(PW * 3), bh: Math.round(PH * 3) };
+  if (F.big) current.frame = { id: 'big', big: true };
   else if (!F.w) delete current.frame;
   else { const sz = sizeForFormat(F); current.frame = { id: F.id, w: F.w, h: F.h, pw: sz.w, ph: sz.h }; }
   markEdited && markEdited(current);
@@ -1795,18 +1812,17 @@ function setFrame(id) {
   if (F.big) bigHome();
   else { Z = 1; zx = zy = 0; }
   sizeCanvases(true); applyZoom(); zoomSettled();
-  toast(F.big ? 'Oversized paper: two fingers pan, zoom and rotate' : F.w ? `Page: ${F.w} × ${F.h}` : 'Page fits the window');
+  toast(F.big ? 'Oversized: no edges. Two fingers pan, zoom and rotate' : F.w ? `Page: ${F.w} × ${F.h}` : 'Page fits the window');
 }
-function bigFitZ() { const f = current.frame; return clamp(Math.min(PW / f.bw, PH / f.bh) * .9, ZMIN, 1); }
-function bigHome() { const f = current.frame; Z = bigFitZ(); zx = f.bw / 2 - PW / Z / 2; zy = f.bh / 2 - PH / Z / 2; }
-function inFrame(q) { const f = current.frame; return !f || !f.big || (q.x >= 0 && q.y >= 0 && q.x <= f.bw && q.y <= f.bh); }
+function bigHome() { Z = 1; zx = zy = 0; ROT = 0; }
+function inFrame() { return true; }
 function exportPng() {
   const f = current.frame, big = f && f.big;
-  const pw = big ? f.bw : PW, ph = big ? f.bh : PH, k = f && f.w ? f.w / PW : big ? Math.min(2, Math.sqrt(16e6 / (pw * ph))) : 2;
+  const ex = big ? extent(current.strokes) : null, ox = big ? ex.x : 0, oy = big ? ex.y : 0, pw = big ? ex.w : PW, ph = big ? ex.h : PH, k = f && f.w ? f.w / PW : big ? Math.min(2, Math.sqrt(16e6 / (pw * ph))) : 2;
   const w = Math.round(pw * k), h = Math.round(ph * k);
   const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d');
   g.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--sheet').trim() || '#fbf8f1'; g.fillRect(0, 0, w, h);
-  g.setTransform(k, 0, 0, k, 0, 0); for (const s of current.strokes) drawStroke(g, s);
+  g.setTransform(k, 0, 0, k, -ox * k, -oy * k); for (const s of current.strokes) drawStroke(g, s);
   const name = (current.name || 'note').replace(/[\\/:*?"<>|]+/g, ' ') + (f && f.w ? ` ${f.w}x${f.h}` : '') + '.png';
   if (dlNs) {      // inside claude.ai the viewer saves through the host (it asks first)
     return c.toBlob(blob => dlNs.save({ filename: name, data: blob }).then(() => toast(`Exported ${w} × ${h} PNG`), err => { if (err && err.code !== 'declined') toast('This view can’t save files.'); }), 'image/png');
@@ -1834,7 +1850,7 @@ sheetEl.addEventListener('pointerdown', e => {
   if (!fingerDraws && e.timeStamp - lastPen < 500) return;
   // double-tap: 200% at that spot, or back to 100%
   if (!fingerDraws && e.timeStamp - lastTap.t < 320 && Math.hypot(e.clientX - lastTap.x, e.clientY - lastTap.y) < 36) {
-    lastTap.t = 0; const r = paper.getBoundingClientRect(), q = toLocal(e, r, r.width / PW); if (isBig()) { const f = current.frame, fz = bigFitZ(), home = Math.abs(Z - fz) > .03 || ROT, z1 = home ? fz : 1; ROT = 0; const R = panRange(z1); return animateView(z1, home ? f.bw / 2 - PW / z1 / 2 : clamp(q.x - PW / z1 / 2, R.x0, R.x1), home ? f.bh / 2 - PH / z1 / 2 : clamp(q.y - PH / z1 / 2, R.y0, R.y1)); }
+    lastTap.t = 0; const r = paper.getBoundingClientRect(), q = toLocal(e, r, r.width / PW); if (isBig()) { const z1 = ROT || Math.abs(Z - 1) > .05 ? 1 : 2; ROT = 0; return animateView(z1, q.x - PW / z1 / 2, q.y - PH / z1 / 2); }      // straighten at 100%, or 200% at that spot
     zoomTo(Math.abs(Z - 1) > .05 ? 1 : 2, q.x, q.y); return;
   }
   tapDown = { id: e.pointerId, t: e.timeStamp, x: e.clientX, y: e.clientY };
@@ -2130,7 +2146,7 @@ function renderToolPop() {
   } else if (k === 'paper') {
     const fid = current.frame ? current.frame.id : 'fit';
     h = `<h4>Page</h4><div class="papers">${[['dots', 'Dots'], ['lines', 'Lines'], ['grid', 'Grid'], ['blank', 'Blank']].map(([v, l]) => `<button data-p="${v}" aria-pressed="${current.paper === v}"><i class="pp-${v}"></i>${l}</button>`).join('')}</div>
-      <h4 class="h4b">${esc(t('Canvas'))}</h4><div class="frames">${FRAMES.map(F => `<button data-fr="${F.id}" aria-pressed="${fid === F.id}"><i style="aspect-ratio:${F.w ? F.w + ' / ' + F.h : '4 / 3'}"${F.big ? ' class="big"' : F.w ? '' : ' class="fit"'}>${F.big ? '<svg viewBox="0 0 24 24"><path d="M19 12a7 7 0 1 1-2.05-4.95"/><path d="M19 4.5v3.2h-3.2"/></svg>' : ''}</i><span>${esc(t(F.name))}</span><small>${F.w ? F.w + ' × ' + F.h : F.big ? esc(t('Rotates')) : esc(t('Whole window'))}</small></button>`).join('')}</div>
+      <h4 class="h4b">${esc(t('Canvas'))}</h4><div class="frames">${FRAMES.map(F => `<button data-fr="${F.id}" aria-pressed="${fid === F.id}"><i style="aspect-ratio:${F.w ? F.w + ' / ' + F.h : '4 / 3'}"${F.big ? ' class="big"' : F.w ? '' : ' class="fit"'}>${F.big ? '<svg viewBox="0 0 24 24"><path d="M19 12a7 7 0 1 1-2.05-4.95"/><path d="M19 4.5v3.2h-3.2"/></svg>' : ''}</i><span>${esc(t(F.name))}</span><small>${F.w ? F.w + ' × ' + F.h : F.big ? esc(t('No edges')) : esc(t('Whole window'))}</small></button>`).join('')}</div>
       <button class="ghost" id="exportPng">${esc(current.frame && current.frame.w ? t('Export {w} × {h} PNG', { w: current.frame.w, h: current.frame.h }) : t('Export PNG'))}</button><p class="tip">Applies to this note.</p>`;
   } else {
     const T = TOOLS[k], sz = sizeFor(k);
@@ -3208,7 +3224,7 @@ function loadNote(f, opt = {}) {
   if (sheetEl.classList.contains('collapsed')) sheetEl.classList.remove('collapsed');
   const inkEl = $('#sheet .ink');
   const swap = () => {
-    clearSel(); const wasFmt = isFmt(); if (!wasFmt && f.frame && f.frame.pw) freeSize = { w: PW, h: PH }; current = f; Z = 1; zx = zy = 0; ROT = 0; if (f.frame && f.frame.big) { const fr = f.frame; Z = clamp(Math.min(PW / fr.bw, PH / fr.bh) * .9, ZMIN, 1); zx = fr.bw / 2 - PW / Z / 2; zy = fr.bh / 2 - PH / Z / 2; } if (wasFmt || (f.frame && f.frame.pw)) showFormat(f); else sheetEl.classList.toggle('bigpaper', isBig()); titleIn.value = f.name; setPaper(f.paper || 'grid'); redrawBase(); setMood(f.mood, false); noteChanged(); setCurrentMarker();
+    clearSel(); const wasFmt = isFmt(); if (!wasFmt && f.frame && f.frame.pw) freeSize = { w: PW, h: PH }; current = f; Z = 1; zx = zy = 0; ROT = 0;  if (wasFmt || (f.frame && f.frame.pw)) showFormat(f); else sheetEl.classList.toggle('bigpaper', isBig()); titleIn.value = f.name; setPaper(f.paper || 'grid'); redrawBase(); setMood(f.mood, false); noteChanged(); setCurrentMarker();
     inkEl.animate([{ opacity: 0, transform: 'scale(1.02)' }, { opacity: 1, transform: 'none' }], { duration: SPR_SOFT.d, easing: SPR_SOFT.e });
   };
   if (kept || opt.at) {       // a new window: the old note stays behind as its own window, this one comes forward
@@ -3997,8 +4013,31 @@ function newNoteIn(folder) {
 }
 let importTarget = null;
 
+/* Apple Pencil on buttons. Safari on iPad does not always turn a Pencil tap into a click (a tap that
+   moves a hair reads as a selection or a stroke), so a Pencil tap on any control acts on lift, and the
+   click Safari may send after it is dropped so nothing fires twice. */
+const PEN_TAP = 'button, [role="button"], [role="radio"], [role="switch"], [role="menuitem"], .cd, .hab, .chip, .sw, .mi, .lgrow, .egrid button, .mood';
+let penTap = null, penClickEl = null, penClickT = 0;
 document.addEventListener('pointerdown', e => {
-  if (e.pointerType === 'mouse') return;
+  if (e.pointerType !== 'pen') return;
+  const b = e.target.closest && e.target.closest(PEN_TAP);
+  penTap = b && !b.disabled && !b.closest('#sheet .paper') ? { b, x: e.clientX, y: e.clientY, t: e.timeStamp } : null;
+}, true);
+document.addEventListener('pointerup', e => {
+  if (e.pointerType !== 'pen' || !penTap) return;
+  const p = penTap; penTap = null;
+  if (e.timeStamp - p.t > 900 || Math.hypot(e.clientX - p.x, e.clientY - p.y) > 16 || !p.b.isConnected || p.b.disabled) return;
+  penClickEl = p.b; penClickT = performance.now();
+  setTimeout(() => { if (penClickEl === p.b && performance.now() - penClickT < 60) p.b.click(); }, 0);      // after this pointerup's own handlers
+}, true);
+document.addEventListener('click', e => {      // Safari's own click for the same tap, if it comes: once is enough
+  if (!e.isTrusted || !penClickEl) return;
+  if (performance.now() - penClickT < 60 && (penClickEl === e.target || penClickEl.contains(e.target))) { penClickT -= 1000; return; }      // the real click came first: let it through, skip ours
+  if (performance.now() - penClickT < 450 && (penClickEl === e.target || penClickEl.contains(e.target))) { e.stopPropagation(); e.preventDefault(); }
+}, true);
+document.addEventListener('pointercancel', e => { if (e.pointerType === 'pen') penTap = null; }, true);
+document.addEventListener('pointerdown', e => {
+  if (e.pointerType !== 'touch') return;      // fingers only: pointer capture on a button can swallow a Pencil tap in Safari
   const b = e.target.closest && e.target.closest('button, [role="button"], .cd, .hab, .chip');
   if (!b || b.matches('.minibtn, input')) return;
   try { b.setPointerCapture(e.pointerId); } catch (_) {}
